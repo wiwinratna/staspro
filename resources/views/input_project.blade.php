@@ -150,11 +150,11 @@
     <div class="d-flex">
         <!-- Sidebar -->
         <div class="sidebar">
-            <a href="/dashboard">Dashboard</a>
-            <a href="/project" class="active">Project</a>
+            <a href="{{ route('dashboard') }}">Dashboard</a>
+            <a href="{{ route('project.index') }}" class="active">Project</a>
             <a href="{{ route('requestpembelian.index') }}">Request Pembelian</a>
-            <a href="/pencatatan_transaksi">Pencatatan Transaksi</a>
-            <a href="/laporan_keuangan">Laporan Keuangan</a>
+            <a href="{{ route('pencatatan_transaksi') }}">Pencatatan Transaksi</a>
+            <a href="{{ route('laporan_keuangan') }}">Laporan Keuangan</a>
         </div>
 
         <!-- Main Content -->
@@ -167,7 +167,7 @@
                 <p class="text-danger">{{ $message }}</p>
             @endif
             <div class="text mt-10">
-                <a href="{{ route('project.index') }}" class="px-3"><span class="me-1">
+                <a href=""{{ route('project.index') }}"" class="px-3"><span class="me-1">
                         < </span>Project</a>
             </div>
             <div class="form-container">

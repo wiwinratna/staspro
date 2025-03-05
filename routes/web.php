@@ -6,6 +6,7 @@ use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\RequestpembelianController;
 use App\Http\Controllers\SumberdanaController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\TransaksiController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/login', [AuthController::class, 'index'])->name('login')->middleware('guest');
@@ -18,7 +19,7 @@ Route::get('/', function () {
 });
 
 Route::middleware('auth')->group(function () {
-    Route::get('/dashboard', [DashboardController::class, 'index']);
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
     Route::resource('project', ProjectController::class);
     Route::get('/project/proposal/{id}', [ProjectController::class, 'download_proposal'])->name('project.downloadproposal');
@@ -43,12 +44,18 @@ Route::middleware('auth')->group(function () {
     Route::post('/requestpembelian/detail/edit/{id}', [RequestpembelianController::class, 'updatedetail'])->name('requestpembelian.updatedetail');
     Route::get('/requestpembelian/detail/destroy/{id}', [RequestpembelianController::class, 'destroydetail'])->name('requestpembelian.destroydetail');
 
-});
+    // Transaksi Routes
+    Route::get('/pencatatan_transaksi', [TransaksiController::class, 'index'])->name('pencatatan_transaksi');
+    Route::get('/form_input_transaksi', [TransaksiController::class, 'create'])->name('form_input_transaksi');
+    Route::post('/transaksi', [TransaksiController::class, 'store'])->name('transaksi.store');
+    Route::get('/transaksi/edit/{id}', [TransaksiController::class, 'edit'])->name('transaksi.edit');
+    Route::put('/transaksi/{id}', [TransaksiController::class, 'update'])->name('transaksi.update');
+    Route::delete('/transaksi/{id}', [TransaksiController::class, 'destroy'])->name('transaksi.destroy');
 
-Route::get('/pencatatan_transaksi', function () {
-    return view('pencatatan_transaksi');
-});
+    // Filter Transaksi (jika diperlukan)
+    Route::get('/filter_transaksi', [TransaksiController::class, 'filterTransaksi'])->name('filter_transaksi');
 
-Route::get('/laporan_keuangan', function () {
-    return view('laporan_keuangan');
+    // Laporan Keuangan dengan filter berdasarkan Tim Penelitian dan Kategori Pendanaan
+    Route::get('/laporan_keuangan', [TransaksiController::class, 'laporanKeuangan'])->name('laporan_keuangan');
+    Route::get('/laporan_keuangan/export/excel', [TransaksiController::class, 'exportExcel'])->name('laporan.export.excel');
 });

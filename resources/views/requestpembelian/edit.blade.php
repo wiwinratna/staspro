@@ -153,11 +153,11 @@
     <div class="d-flex">
         <!-- Sidebar -->
         <div class="sidebar">
-            <a href="/dashboard">Dashboard</a>
-            <a href="/project">Project</a>
+            <a href="{{ route('dashboard') }}">Dashboard</a>
+            <a href="{{ route('project.index') }}">Project</a>
             <a href="{{ route('requestpembelian.index') }}" class="active">Request Pembelian</a>
-            <a href="/pencatatan_transaksi">Pencatatan Transaksi</a>
-            <a href="/laporan_keuangan">Laporan Keuangan</a>
+            <a href="{{ route('pencatatan_transaksi') }}">Pencatatan Transaksi</a>
+            <a href="{{ route('laporan_keuangan') }}">Laporan Keuangan</a>
         </div>
 
         <!-- Main Content -->
