@@ -11,58 +11,69 @@
             background-color: #f8f9fa;
             font-family: Arial, sans-serif;
         }
+
         .navbar {
-            background-color: #2AD000;
+            background-color: #006400;
             color: white;
         }
+
         .sidebar {
             background-color: #d9d9d9;
-            height: 100vh;
             padding: 20px;
+            min-height: 100vh;
+            width: 250px;
         }
+
         .sidebar a {
-            text-decoration: none;
-            display: flex;
-            align-items: center;
+            display: block;
             color: #333;
             padding: 10px;
-            margin-bottom: 5px;
             border-radius: 5px;
+            text-decoration: none;
+            margin-bottom: 10px;
         }
-        .sidebar a:hover {
-            background-color: #e2e2e2;
-        }
-        .sidebar a.active {
-            background-color: #2AD000;
+
+        .sidebar a:hover, .sidebar a.active {
+            background-color: #006400;
             color: white;
         }
-        footer {
-            background-color: #2AD000;
+
+        .content {
+            flex-grow: 1;
+            padding: 20px;
+        }
+
+        .card {
+            background-color: #006400;
             color: white;
-            text-align: center;
-            padding: 10px;
-            position: fixed;
-            bottom: 0;
-            width: 100%;
+            border-radius: 10px;
+            padding: 20px;
+        }
+
+        .filter-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 20px;
         }
     </style>
 </head>
 <body>
-    <!-- Top Navbar -->
-    <nav class="navbar navbar-expand-lg">
+     <!-- Top Navbar -->
+     <nav class="navbar navbar-expand-lg">
         <div class="container-fluid d-flex justify-content-between align-items-center">
             <a class="navbar-brand" href="#">
-                <img src="file:///D:/MAGANG/STAS-RG/Logo/Logo%20STAS-RG.png" alt="Logo" style="height: 40px;">
+                <img src="/assets/logo.png" alt="Logo" style="height: 40px;">
             </a>
             <div class="d-flex align-items-center">
                 <button class="btn text-white me-3">
-                    <i class="fas fa-bell"></i>
+                    <i class="fa-solid fa-bell"></i>
                 </button>
                 <div class="dropdown">
-                    <button class="btn dropdown-toggle p-0 d-flex align-items-center" id="profileDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                        <img src="https://via.placeholder.com/30" alt="Profile Picture" class="rounded-circle">
+                    <button class="btn dropdown-toggle p-0 d-flex align-items-center" id="profileDropdown" data-bs-toggle="dropdown">
+                        <img src="https://via.placeholder.com/30" alt="Profile" class="rounded-circle">
                     </button>
-                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="profileDropdown">
+                    <ul class="dropdown-menu dropdown-menu-end">
                         <li><a class="dropdown-item" href="#">Edit Profil</a></li>
                         <li><a class="dropdown-item" href="#">Pengaturan</a></li>
                         <li><hr class="dropdown-divider"></li>

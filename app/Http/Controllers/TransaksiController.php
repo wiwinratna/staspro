@@ -186,6 +186,6 @@ class TransaksiController extends Controller
 
         $transaksis = $query->get();
 
-        return Excel::download(new LaporanExport($transaksis), 'laporan_keuangan.xlsx');
+        return Excel::download(new LaporanExport($transaksis), 'Laporan_Keuangan.xlsx');
     }
 }

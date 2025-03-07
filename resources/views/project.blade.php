@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard</title>
+    <title>Project</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         body {
@@ -13,7 +13,7 @@
         }
 
         .navbar {
-            background-color: #2AD000;
+            background-color: #006400;
             color: white;
         }
 
@@ -42,55 +42,51 @@
             padding: 10px;
             margin-bottom: 5px;
             border-radius: 5px;
+            transition: background 0.3s ease-in-out;
         }
 
-        .sidebar a:hover {
-            background-color: #e2e2e2;
-        }
-
+        .sidebar a:hover,
         .sidebar a.active {
-            background-color: #2AD000;
+            background-color: #006400;
             color: white;
         }
 
-
         .card {
-            background-color: #2AD000;
+            background-color: #006400;
             height: 200px;
             color: white;
             border: none;
             border-radius: 10px;
-            padding: 10px;
+            padding: 20px;
             margin-top: 20px;
-            margin-bottom: 5px;
+            transition: transform 0.3s ease-in-out;
+        }
 
+        .card:hover {
+            transform: scale(1.05);
         }
 
         .card h3 {
-            font-size: 2.5rem;
-            margin-bottom: 20px;
-        }
-
-        .card p {
-            margin: 0;
+            font-size: 2rem;
+            margin-bottom: 15px;
         }
 
         .text a {
             color: white;
             text-decoration: none;
             font-size: 14px;
-            position: relative;
-            left: 10px;
-            border: 2px solid #2AD000;
-            padding: 5px 10px;
+            display: inline-block;
+            padding: 8px 15px;
             border-radius: 20px;
-            background-color: #2AD000;
+            background-color: #006400;
+            border: 2px solid #006400;
+            transition: 0.3s ease-in-out;
         }
 
         .text a:hover {
-            text-decoration: underline;
             background-color: white;
-            color: #2AD000;
+            color: #006400;
+            text-decoration: none;
         }
     </style>
 </head>
@@ -98,8 +94,7 @@
 <body>
     <!-- Top Navbar -->
     <nav class="navbar navbar-expand-lg">
-        <div class="container-fluid">
-            <a class="navbar-brand text-white" href="#">LOGO</a>
+        <div class="container-fluid d-flex justify-content-end">
             @include('navbar')
         </div>
     </nav>
@@ -108,7 +103,7 @@
         <!-- Sidebar -->
         <div class="sidebar">
             <a href="{{ route('dashboard') }}">Dashboard</a>
-            <a href="{{ route('project.index') }}"class="active">Project</a>
+            <a href="{{ route('project.index') }}" class="active">Project</a>
             <a href="{{ route('requestpembelian.index') }}">Request Pembelian</a>
             <a href="{{ route('pencatatan_transaksi') }}">Pencatatan Transaksi</a>
             <a href="{{ route('laporan_keuangan') }}">Laporan Keuangan</a>
@@ -117,14 +112,16 @@
         <!-- Main Content -->
         <div class="container-fluid p-4">
             <h1 class="mb-4">Project</h1>
+
             @if ($message = Session::get('success'))
                 <p class="text-success">{{ $message }}</p>
             @endif
             @if ($message = Session::get('error'))
                 <p class="text-danger">{{ $message }}</p>
             @endif
-            <div class="text mt-10">
-                <a href="{{ route('project.create') }}" class="px-3"><span class="me-1">+</span>Input Project</a>
+
+            <div class="text mb-3">
+                <a href="{{ route('project.create') }}"><span class="me-1">+</span> Input Project</a>
             </div>
 
             <div class="row g-2">

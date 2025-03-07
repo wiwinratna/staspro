@@ -27,7 +27,7 @@
         }
 
         .card-header {
-            background-color: #2AD000;
+            background-color: #006400;
             /* Primary Green */
             color: white;
             text-align: center;
@@ -61,7 +61,7 @@
         }
 
         .nav-tabs .nav-link.active {
-            background-color: #2AD000;
+            background-color: #006400;
             color: white;
         }
 
@@ -74,13 +74,13 @@
         }
 
         .form-control:focus {
-            border-color: #2AD000;
+            border-color: #006400;
             box-shadow: 0 0 5px rgba(42, 208, 0, 0.5);
             outline: none;
         }
 
         .btn-primary {
-            background-color: #2AD000;
+            background-color: #006400;
             border: none;
             height: 45px;
             border-radius: 15px;
@@ -93,7 +93,7 @@
         }
 
         .text-center a {
-            color: #2AD000;
+            color: #006400;
             text-decoration: none;
             font-size: 14px;
         }

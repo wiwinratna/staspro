@@ -14,7 +14,7 @@
 
         /* Navbar */
         .navbar {
-            background-color: #2AD000;
+            background-color: #006400;
             color: white;
         }
 
@@ -52,7 +52,7 @@
         }
 
         .sidebar a.active {
-            background-color: #2AD000;
+            background-color: #006400;
             color: white;
         }
 
@@ -102,7 +102,7 @@
         }
 
         .submit-btn {
-            background-color: #2AD000;
+            background-color: #006400;
             color: #fff;
             border: none;
             padding: 10px 20px;
@@ -121,8 +121,7 @@
 <body>
     <!-- Top Navbar -->
     <nav class="navbar navbar-expand-lg">
-        <div class="container-fluid">
-            <a class="navbar-brand text-white" href="#">LOGO</a>
+        <div class="container-fluid d-flex justify-content-end">
             @include('navbar')
         </div>
     </nav>

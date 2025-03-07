@@ -8,45 +8,56 @@
   <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
   <style>
-    body {
-      background-color: #f8f9fa;
-      font-family: Arial, sans-serif;
-    }
-    .navbar {
-      background-color: #2AD000;
-      color: white;
-    }
-    .sidebar {
-      background-color: #d9d9d9;
-      height: 100vh;
-      padding: 20px;
-    }
-    .sidebar a {
-      text-decoration: none;
-      display: flex;
-      align-items: center;
-      color: #333;
-      padding: 10px;
-      margin-bottom: 5px;
-      border-radius: 5px;
-    }
-    .sidebar a:hover {
-      background-color: #e2e2e2;
-    }
-    .sidebar a.active {
-      background-color: #2AD000;
-      color: white;
-    }
-    footer {
-      background-color: #2AD000;
-      color: white;
-      text-align: center;
-      padding: 10px;
-      position: fixed;
-      bottom: 0;
-      width: 100%;
-    }
-  </style>
+        body {
+            background-color: #f8f9fa;
+            font-family: Arial, sans-serif;
+        }
+
+        .navbar {
+            background-color: #006400;
+            color: white;
+        }
+
+        .sidebar {
+            background-color: #d9d9d9;
+            padding: 20px;
+            min-height: 100vh;
+            width: 250px;
+        }
+
+        .sidebar a {
+            display: block;
+            color: #333;
+            padding: 10px;
+            border-radius: 5px;
+            text-decoration: none;
+            margin-bottom: 10px;
+        }
+
+        .sidebar a:hover, .sidebar a.active {
+            background-color: #006400;
+            color: white;
+        }
+
+        .content {
+            flex-grow: 1;
+            padding: 20px;
+        }
+
+        .card {
+            background-color: #006400;
+            color: white;
+            border-radius: 10px;
+            padding: 20px;
+        }
+
+        .filter-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+    </style>
 </head>
 <body>
   <!-- Top Navbar -->

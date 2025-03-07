@@ -13,7 +13,7 @@
         }
 
         .navbar {
-            background-color: #2AD000;
+            background-color: #006400;
             color: white;
         }
 
@@ -49,7 +49,7 @@
         }
 
         .sidebar a.active {
-            background-color: #2AD000;
+            background-color: #006400;
             color: white;
         }
 
@@ -80,10 +80,10 @@
             font-size: 14px;
             position: relative;
             left: 10px;
-            border: 2px solid #2AD000;
+            border: 2px solid #006400;
             padding: 5px 10px;
             border-radius: 20px;
-            background-color: #2AD000;
+            background-color: #006400;
 
         }
 
@@ -94,7 +94,7 @@
         .text a:hover {
             text-decoration: underline;
             background-color: white;
-            color: #2AD000;
+            color: #006400;
         }
     </style>
 </head>
@@ -102,8 +102,7 @@
 <body>
     <!-- Top Navbar -->
     <nav class="navbar navbar-expand-lg">
-        <div class="container-fluid">
-            <a class="navbar-brand text-white" href="#">LOGO</a>
+        <div class="container-fluid d-flex justify-content-end">
             @include('navbar')
         </div>
     </nav>
