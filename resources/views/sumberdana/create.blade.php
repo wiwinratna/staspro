@@ -33,25 +33,21 @@
         /* Sidebar */
         .sidebar {
             background-color: #d9d9d9;
-            height: 100vh;
             padding: 20px;
-            width: 220px;
+            min-height: 100vh;
+            width: 250px;
         }
 
         .sidebar a {
-            text-decoration: none;
             display: block;
             color: #333;
             padding: 10px;
-            margin-bottom: 5px;
             border-radius: 5px;
+            text-decoration: none;
+            margin-bottom: 10px;
         }
 
-        .sidebar a:hover {
-            background-color: #e2e2e2;
-        }
-
-        .sidebar a.active {
+        .sidebar a:hover, .sidebar a.active {
             background-color: #006400;
             color: white;
         }
