@@ -135,16 +135,11 @@
                             <div class="input-group">
                                 <input type="password" id="password" name="password" class="form-control"
                                     placeholder="Enter your password" required>
-                                <button class="btn btn-outline-secondary" type="button">
-                                    <i class="bi bi-eye"></i>
                                 </button>
                             </div>
                         </div>
                         <div class="d-grid">
                             <button type="submit" class="btn btn-primary">Login</button>
-                        </div>
-                        <div class="text-center mt-3">
-                            <a href="#">Forgot password?</a>
                         </div>
                     </form>
                 </div>
@@ -162,18 +157,19 @@
                             <input type="email" id="email" name="email" class="form-control"
                                 placeholder="Enter your email" required>
                         </div>
-                        <div class="mb-3">
+                        <div class="mb-3 row">
+                        <div class="col-md-6">
                             <label for="password" class="form-label">Password</label>
                             <input type="password" id="password" name="password" class="form-control"
                                 placeholder="Create a password" required>
                         </div>
-                        <div class="mb-3">
+                        <div class="col-md-6">
                             <label for="password_confirmation" class="form-label">Confirmation Password</label>
                             <input type="password" id="password_confirmation" name="password_confirmation"
-                                class="form-control" placeholder="password_confirmation" required>
+                                class="form-control" placeholder="Confirm your password" required>
                         </div>
                         <div class="mb-3">
-                            <label for="role" class="form-label">Confirmation Password</label>
+                            <label for="role" class="form-label">Role</label>
                             <select name="role" id="role" class="form-select">
                                 <option value="admin">Admin</option>
                                 <option value="peneliti">Peneliti</option>
