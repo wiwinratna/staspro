@@ -50,7 +50,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/requestpembelian/detail/destroy/{id}', [RequestpembelianController::class, 'destroydetail'])->name('requestpembelian.destroydetail');
 
     // Transaksi Routes
-    Route::get('/pencatatan_transaksi', [TransaksiController::class, 'index'])->name('pencatatan_transaksi');
+    Route::get('/pencatatan-transaksi', [TransaksiController::class, 'index'])->name('pencatatan_transaksi');
     Route::get('/form_input_transaksi', [TransaksiController::class, 'create'])->name('form_input_transaksi');
     Route::post('/transaksi', [TransaksiController::class, 'store'])->name('transaksi.store');
     Route::get('/transaksi/edit/{id}', [TransaksiController::class, 'edit'])->name('transaksi.edit');

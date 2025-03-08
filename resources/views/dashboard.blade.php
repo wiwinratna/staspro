@@ -86,9 +86,9 @@
                 </div>
                 <div class="col-md-3">
                     <div class="card h-100 text-center">
-                        <h3>0</h3>
+                        <h3>Rp {{ number_format($totalNominal, 2, ',', '.') }}</h3>
                         <p>Total Transaksi Bulan Ini</p>
-                        <a href="#" class="text-white">More info &rarr;</a>
+                        <a href="{{ route('pencatatan_transaksi') }}" class="text-white">More info &rarr;</a>
                     </div>
                 </div>
                 <div class="col-md-3">
