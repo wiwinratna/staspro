@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Http\Controllers;
 
 use App\Models\Project;
@@ -6,110 +7,104 @@ use App\Models\Sumberdana;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 class ProjectController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * Tampilkan daftar proyek.
      */
     public function index()
     {
-        $project = Project::all();
-        return view('project', ['project' => $project]);
+        $projects = Project::all();
+        return view('project', compact('projects'));
     }
 
     /**
-     * Show the form for creating a new resource.
+     * Form untuk menambah proyek baru.
      */
     public function create()
     {
-        $sumber_internal  = Sumberdana::where('jenis_pendanaan', 'internal')->get();
+        $sumber_internal = Sumberdana::where('jenis_pendanaan', 'internal')->get();
         $sumber_eksternal = Sumberdana::where('jenis_pendanaan', 'eksternal')->get();
-        return view('input_project', ['sumber_internal' => $sumber_internal, 'sumber_eksternal' => $sumber_eksternal]);
+        return view('input_project', compact('sumber_internal', 'sumber_eksternal'));
     }
 
     /**
-     * Store a newly created resource in storage.
+     * Simpan proyek ke database.
      */
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'jumlah_dana'        => 'required',
-            'tahun'              => 'required',
-            'nama_project'       => 'required',
-            'kategori_pendanaan' => 'required',
-            'durasi'             => 'required',
-            'deskripsi'          => 'required',
-            'file_proposal'      => 'required|mimes:pdf|max:5120',
-            'file_rab'           => 'required|mimes:xlsx,xls,csv|max:5120',
+        // Validasi input
+        $validatedData = $request->validate([
+            'nama_project'      => 'required|string|max:255',
+            'tahun'             => 'required|numeric',
+            'durasi'            => 'required|string',
+            'deskripsi'         => 'required|string',
+            'file_proposal'     => 'required|mimes:pdf|max:2048',
+            'file_rab'          => 'required|mimes:xlsx|max:2048',
+            'kategori_pendanaan'=> 'required|string',
+            'jumlah_dana'       => 'required|numeric',
         ]);
 
-        try {
-            $file_proposal = $request->file('file_proposal');
-            $filename_proposal = time() . '.' . $file_proposal->getClientOriginalExtension();
-            $file_proposal->move('file_proposal', $filename_proposal);
+        // Simpan file ke storage/public/proposals dan storage/public/rab_files
+        $proposalPath = $request->file('file_proposal')->store('public/proposals');
+        $rabPath = $request->file('file_rab')->store('public/rab_files');
 
-            $file_rab     = $request->file('file_rab');
-            $filename_rab = time() . '.' . $file_rab->getClientOriginalExtension();
-            $file_rab->move('file_rab', $filename_rab);
+        // Simpan data proyek ke database
+        Project::create([
+            'nama_project'      => $validatedData['nama_project'],
+            'tahun'             => $validatedData['tahun'],
+            'durasi'            => $validatedData['durasi'],
+            'deskripsi'         => $validatedData['deskripsi'],
+            'file_proposal'     => str_replace('public/', '', $proposalPath),
+            'file_rab'          => str_replace('public/', '', $rabPath),
+            'kategori_pendanaan'=> $validatedData['kategori_pendanaan'],
+            'jumlah_dana'       => $validatedData['jumlah_dana'],
+            'user_id'           => Auth::id(), // Menyimpan ID user yang membuat proyek
+        ]);
 
-            Project::create([
-                'jumlah_dana'     => $request->jumlah_dana,
-                'tahun'           => $request->tahun,
-                'nama_project'    => $request->nama_project,
-                'id_sumber_dana'  => $request->kategori_pendanaan,
-                'durasi'          => $request->durasi,
-                'deskripsi'       => $request->deskripsi,
-                'file_proposal'   => $filename_proposal,
-                'file_rab'        => $filename_rab,
-                'user_id_created' => Auth::user()->id,
-                'user_id_updated' => Auth::user()->id,
-            ]);
-
-            return redirect()->route('project.index')->with('success', 'Data berhasil ditambahkan');
-        } catch (\Exception $e) {
-            return redirect()->route('project.index')->with('error', $e->getMessage());
-        }
+        return redirect()->route('project.index')->with('success', 'Project berhasil disimpan.');
     }
 
     /**
-     * Display the specified resource.
+     * Tampilkan detail proyek.
      */
     public function show(Project $project)
     {
-        $project = Project::find($project->id);
-        $anggota = DB::table('detail_project as a')
-            ->leftJoin('users as b', 'a.id_user', '=', 'b.id')
-            ->where('a.id_project', $project->id)
-            ->select('b.name')
-            ->get();
+        $anggota = $project->users()->select('id', 'name')->get();
+        $users = User::whereNotIn('id', $anggota->pluck('id'))
+                     ->where('id', '!=', Auth::id())
+                     ->where('role', '!=', 'admin')
+                     ->select('id', 'name')
+                     ->get();
 
-        $users = DB::table('users as b')
-            ->leftJoin('detail_project as a', function ($join) use ($project) {
-                $join->on('a.id_user', '=', 'b.id')
-                    ->where('a.id_project', '=', $project->id);
-            })
-            ->whereNull('a.id_user')
-            ->where('b.id', '!=', Auth::user()->id)
-            ->where('b.role', '!=', 'admin')
-            ->select('b.name', 'b.id')
-            ->get();
-
-        return view('detail_project', ['project' => $project, 'anggota' => $anggota, 'users' => $users]);
+        return view('detail_project', compact('project', 'anggota', 'users'));
     }
 
-    public function download_proposal($id)
+    /**
+     * Download file proposal.
+     */
+    public function download_proposal(Project $project)
     {
-        $project = Project::find($id);
+        $filePath = "public/{$project->file_proposal}";
 
-        return response()->download(public_path('file_proposal/' . $project->file_proposal));
+        if (!Storage::exists($filePath)) {
+            return back()->with('error', 'File proposal tidak ditemukan.');
+        }
+        return Storage::download($filePath);
     }
 
-    public function download_rab($id)
+    /**
+     * Download file RAB.
+     */
+    public function download_rab(Project $project)
     {
-        $project = Project::find($id);
+        $filePath = "public/{$project->file_rab}";
 
-        return response()->download(public_path('file_rab/' . $project->file_rab));
+        if (!Storage::exists($filePath)) {
+            return back()->with('error', 'File RAB tidak ditemukan.');
+        }
+        return Storage::download($filePath);
     }
 }

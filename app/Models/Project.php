@@ -1,21 +1,52 @@
 <?php
+
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Project extends Model
 {
-    protected $table    = 'project';
+    use HasFactory;
+
+    protected $table = 'project';
+
     protected $fillable = [
-        'jumlah_dana',
-        'tahun',
         'nama_project',
-        'id_sumber_dana',
+        'tahun',
         'durasi',
         'deskripsi',
         'file_proposal',
         'file_rab',
+        'kategori_pendanaan',
+        'jumlah_dana',
+        'id_sumber_dana',
         'user_id_created',
         'user_id_updated',
     ];
+
+    /**
+     * Relasi ke tabel sumberdana.
+     */
+    public function sumberDana(): BelongsTo
+    {
+        return $this->belongsTo(Sumberdana::class, 'id_sumber_dana');
+    }
+
+    /**
+     * Relasi ke user yang membuat project.
+     */
+    public function createdBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'user_id_created');
+    }
+
+    /**
+     * Relasi ke user yang terakhir mengupdate project.
+     */
+    public function updatedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'user_id_updated');
+    }
 }

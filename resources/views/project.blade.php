@@ -124,7 +124,7 @@
             </div>
 
             <div class="row g-2">
-                @foreach ($project as $p)
+                @foreach ($projects as $p)
                     <div class="col-md-3">
                         <div class="card">
                             <h3>{{ $p->nama_project }}</h3>

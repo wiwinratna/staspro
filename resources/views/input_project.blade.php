@@ -156,47 +156,46 @@
         <div class="main-content">
             <h1>Project</h1>
             @if ($message = Session::get('success'))
-                <p class="text-success">{{ $message }}</p>
+                <div class="alert alert-success">{{ $message }}</div>
             @endif
             @if ($message = Session::get('error'))
-                <p class="text-danger">{{ $message }}</p>
+                <div class="alert alert-danger">{{ $message }}</div>
             @endif
             <div class="text mt-10">
-                <a href=""{{ route('project.index') }}"" class="px-3"><span class="me-1">
-                        < </span>Project</a>
+                <a href="{{ route('project.index') }}" class="px-3"><span class="me-1">&lt;</span> Project</a>
             </div>
             <div class="form-container">
                 <form action="{{ route('project.store') }}" method="POST" enctype="multipart/form-data">
                     @csrf
                     <div class="form-group">
                         <label for="nama_project">Nama Project</label>
-                        <input type="text" id="nama_project" name="nama_project" placeholder="Cth: E-Sniffer">
+                        <input type="text" id="nama_project" name="nama_project" placeholder="Cth: E-Sniffer" required>
                     </div>
                     <div class="form-group">
                         <label for="tahun">Tahun</label>
-                        <input type="text" id="tahun" name="tahun" placeholder="Cth: 2024">
+                        <input type="number" id="tahun" name="tahun" placeholder="Cth: 2024" required>
                     </div>
                     <div class="form-group">
                         <label for="durasi">Durasi Project</label>
-                        <input type="text" id="durasi" name="durasi" placeholder="Cth: 1 Bulan/ Tahun ">
+                        <input type="text" id="durasi" name="durasi" placeholder="Cth: 1 Bulan/ Tahun" required>
                     </div>
                     <div class="form-group">
                         <label for="deskripsi">Deskripsi</label>
-                        <textarea name="deskripsi" id="deskripsi" class="form-control" placeholder="Cth: Project"></textarea>
+                        <textarea name="deskripsi" id="deskripsi" class="form-control" placeholder="Cth: Project" required></textarea>
                     </div>
                     <div class="form-group">
                         <label for="file_proposal">File Proposal (PDF)</label>
-                        <input type="file" id="file_proposal" name="file_proposal" class="form-control">
+                        <input type="file" id="file_proposal" name="file_proposal" class="form-control" accept=".pdf" required>
                     </div>
                     <div class="form-group">
                         <label for="file_rab">File RAB (XLSX)</label>
-                        <input type="file" id="file_rab" name="file_rab" class="form-control">
+                        <input type="file" id="file_rab" name="file_rab" class="form-control" accept=".xlsx" required>
                     </div>
                     <div class="form-group">
                         <label for="sumber_dana">Sumber Dana</label>
                         <select id="sumber_dana" name="sumber_dana">
                             <option value="internal" selected>Internal</option>
-                            <option value="external">External</option>
+                            <option value="eksternal">Eksternal</option>
                             <option value="tambah_sumber">Tambah Sumber Dana</option>
                         </select>
                     </div>
@@ -212,7 +211,7 @@
                             </div>
                         @endforeach
                     </div>
-                    <div id="external" style="display: none">
+                    <div id="eksternal" style="display: none">
                         <label>Kategori Pendanaan Eksternal</label>
                         @foreach ($sumber_eksternal as $s)
                             <div class="form-check">
@@ -226,8 +225,7 @@
                     </div>
                     <div class="form-group">
                         <label for="jumlah_dana">Jumlah Dana</label>
-                        <input type="text" id="jumlah_dana" name="jumlah_dana" placeholder="Cth: Rp. 1.000.000"
-                            readonly>
+                        <input type="text" name="jumlah_dana" id="jumlah_dana" placeholder="Masukkan jumlah dana" required>
                     </div>
                     <button class="submit-btn mt-2">SUBMIT</button>
                 </form>
@@ -241,27 +239,29 @@
         document.getElementById('sumber_dana').addEventListener('change', function(e) {
             let value = e.target.value;
             const internal = document.getElementById('internal');
-            const external = document.getElementById('external');
-            if (value == 'external') {
+            const eksternal = document.getElementById('eksternal');
+
+            if (value == 'eksternal') {
                 internal.style.display = 'none';
-                external.style.display = 'block';
+                eksternal.style.display = 'block';
             } else if (value == 'internal') {
-                external.style.display = 'none';
+                eksternal.style.display = 'none';
                 internal.style.display = 'block';
             } else {
                 window.location.href = "{{ route('sumberdana.create') }}";
             }
-        })
+        });
 
-        document.querySelectorAll('input[name="kategori_pendanaan"]').forEach(function(e) {
-            e.addEventListener('change', function(e) {
-                fetch(`{{ route('sumberdana.show', ':id') }}`.replace(':id', e.target.value))
+        document.querySelectorAll('input[name="kategori_pendanaan"]').forEach(function(input) {
+            input.addEventListener('change', function(event) {
+                fetch(`{{ route('sumberdana.show', ':id') }}`.replace(':id', event.target.value))
                     .then(response => response.json())
                     .then(data => {
                         document.getElementById('jumlah_dana').value = data.anggaran_maksimal;
                     })
-            })
-        })
+                    .catch(error => console.error('Error:', error));
+            });
+        });
     </script>
 </body>
 

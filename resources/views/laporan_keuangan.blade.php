@@ -92,6 +92,7 @@
                         <option value="">Kategori Pendanaan</option>
                         <option value="Internal">Internal</option>
                         <option value="Eksternal">Eksternal</option>
+                        <option value="Lainnya">Lainnya</option>
                     </select>
                     
                     <button type="submit" class="btn btn-success">Filter</button>

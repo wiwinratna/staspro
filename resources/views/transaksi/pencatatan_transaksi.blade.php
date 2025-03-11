@@ -59,28 +59,10 @@
     </style>
 </head>
 <body>
-     <!-- Top Navbar -->
-     <nav class="navbar navbar-expand-lg">
-        <div class="container-fluid d-flex justify-content-between align-items-center">
-            <a class="navbar-brand" href="#">
-                <img src="/assets/logo.png" alt="Logo" style="height: 40px;">
-            </a>
-            <div class="d-flex align-items-center">
-                <button class="btn text-white me-3">
-                    <i class="fa-solid fa-bell"></i>
-                </button>
-                <div class="dropdown">
-                    <button class="btn dropdown-toggle p-0 d-flex align-items-center" id="profileDropdown" data-bs-toggle="dropdown">
-                        <img src="https://via.placeholder.com/30" alt="Profile" class="rounded-circle">
-                    </button>
-                    <ul class="dropdown-menu dropdown-menu-end">
-                        <li><a class="dropdown-item" href="#">Edit Profil</a></li>
-                        <li><a class="dropdown-item" href="#">Pengaturan</a></li>
-                        <li><hr class="dropdown-divider"></li>
-                        <li><a class="dropdown-item" href="#">Logout</a></li>
-                    </ul>
-                </div>
-            </div>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg">
+        <div class="container-fluid d-flex justify-content-end">
+            @include('navbar')
         </div>
     </nav>
 

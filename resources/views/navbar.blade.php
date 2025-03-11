@@ -11,9 +11,7 @@
             <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="profileDropdown">
                 <!-- Edit Profil -->
                 <li>
-                    <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#editProfileModal">
-                        Edit Profil
-                    </a>
+                    <a class="dropdown-item" href="{{ route('profile.index') }}">Edit Profil</a>
                 </li>
                 <!-- Pengaturan -->
                 <li><a class="dropdown-item" href="#">Pengaturan</a></li>

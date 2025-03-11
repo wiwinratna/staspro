@@ -156,8 +156,7 @@
         <div class="main-content">
             <h1>Sumber Dana</h1>
             <div class="text mt-10">
-                <a href=""{{ route('project.index') }}"" class="px-3"><span class="me-1">
-                        < </span>Project</a>
+                <a href=""{{ route('project.index') }}"" class="px-3"><span class="me-1">< </span>Project</a>
             </div>
             <div class="form-container">
                 <form action="{{ route('sumberdana.store') }}" method="POST">
@@ -171,7 +170,7 @@
                         <label for="jenis_pendanaan">Jenis Pendanaan</label>
                         <select id="jenis_pendanaan" name="jenis_pendanaan">
                             <option value="internal" selected>Internal</option>
-                            <option value="external">External</option>
+                            <option value="eksternal">Eksternal</option>
                         </select>
                     </div>
                     <div class="form-group">
