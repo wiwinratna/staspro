@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Transaksi;
-use App\Models\Project; // Tambahkan ini untuk mengambil data tim penelitian
+use App\Models\Project;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use App\Exports\LaporanExport;
@@ -14,10 +14,13 @@ class TransaksiController extends Controller
     // Menampilkan semua transaksi
     public function index()
     {
-        $transaksis = Transaksi::all();
-        $totalNominal = $transaksis->sum('jumlah_transaksi');
-
-        return view('transaksi.pencatatan_transaksi', compact('transaksis', 'totalNominal'));
+        if (auth()->user()->role === 'admin') {
+            $transaksis = Transaksi::all(); // Ambil semua transaksi untuk admin
+            return view('pencatatan_transaksi', compact('transaksis'));
+        } else {
+            $transaksis = Transaksi::where('tim_peneliti', auth()->user()->name)->get(); // Ambil transaksi sesuai user
+            return view('pencatatan_transaksi_user', compact('transaksis'));
+        }
     }
 
     // Filter transaksi berdasarkan rentang tanggal
