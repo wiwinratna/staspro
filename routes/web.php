@@ -29,6 +29,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/admin/dashboard', [DashboardController::class, 'index'])->name('admin.dashboard')->middleware('auth');
     Route::get('/peneliti-dashboard', [DashboardController::class, 'index'])->name('peneliti.dashboard');
 
+    Route::post('/detailproject', [DetailprojectController::class, 'store'])->name('detailproject.store');
+
     Route::get('/project', [ProjectController::class, 'index'])->name('project.index');
     Route::get('/project/create', [ProjectController::class, 'create'])->name('project.create');
     Route::post('/project', [ProjectController::class, 'store'])->name('project.store');
