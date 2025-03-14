@@ -156,7 +156,7 @@
         <div class="main-content">
             <h1>Sumber Dana</h1>
             <div class="text mt-10">
-                <a href=""{{ route('project.index') }}"" class="px-3"><span class="me-1">< </span>Project</a>
+                <a href="{{ route('project.index') }}" class="px-3"><span class="me-1">< </span>Project</a>
             </div>
             <div class="form-container">
                 <form action="{{ route('sumberdana.store') }}" method="POST">

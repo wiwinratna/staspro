@@ -16,7 +16,7 @@ class TransaksiController extends Controller
     {
         if (auth()->user()->role === 'admin') {
             $transaksis = Transaksi::all(); // Ambil semua transaksi untuk admin
-            return view('pencatatan_transaksi', compact('transaksis'));
+            return view('transaksi.pencatatan_transaksi', compact('transaksis'));
         } else {
             $transaksis = Transaksi::where('tim_peneliti', auth()->user()->name)->get(); // Ambil transaksi sesuai user
             return view('pencatatan_transaksi_user', compact('transaksis'));
