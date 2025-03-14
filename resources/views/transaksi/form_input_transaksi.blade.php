@@ -143,6 +143,11 @@
                         </select>
                     </div>
 
+                    <div class="col-md-12 mt-3">
+                        <label for="bukti_transaksi" class="form-label">Bukti Transaksi</label>
+                        <input type="file" id="bukti_transaksi" name="bukti_transaksi" class="form-control" accept="image/*">
+                    </div>
+
                     <div class="col-md-12 mt-4">
                         <button type="submit" class="btn btn-success">Simpan</button>
                     </div>

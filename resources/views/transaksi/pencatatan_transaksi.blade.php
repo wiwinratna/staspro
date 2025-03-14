@@ -111,11 +111,11 @@
                     <tr>
                         <th>No.</th>
                         <th>Tanggal</th>
-                        <th>Jenis Transaksi</th>
+                        <th>Tim Peneliti</th>
+                        <th>Sub Kategori Pendanaan</th>
                         <th>Deskripsi</th>
                         <th>Jumlah</th>
                         <th>Metode Pembayaran</th>
-                        <th>Kategori</th>
                         <th>Bukti</th>
                         <th>Aksi</th>
                     </tr>
@@ -123,14 +123,15 @@
                 <tbody>
                     @foreach($transaksis as $index => $transaksi)
                         <tr>
-                            <td>{{ $index + 1 }}</td>
-                            <td>{{ $transaksi->created_at->timezone('Asia/Jakarta')->format('d-m-Y H:i') }}</td>
-                            <td>{{ $transaksi->jenis_transaksi }}</td>
-                            <td>{{ $transaksi->deskripsi_transaksi }}</td>
-                            <td>{{ number_format($transaksi->jumlah_transaksi, 2) }}</td>
-                            <td>{{ $transaksi->metode_pembayaran }}</td>
-                            <td>{{ $transaksi->kategori_transaksi }}</td>
-                            <td>
+                        <td>{{ $index + 1 }}</td>
+                        <td>{{ $transaksi->created_at->timezone('Asia/Jakarta')->format('d-m-Y H:i') }}</td>
+                        <td>{{ $transaksi->tim_peneliti }}</td> <!-- Menampilkan tim peneliti -->
+                        <td>{{ $transaksi->sub_kategori_pendanaan }}</td> <!-- Menampilkan sub kategori pendanaan -->
+                        <td>{{ $transaksi->kategori_transaksi }}</td>
+                        <td>{{ $transaksi->deskripsi_transaksi }}</td>
+                        <td>{{ number_format($transaksi->jumlah_transaksi, 2, ',', '.') }}</td>
+                        <td>{{ $transaksi->metode_pembayaran }}</td>
+                        <td>
                                 @if($transaksi->bukti_transaksi)
                                     <button type="button" class="btn btn-link" data-bs-toggle="modal" data-bs-target="#modalBukti{{ $transaksi->id }}">
                                     Lihat Bukti
