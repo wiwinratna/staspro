@@ -173,7 +173,7 @@
                                 class="form-control" placeholder="password_confirmation" required>
                         </div>
                         <div class="mb-3">
-                            <label for="role" class="form-label">Confirmation Password</label>
+                            <label for="role" class="form-label">Role</label>
                             <select name="role" id="role" class="form-select">
                                 <option value="admin">Admin</option>
                                 <option value="peneliti">Peneliti</option>
