@@ -33,8 +33,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/project/create', [ProjectController::class, 'create'])->name('project.create');
     Route::post('/project', [ProjectController::class, 'store'])->name('project.store');
     Route::get('/project/{project}', [ProjectController::class, 'show'])->name('project.show');
-    Route::get('/project/download_proposal/{id}', [ProjectController::class, 'download_proposal'])->name('project.download_proposal');
-    Route::get('/project/download_rab/{id}', [ProjectController::class, 'download_rab'])->name('project.download_rab');
+    Route::get('/project/download_proposal/{id}', [ProjectController::class, 'download_proposal'])->name('project.downloadproposal');
+    Route::get('/project/download_rab/{id}', [ProjectController::class, 'download_rab'])->name('project.downloadrab');
 
     Route::get('/sumberdana', [SumberdanaController::class, 'create'])->name('sumberdana.create');
     Route::post('/sumberdana', [SumberdanaController::class, 'store'])->name('sumberdana.store');
