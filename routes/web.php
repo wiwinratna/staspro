@@ -7,25 +7,34 @@ use App\Http\Controllers\RequestpembelianController;
 use App\Http\Controllers\SumberdanaController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\TransaksiController;
+use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/login', [AuthController::class, 'index'])->name('login')->middleware('guest');
 Route::post('/login', [AuthController::class, 'login'])->name('login.post')->middleware('guest');
-Route::post('/register', [AuthController::class, 'registration'])->name('register.post')->middleware('guest');
-Route::get('/logout', [AuthController::class, 'logout'])->name('logout')->middleware('auth');
+Route::get('/register', [AuthController::class, 'showRegisterForm'])->name('register')->middleware('guest');
+Route::post('/register', [AuthController::class, 'register'])->name('register.post')->middleware('guest');
+Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
 Route::get('/', function () {
     return redirect('/login');
 });
 
 Route::middleware('auth')->group(function () {
+    Route::get('/profile', [ProfileController::class, 'index'])->name('profile.index');
+    Route::get('/profile/edit', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::put('/profile/update', [ProfileController::class, 'update'])->name('profile.update');
+    
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/admin/dashboard', [DashboardController::class, 'index'])->name('admin.dashboard')->middleware('auth');
+    Route::get('/peneliti-dashboard', [DashboardController::class, 'index'])->name('peneliti.dashboard');
 
-    Route::resource('project', ProjectController::class);
-    Route::get('/project/proposal/{id}', [ProjectController::class, 'download_proposal'])->name('project.downloadproposal');
-    Route::get('/project/rab/{id}', [ProjectController::class, 'download_rab'])->name('project.downloadrab');
-
-    Route::post('/detailproject', [DetailprojectController::class, 'store'])->name('detailproject.store');
+    Route::get('/project', [ProjectController::class, 'index'])->name('project.index');
+    Route::get('/project/create', [ProjectController::class, 'create'])->name('project.create');
+    Route::post('/project', [ProjectController::class, 'store'])->name('project.store');
+    Route::get('/project/{project}', [ProjectController::class, 'show'])->name('project.show');
+    Route::get('/project/download_proposal/{id}', [ProjectController::class, 'download_proposal'])->name('project.download_proposal');
+    Route::get('/project/download_rab/{id}', [ProjectController::class, 'download_rab'])->name('project.download_rab');
 
     Route::get('/sumberdana', [SumberdanaController::class, 'create'])->name('sumberdana.create');
     Route::post('/sumberdana', [SumberdanaController::class, 'store'])->name('sumberdana.store');
@@ -44,13 +53,18 @@ Route::middleware('auth')->group(function () {
     Route::post('/requestpembelian/detail/edit/{id}', [RequestpembelianController::class, 'updatedetail'])->name('requestpembelian.updatedetail');
     Route::get('/requestpembelian/detail/destroy/{id}', [RequestpembelianController::class, 'destroydetail'])->name('requestpembelian.destroydetail');
 
-    // Transaksi Routes
-    Route::get('/pencatatan_transaksi', [TransaksiController::class, 'index'])->name('pencatatan_transaksi');
-    Route::get('/form_input_transaksi', [TransaksiController::class, 'create'])->name('form_input_transaksi');
-    Route::post('/transaksi', [TransaksiController::class, 'store'])->name('transaksi.store');
-    Route::get('/transaksi/edit/{id}', [TransaksiController::class, 'edit'])->name('transaksi.edit');
-    Route::put('/transaksi/{id}', [TransaksiController::class, 'update'])->name('transaksi.update');
-    Route::delete('/transaksi/{id}', [TransaksiController::class, 'destroy'])->name('transaksi.destroy');
+    Route::middleware(['auth'])->group(function () {
+    Route::get('/pencatatan-transaksi', [TransaksiController::class, 'index'])->name('pencatatan_transaksi');
+
+    // Hanya Admin yang Bisa Tambah/Edit/Hapus
+    Route::middleware(['admin'])->group(function () {
+        Route::get('/form_input_transaksi', [TransaksiController::class, 'create'])->name('form_input_transaksi');
+        Route::post('/transaksi', [TransaksiController::class, 'store'])->name('transaksi.store');
+        Route::get('/transaksi/edit/{id}', [TransaksiController::class, 'edit'])->name('transaksi.edit');
+        Route::put('/transaksi/{id}', [TransaksiController::class, 'update'])->name('transaksi.update');
+        Route::delete('/transaksi/{id}', [TransaksiController::class, 'destroy'])->name('transaksi.destroy');
+    });
+});
 
     // Filter Transaksi (jika diperlukan)
     Route::get('/filter_transaksi', [TransaksiController::class, 'filterTransaksi'])->name('filter_transaksi');

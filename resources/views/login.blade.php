@@ -7,10 +7,8 @@
     <title>Login & Register</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        /* Global Styles */
         body {
             background-color: #9FBD93;
-            /* Soft gray background */
             font-family: 'Arial', sans-serif;
             margin: 0;
             display: flex;
@@ -27,21 +25,10 @@
         }
 
         .card-header {
-            background-color: #2AD000;
-            /* Primary Green */
+            background-color: #006400;
             color: white;
             text-align: center;
             padding: 20px;
-        }
-
-        .card-header h3 {
-            margin: 0;
-            font-size: 24px;
-        }
-
-        .card-header small {
-            font-size: 14px;
-            color: #F0F0F0;
         }
 
         .nav-tabs {
@@ -61,7 +48,7 @@
         }
 
         .nav-tabs .nav-link.active {
-            background-color: #2AD000;
+            background-color: #006400;
             color: white;
         }
 
@@ -74,13 +61,13 @@
         }
 
         .form-control:focus {
-            border-color: #2AD000;
+            border-color: #006400;
             box-shadow: 0 0 5px rgba(42, 208, 0, 0.5);
             outline: none;
         }
 
         .btn-primary {
-            background-color: #2AD000;
+            background-color: #006400;
             border: none;
             height: 45px;
             border-radius: 15px;
@@ -91,23 +78,13 @@
         .btn-primary:hover {
             background-color: #249C00;
         }
-
-        .text-center a {
-            color: #2AD000;
-            text-decoration: none;
-            font-size: 14px;
-        }
-
-        .text-center a:hover {
-            text-decoration: underline;
-        }
     </style>
 </head>
 
 <body>
     <div class="card">
         <div class="card-header">
-            <h3>Welcome </h3>
+            <h3>Welcome</h3>
         </div>
         <div class="card-body">
             <ul class="nav nav-tabs mb-3" id="authTabs" role="tablist">
@@ -132,22 +109,15 @@
                         </div>
                         <div class="mb-3">
                             <label for="password" class="form-label">Password</label>
-                            <div class="input-group">
-                                <input type="password" id="password" name="password" class="form-control"
-                                    placeholder="Enter your password" required>
-                                <button class="btn btn-outline-secondary" type="button">
-                                    <i class="bi bi-eye"></i>
-                                </button>
-                            </div>
+                            <input type="password" id="password" name="password" class="form-control"
+                                placeholder="Enter your password" required>
                         </div>
                         <div class="d-grid">
                             <button type="submit" class="btn btn-primary">Login</button>
                         </div>
-                        <div class="text-center mt-3">
-                            <a href="#">Forgot password?</a>
-                        </div>
                     </form>
                 </div>
+
                 <!-- Register Form -->
                 <div class="tab-pane fade" id="register" role="tabpanel">
                     <form method="POST" action="{{ route('register.post') }}">
@@ -159,26 +129,21 @@
                         </div>
                         <div class="mb-3">
                             <label for="email-register" class="form-label">Email</label>
-                            <input type="email" id="email" name="email" class="form-control"
+                            <input type="email" id="email-register" name="email" class="form-control"
                                 placeholder="Enter your email" required>
                         </div>
-                        <div class="mb-3">
-                            <label for="password" class="form-label">Password</label>
-                            <input type="password" id="password" name="password" class="form-control"
-                                placeholder="Create a password" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="password_confirmation" class="form-label">Confirmation Password</label>
-                            <input type="password" id="password_confirmation" name="password_confirmation"
-                                class="form-control" placeholder="password_confirmation" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="role" class="form-label">Role</label>
-                            <select name="role" id="role" class="form-select">
-                                <option value="admin">Admin</option>
-                                <option value="peneliti">Peneliti</option>
-                            </select>
-                        </div>
+                        <div class="mb-3 row">
+                            <div class="col-md-6">
+                                <label for="password-register" class="form-label">Password</label>
+                                <input type="password" id="password-register" name="password" class="form-control"
+                                    placeholder="Create a password" required autocomplete="new-password">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="password_confirmation" class="form-label">Confirmation Password</label>
+                                <input type="password" id="password_confirmation" name="password_confirmation"
+                                    class="form-control" placeholder="Confirm your password" required>
+                            </div>
+                        </div> <!-- Menutup div yang sebelumnya hilang -->
                         <div class="d-grid">
                             <button type="submit" class="btn btn-primary">Register</button>
                         </div>

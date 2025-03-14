@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Http\Controllers;
 
 use App\Models\User;
@@ -9,53 +10,66 @@ use Illuminate\Support\Facades\Session;
 
 class AuthController extends Controller
 {
+    // Tampilkan halaman login
     public function index()
     {
-        return view('login');
+        return view('login'); // Pastikan file ada di resources/views/auth/login.blade.php
     }
 
+    // Proses login
     public function login(Request $request)
     {
         $request->validate([
-            'email'    => 'required',
+            'email'    => 'required|email',
             'password' => 'required',
         ]);
 
         $credentials = $request->only('email', 'password');
         if (Auth::attempt($credentials)) {
-            return redirect()->intended('dashboard')->withSuccess('You have Successfully Login!');
+            $user = Auth::user();
+
+            // Redirect sesuai role
+            return $user->role === 'admin'
+                ? redirect()->route('admin.dashboard')->with('success', 'Login berhasil sebagai Admin!')
+                : redirect()->route('peneliti.dashboard')->with('success', 'Login berhasil sebagai Peneliti!');
         }
 
-        return redirect('login')->withError('Oops! You have entered invalid credentials');
+        return back()->withErrors(['email' => 'Oops! Email atau password salah.'])->withInput();
     }
 
-    public function registration(Request $request)
+    // Tampilkan halaman register
+    public function showRegisterForm()
+    {
+        return view('auth.register'); // Pastikan file ada di resources/views/auth/register.blade.php
+    }
+
+    // Proses registrasi
+    public function register(Request $request)
     {
         $request->validate([
-            'name'                  => 'required',
-            'email'                 => 'required|email|unique:users',
-            'password'              => 'required|min:8|confirmed',
-            'password_confirmation' => 'required|min:8',
-            'role'                  => 'required',
+            'name'     => 'required|string|max:255',
+            'email'    => 'required|string|email|max:255|unique:users',
+            'password' => 'required|string|min:6|confirmed',
         ]);
 
         $user = User::create([
             'name'     => $request->name,
             'email'    => $request->email,
             'password' => Hash::make($request->password),
-            'role'     => $request->role,
+            'role'     => 'peneliti', // Default role
         ]);
 
         Auth::login($user);
 
-        return redirect('dashboard')->withSuccess('Bagus! Anda berhasil login!');
+        return redirect()->route('peneliti.dashboard')->with('success', 'Registrasi berhasil!');
     }
 
+    // Proses logout
     public function logout()
     {
         Session::flush();
         Auth::logout();
 
-        return redirect('login');
+        return redirect()->route('login')->with('success', 'Anda telah logout.');
     }
 }

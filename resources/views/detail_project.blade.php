@@ -13,7 +13,7 @@
         }
 
         .navbar {
-            background-color: #2AD000;
+            background-color: #006400;
             color: white;
         }
 
@@ -31,28 +31,24 @@
 
         .sidebar {
             background-color: #d9d9d9;
-            height: 100vh;
             padding: 20px;
+            min-height: 100vh;
+            width: 250px;
         }
 
         .sidebar a {
-            text-decoration: none;
             display: block;
             color: #333;
             padding: 10px;
-            margin-bottom: 5px;
             border-radius: 5px;
+            text-decoration: none;
+            margin-bottom: 10px;
         }
 
-        .sidebar a:hover {
-            background-color: #e2e2e2;
-        }
-
-        .sidebar a.active {
-            background-color: #2AD000;
+        .sidebar a:hover, .sidebar a.active {
+            background-color: #006400;
             color: white;
         }
-
 
         .card {
             background-color: #d9d9d9;
@@ -80,10 +76,10 @@
             font-size: 14px;
             position: relative;
             left: 10px;
-            border: 2px solid #2AD000;
+            border: 2px solid #006400;
             padding: 5px 10px;
             border-radius: 20px;
-            background-color: #2AD000;
+            background-color: #006400;
 
         }
 
@@ -94,7 +90,7 @@
         .text a:hover {
             text-decoration: underline;
             background-color: white;
-            color: #2AD000;
+            color: #006400;
         }
     </style>
 </head>
@@ -102,8 +98,7 @@
 <body>
     <!-- Top Navbar -->
     <nav class="navbar navbar-expand-lg">
-        <div class="container-fluid">
-            <a class="navbar-brand text-white" href="#">LOGO</a>
+        <div class="container-fluid d-flex justify-content-end">
             @include('navbar')
         </div>
     </nav>

@@ -14,7 +14,7 @@
 
         /* Navbar */
         .navbar {
-            background-color: #2AD000;
+            background-color: #006400;
             color: white;
         }
 
@@ -33,26 +33,22 @@
         /* Sidebar */
         .sidebar {
             background-color: #d9d9d9;
-            height: 100vh;
             padding: 20px;
-            width: 220px;
+            min-height: 100vh;
+            width: 250px;
         }
 
         .sidebar a {
-            text-decoration: none;
             display: block;
             color: #333;
             padding: 10px;
-            margin-bottom: 5px;
             border-radius: 5px;
+            text-decoration: none;
+            margin-bottom: 10px;
         }
 
-        .sidebar a:hover {
-            background-color: #e2e2e2;
-        }
-
-        .sidebar a.active {
-            background-color: #2AD000;
+        .sidebar a:hover, .sidebar a.active {
+            background-color: #006400;
             color: white;
         }
 
@@ -102,7 +98,7 @@
         }
 
         .submit-btn {
-            background-color: #2AD000;
+            background-color: #006400;
             color: #fff;
             border: none;
             padding: 10px 20px;
@@ -121,8 +117,7 @@
 <body>
     <!-- Top Navbar -->
     <nav class="navbar navbar-expand-lg">
-        <div class="container-fluid">
-            <a class="navbar-brand text-white" href="#">LOGO</a>
+        <div class="container-fluid d-flex justify-content-end">
             @include('navbar')
         </div>
     </nav>
