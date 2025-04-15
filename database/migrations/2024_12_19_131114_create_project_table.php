@@ -13,7 +13,6 @@ return new class extends Migration
     {
         Schema::create('project', function (Blueprint $table) {
             $table->id();
-            $table->double('jumlah_dana');
             $table->integer('tahun');
             $table->string('nama_project');
             $table->unsignedBigInteger('id_sumber_dana');

@@ -14,6 +14,7 @@ class RequestpembelianDetail extends Model
         'kuantitas',
         'harga',
         'link_pembelian',
+        'bukti_bayar',
         'id_request_pembelian_header',
         'user_id_created',
         'user_id_updated',

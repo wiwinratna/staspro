@@ -47,7 +47,8 @@
             margin-bottom: 10px;
         }
 
-        .sidebar a:hover, .sidebar a.active {
+        .sidebar a:hover,
+        .sidebar a.active {
             background-color: #006400;
             color: white;
         }
@@ -128,8 +129,11 @@
             <a href="{{ route('dashboard') }}">Dashboard</a>
             <a href="{{ route('project.index') }}">Project</a>
             <a href="{{ route('requestpembelian.index') }}" class="active">Request Pembelian</a>
-            <a href="{{ route('pencatatan_transaksi') }}">Pencatatan Transaksi</a>
-            <a href="{{ route('laporan_keuangan') }}">Laporan Keuangan</a>
+            @if (Auth::user()->role == 'admin')
+                <a href="{{ route('sumberdana.index') }}">Sumber Dana</a>
+                <a href="{{ route('pencatatan_transaksi') }}">Pencatatan Transaksi</a>
+                <a href="{{ route('laporan_keuangan') }}">Laporan Keuangan</a>
+            @endif
         </div>
 
         <!-- Main Content -->

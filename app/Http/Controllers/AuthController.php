@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Http\Controllers;
 
 use App\Models\User;
@@ -30,8 +29,8 @@ class AuthController extends Controller
 
             // Redirect sesuai role
             return $user->role === 'admin'
-                ? redirect()->route('admin.dashboard')->with('success', 'Login berhasil sebagai Admin!')
-                : redirect()->route('peneliti.dashboard')->with('success', 'Login berhasil sebagai Peneliti!');
+            ? redirect()->route('admin.dashboard')->with('success', 'Login berhasil sebagai Admin!')
+            : redirect()->route('peneliti.dashboard')->with('success', 'Login berhasil sebagai Peneliti!');
         }
 
         return back()->withErrors(['email' => 'Oops! Email atau password salah.'])->withInput();
@@ -50,13 +49,14 @@ class AuthController extends Controller
             'name'     => 'required|string|max:255',
             'email'    => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:6|confirmed',
+            'role'     => 'required',
         ]);
 
         $user = User::create([
             'name'     => $request->name,
             'email'    => $request->email,
             'password' => Hash::make($request->password),
-            'role'     => 'peneliti', // Default role
+            'role'     => $request->role,
         ]);
 
         Auth::login($user);

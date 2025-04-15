@@ -47,7 +47,8 @@
             margin-bottom: 10px;
         }
 
-        .sidebar a:hover, .sidebar a.active {
+        .sidebar a:hover,
+        .sidebar a.active {
             background-color: #006400;
             color: white;
         }
@@ -68,11 +69,9 @@
         .form-container {
             background-color: #f9f9f9;
             padding: 20px;
-            margin-top: 20px;
             border-radius: 10px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
             width: 100%;
-            max-width: 600px;
         }
 
         .form-group {
@@ -113,24 +112,6 @@
         .submit-btn:hover {
             background-color: #249C00;
         }
-
-        .text a {
-            color: white;
-            text-decoration: none;
-            font-size: 14px;
-            position: relative;
-            left: 10px;
-            border: 2px solid #006400;
-            padding: 5px 10px;
-            border-radius: 20px;
-            background-color: #006400;
-        }
-
-        .text a:hover {
-            text-decoration: underline;
-            background-color: white;
-            color: #006400;
-        }
     </style>
 </head>
 
@@ -146,45 +127,32 @@
         <!-- Sidebar -->
         <div class="sidebar">
             <a href="{{ route('dashboard') }}">Dashboard</a>
-            <a href="{{ route('project.index') }}" class="active">Project</a>
+            <a href="{{ route('project.index') }}">Project</a>
             <a href="{{ route('requestpembelian.index') }}">Request Pembelian</a>
-            <a href="{{ route('pencatatan_transaksi') }}">Pencatatan Transaksi</a>
-            <a href="{{ route('laporan_keuangan') }}">Laporan Keuangan</a>
+            @if (Auth::user()->role == 'admin')
+                <a href="{{ route('sumberdana.index') }}" class="active">Sumber Dana</a>
+                <a href="{{ route('pencatatan_transaksi') }}">Pencatatan Transaksi</a>
+                <a href="{{ route('laporan_keuangan') }}">Laporan Keuangan</a>
+            @endif
         </div>
 
         <!-- Main Content -->
         <div class="main-content">
-            <h1>Sumber Dana</h1>
-            <div class="text mt-10">
-                <a href="{{ route('project.index') }}" class="px-3"><span class="me-1">< </span>Project</a>
-            </div>
+            <h1>Tambah Sumber Dana</h1>
             <div class="form-container">
                 <form action="{{ route('sumberdana.store') }}" method="POST">
                     @csrf
                     <div class="form-group">
                         <label for="nama_sumber_dana">Nama Sumber Dana</label>
-                        <input type="text" id="nama_sumber_dana" name="nama_sumber_dana"
-                            placeholder="Cth: E-Sniffer">
+                        <input type="text" id="nama_sumber_dana" name="nama_sumber_dana">
                     </div>
                     <div class="form-group">
                         <label for="jenis_pendanaan">Jenis Pendanaan</label>
-                        <select id="jenis_pendanaan" name="jenis_pendanaan">
-                            <option value="internal" selected>Internal</option>
+                        <select class="form-select" id="jenis_pendanaan" name="jenis_pendanaan">
+                            <option value="internal">
+                                Internal</option>
                             <option value="eksternal">Eksternal</option>
                         </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="keterangan">Keterangan</label>
-                        <textarea name="keterangan" id="keterangan" class="form-control" placeholder="Cth: Sumber Dana"></textarea>
-                    </div>
-                    <div class="form-group">
-                        <label for="anggaran_maksimal">Anggaran Maksimal</label>
-                        <input type="text" id="anggaran_maksimal" name="anggaran_maksimal"
-                            placeholder="Cth: Rp. 1.000.000">
-                    </div>
-                    <div class="form-group">
-                        <label for="tgl_berlaku">Tanggal Berlaku</label>
-                        <input type="date" id="tgl_berlaku" name="tgl_berlaku">
                     </div>
                     <button class="submit-btn mt-2">SUBMIT</button>
                 </form>
@@ -193,7 +161,6 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    </script>
 </body>
 
 </html>

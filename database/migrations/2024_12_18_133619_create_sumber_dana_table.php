@@ -15,9 +15,6 @@ return new class extends Migration
             $table->id();
             $table->string('nama_sumber_dana');
             $table->enum('jenis_pendanaan', ['internal', 'eksternal']);
-            $table->text('keterangan');
-            $table->double('anggaran_maksimal');
-            $table->date('tgl_berlaku');
             $table->unsignedBigInteger('user_id_created');
             $table->unsignedBigInteger('user_id_updated');
             $table->timestamps();

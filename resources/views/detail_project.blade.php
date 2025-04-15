@@ -45,14 +45,15 @@
             margin-bottom: 10px;
         }
 
-        .sidebar a:hover, .sidebar a.active {
+        .sidebar a:hover,
+        .sidebar a.active {
             background-color: #006400;
             color: white;
         }
 
         .card {
             background-color: #d9d9d9;
-            height: 60vh;
+            height: 100%;
             color: black;
             border: none;
             border-radius: 5px;
@@ -109,8 +110,11 @@
             <a href="{{ route('dashboard') }}">Dashboard</a>
             <a href="{{ route('project.index') }}"class="active">Project</a>
             <a href="{{ route('requestpembelian.index') }}">Request Pembelian</a>
-            <a href="{{ route('pencatatan_transaksi') }}">Pencatatan Transaksi</a>
-            <a href="{{ route('laporan_keuangan') }}">Laporan Keuangan</a>
+            @if (Auth::user()->role == 'admin')
+                <a href="{{ route('sumberdana.index') }}">Sumber Dana</a>
+                <a href="{{ route('pencatatan_transaksi') }}">Pencatatan Transaksi</a>
+                <a href="{{ route('laporan_keuangan') }}">Laporan Keuangan</a>
+            @endif
         </div>
 
         <!-- Main Content -->
@@ -124,41 +128,33 @@
             @endif
 
             <div class="d-flex mt-10 gap-3">
+                @if (Auth::user()->role == 'admin')
+                    <div class="text">
+                        <a href="{{ route('project.create') }}" class="px-3"><span class="me-1">+</span>Input
+                            Project</a>
+                    </div>
+                @endif
+
                 <div class="text">
-                    <a href="{{ route('project.create') }}" class="px-3"><span class="me-1">+</span>Input
-                        Project</a>
+                    <a href="{{ route('project.downloadproposal', $project->id) }}" class="px-3"><span
+                            class="me-1">Download Proposal</a>
                 </div>
 
                 <div class="text">
-                    <a href="{{ route('project.downloadproposal', $project->id) }}" class="px-3"><span class="me-1">Download Proposal</a>
-                </div>
-
-                <div class="text">
-                    <a href="{{ route('project.downloadrab', $project->id) }}" class="px-3"><span class="me-1">Download RAB</a>
+                    <a href="{{ route('project.downloadrab', $project->id) }}" class="px-3"><span
+                            class="me-1">Download RAB</a>
                 </div>
             </div>
 
             <div class="row mt-4">
                 <div class="col-md-12">
                     <h1>{{ $project->nama_project }}</h1>
-                    <p>{{ $project->deskripsi }}</p>
                 </div>
                 <div class="col-md-6">
                     <div class="card">
-                        <h5>Ringkasan Keuangan</h5>
-                        <p>Lorem ipsum, dolor sit amet consectetur adipisicing elit. Nostrum officia perferendis, quam
-                            sit magnam natus deserunt fugiat obcaecati quis, voluptate suscipit nesciunt! Pariatur
-                            ducimus ex tempore provident, repudiandae tenetur, aliquid nostrum error itaque officia
-                            vitae voluptatem nobis. Vero asperiores accusantium libero eligendi dolor odio possimus
-                            delectus, soluta quasi, laboriosam a praesentium repellendus ad vitae facilis? Beatae omnis
-                            ab ipsam, eius recusandae temporibus earum aut. Quod ipsum atque fuga dicta, fugiat facilis
-                            ipsam culpa veritatis doloremque quas? Fugiat impedit laboriosam nesciunt.</p>
-                        <h5 class="mt-4">Progress Bar</h5>
-                    </div>
-                </div>
-                <div class="col-md-6">
-                    <div class="card">
-                        <h5 class="text-center">Anggota Tim Riset</h5>
+                        <h5 class="fw-bold text-center">Deskripsi Project</h5>
+                        <p>{{ $project->deskripsi }}</p>
+                        <h5 class="text-center fw-bold mt-3">Anggota Tim Riset</h5>
                         <ol>
                             @foreach ($anggota as $a)
                                 <li>{{ $a->name }}</li>
@@ -181,6 +177,76 @@
                             @endif
                         </ol>
                     </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card">
+                        <h5 class="mt-3 text-center fw-bold">Detail Pembelian</h5>
+                        <table width="100%" class="table table-bordered mt-3">
+                            <thead>
+                                <tr>
+                                    <th>Nama Barang</th>
+                                    <th>Kuantitas</th>
+                                    <th>Harga</th>
+                                    <th>Total</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @php
+                                    $total_request = 0;
+                                @endphp
+                                @if (count($detail_request) == 0)
+                                    <tr>
+                                        <td colspan="4" class="text-center">Belum ada request pembelian</td>
+                                    </tr>
+                                @else
+                                    @foreach ($detail_request as $dd)
+                                        <tr>
+                                            <td>{{ $dd->nama_barang }}</td>
+                                            <td>{{ $dd->kuantitas }}</td>
+                                            <td>Rp. {{ number_format($dd->harga, 0, ',', '.') }}</td>
+                                            <td>Rp. {{ number_format($dd->total, 0, ',', '.') }}</td>
+                                        </tr>
+                                        @php
+                                            $total_request += $dd->total;
+                                        @endphp
+                                    @endforeach
+                                    <tr class="fw-bold">
+                                        <td colspan="3">Total Request Pembelian</td>
+                                        <td>Rp. {{ number_format($total_request, 0, ',', '.') }}</td>
+                                    </tr>
+                                @endif
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="col-md-12 mt-3">
+                    <h5 class="mt-3 fw-bold text-center">Detail Dana</h5>
+                    <table width="100%" class="table table-bordered mt-3">
+                        <thead>
+                            <tr>
+                                <th>Nama</th>
+                                <th>Nominal</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @php
+                                $total_dana = 0;
+                            @endphp
+                            @foreach ($detail_dana as $dd)
+                                <tr>
+                                    <td>{{ $dd->nama }}</td>
+                                    <td>Rp. {{ number_format($dd->nominal, 0, ',', '.') }}</td>
+                                </tr>
+                                @php
+                                    $total_dana += $dd->nominal;
+                                @endphp
+                            @endforeach
+                            <tr class="fw-bold">
+                                <td>Total Dana</td>
+                                <td>Rp. {{ number_format($total_dana, 0, ',', '.') }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>

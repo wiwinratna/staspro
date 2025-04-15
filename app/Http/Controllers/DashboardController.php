@@ -28,9 +28,25 @@ class DashboardController extends Controller
         // Menghitung total request pembelian
         $totalRequests = RequestpembelianHeader::count();
 
+        // Ambil semua project
+        $projects = Project::all();
+        $namaProjects = [];
+        $pengeluaranPerProject = [];
+
+        foreach ($projects as $project) {
+            $namaProjects[] = $project->nama_project;
+            $totalPengeluaran = Transaksi::where('project_id', $project->id)->sum('jumlah_transaksi');
+            $pengeluaranPerProject[] = $totalPengeluaran;
+        }
+
         return view('admin.dashboard', compact(
-            'totalProjects', 'pendingRequests', 'totalTransactions',
-            'totalTeams', 'totalRequests'
+            'totalProjects',
+            'pendingRequests',
+            'totalTransactions',
+            'totalTeams',
+            'totalRequests',
+            'namaProjects',
+            'pengeluaranPerProject'
         ));        
     }
 }

@@ -47,7 +47,8 @@
             margin-bottom: 10px;
         }
 
-        .sidebar a:hover, .sidebar a.active {
+        .sidebar a:hover,
+        .sidebar a.active {
             background-color: #006400;
             color: white;
         }
@@ -151,8 +152,11 @@
             <a href="{{ route('dashboard') }}">Dashboard</a>
             <a href="{{ route('project.index') }}">Project</a>
             <a href="{{ route('requestpembelian.index') }}" class="active">Request Pembelian</a>
-            <a href="{{ route('pencatatan_transaksi') }}">Pencatatan Transaksi</a>
-            <a href="{{ route('laporan_keuangan') }}">Laporan Keuangan</a>
+            @if (Auth::user()->role == 'admin')
+                <a href="{{ route('sumberdana.index') }}">Sumber Dana</a>
+                <a href="{{ route('pencatatan_transaksi') }}">Pencatatan Transaksi</a>
+                <a href="{{ route('laporan_keuangan') }}">Laporan Keuangan</a>
+            @endif
         </div>
 
         <!-- Main Content -->
@@ -189,16 +193,57 @@
                             <label for="status_request">Tim Penelitian</label>
                             <select class="form-select" id="status_request" name="status_request"
                                 @if (count($detail) == 0) disabled @endif>
-                                <option value="approve_admin"
-                                    {{ $request_pembelian->status_request == 'approve_admin' ? 'selected' : '' }}>
-                                    Approve Admin</option>
+                                <option value="approve_request"
+                                    {{ $request_pembelian->status_request == 'approve_request' ? 'selected' : '' }}>
+                                    Menyetujui Request</option>
+                                <option value="reject_request"
+                                    {{ $request_pembelian->status_request == 'reject_request' ? 'selected' : '' }}>
+                                    Menolak Request</option>
                                 <option value="done"
                                     {{ $request_pembelian->status_request == 'approve_payment' || $request_pembelian->status_request == 'done' ? 'selected' : '' }}>
-                                    Approve Payment</option>
+                                    Menyetujui Bukti Pembayaran</option>
+                                <option value="reject_payment"
+                                    {{ $request_pembelian->status_request == 'reject_payment' ? 'selected' : '' }}>
+                                    Menolak Bukti Pembayaran</option>
                             </select>
+                            <div style="display: none" id="keterangan_reject" class="mt-2">
+                                <label for="keterangan_reject">Keterangan Ditolak</label>
+                                <input type="text" id="keterangan_reject" name="keterangan_reject"
+                                    value="{{ $request_pembelian->keterangan_reject }}"
+                                    placeholder="Keterangan Reject">
+                            </div>
                             <button class="submit-btn" style="margin-top: 12px">Submit</button>
                         </form>
                     </div>
+                @endif
+                @if (Auth::user()->role != 'admin')
+                    <div class="form-group">
+                        <label for="status_request">Tim Penelitian</label>
+                        <select class="form-select" id="status_request" name="status_request" disabled>
+                            <option value="approve_request"
+                                {{ $request_pembelian->status_request == 'approve_request' ? 'selected' : '' }}>
+                                Menyetujui Request</option>
+                            <option value="reject_request"
+                                {{ $request_pembelian->status_request == 'reject_request' ? 'selected' : '' }}>
+                                Menolak Request</option>
+                            <option value="done"
+                                {{ $request_pembelian->status_request == 'approve_payment' || $request_pembelian->status_request == 'done' ? 'selected' : '' }}>
+                                Menyetujui Bukti Pembayaran</option>
+                            <option value="reject_payment"
+                                {{ $request_pembelian->status_request == 'reject_payment' ? 'selected' : '' }}>
+                                Menolak Bukti Pembayaran</option>
+                        </select>
+                    </div>
+                    @if ($request_pembelian->status_request == 'reject_request' || $request_pembelian->status_request == 'reject_payment')
+                        <div class="form-group">
+                            <label for="keterangan_reject" class="mt-2">Keterangan Ditolak</label>
+                            <input type="text" id="keterangan_reject" name="keterangan_reject"
+                                value="{{ $request_pembelian->keterangan_reject }}" disabled>
+                        </div>
+                        <a href="{{ route('requestpembelian.pengajuanulang', $request_pembelian->id) }}"
+                            class="btn btn-success">Pengajuan
+                            Ulang</a>
+                    @endif
                 @endif
             </div>
             <div>
@@ -223,8 +268,17 @@
                                     <td>{{ $d->harga }}</td>
                                     <td>{{ $d->link_pembelian }}</td>
                                     <td>
-                                        <a href="{{ route('requestpembelian.editdetail', $d->id) }}">Edit</a>
-                                        <a href="{{ route('requestpembelian.destroydetail', $d->id) }}">Delete</a>
+                                        @if ($d->bukti_bayar)
+                                            <a href="{{ asset('bukti_bayar/' . $d->bukti_bayar) }}"
+                                                class="btn btn-success">Lihat Bukti</a>
+                                        @else
+                                            <a href="{{ route('requestpembelian.addbukti', $d->id) }}"
+                                                class="btn btn-primary">Tambah Bukti</a>
+                                        @endif
+                                        <a href="{{ route('requestpembelian.editdetail', $d->id) }}"
+                                            class="btn btn-warning">Edit</a>
+                                        <a href="{{ route('requestpembelian.destroydetail', $d->id) }}"
+                                            class="btn btn-danger">Delete</a>
                                     </td>
                                 </tr>
                             @endforeach
@@ -254,6 +308,25 @@
         </div>
     </div>
 
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const statusRequest = document.getElementById('status_request');
+            const keteranganReject = document.getElementById('keterangan_reject');
+
+            function toggleKeteranganReject() {
+                if (statusRequest.value === 'reject_request' || statusRequest.value === 'reject_payment') {
+                    keteranganReject.style.display = 'block';
+                } else {
+                    keteranganReject.style.display = 'none';
+                }
+            }
+
+            statusRequest.addEventListener('change', toggleKeteranganReject);
+
+            // Trigger it on page load
+            toggleKeteranganReject();
+        });
+    </script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 

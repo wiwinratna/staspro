@@ -18,6 +18,7 @@ return new class extends Migration
             $table->double('kuantitas');
             $table->double('harga');
             $table->string('link_pembelian');
+            $table->string('bukti_bayar')->nullable();
             $table->unsignedBigInteger('id_request_pembelian_header');
             $table->unsignedBigInteger('user_id_created');
             $table->unsignedBigInteger('user_id_updated');

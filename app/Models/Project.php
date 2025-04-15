@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -20,7 +19,6 @@ class Project extends Model
         'file_proposal',
         'file_rab',
         'kategori_pendanaan',
-        'jumlah_dana',
         'id_sumber_dana',
         'user_id_created',
         'user_id_updated',

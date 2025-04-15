@@ -16,7 +16,7 @@ class DetailprojectController extends Controller
     {
         // Validasi input yang lebih ketat
         $validated = $request->validate([
-            'id_project' => 'required|exists:projects,id',
+            'id_project' => 'required|exists:project,id',
             'id_user'    => 'required|exists:users,id',
         ]);
 

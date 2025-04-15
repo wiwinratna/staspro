@@ -4,10 +4,14 @@ namespace App\Http\Controllers;
 
 use App\Models\Transaksi;
 use App\Models\Project;
+use App\Models\SubkategoriSumberdana;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Schema;
 use App\Exports\LaporanExport;
 use Maatwebsite\Excel\Facades\Excel;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Carbon\Carbon;
 
 class TransaksiController extends Controller
 {
@@ -15,183 +19,289 @@ class TransaksiController extends Controller
     public function index()
     {
         if (auth()->user()->role === 'admin') {
-            $transaksis = Transaksi::all(); // Ambil semua transaksi untuk admin
-            return view('transaksi.pencatatan_transaksi', compact('transaksis'));
+            $transaksis = Transaksi::with(['project', 'subKategoriPendanaan'])->get(); 
+
+            $totalNominalFiltered = $transaksis->sum('jumlah_transaksi');
+            return view('transaksi.pencatatan_transaksi', compact('transaksis', 'totalNominalFiltered'));
         } else {
-            $transaksis = Transaksi::where('tim_peneliti', auth()->user()->name)->get(); // Ambil transaksi sesuai user
-            return view('pencatatan_transaksi_user', compact('transaksis'));
+            $transaksis = Transaksi::with(['project', 'subKategoriSumberDana'])
+                ->where('tim_peneliti', auth()->user()->name)
+                ->get();
+            
+            $totalNominalKeseluruhan = $transaksis->sum('jumlah_transaksi');
+
+            return view('transaksi.pencatatan_transaksi_user', compact('transaksis', 'totalNominalKeseluruhan'));
+
+            $totalDebit = $transaksis->where('jenis_transaksi', 'pemasukan')->sum('jumlah_transaksi');
+            $totalKredit = $transaksis->where('jenis_transaksi', 'pengeluaran')->sum('jumlah_transaksi');
+
+            return view('laporan_keuangan', compact('transaksis', 'totalDebit', 'totalKredit'));
         }
     }
 
     // Filter transaksi berdasarkan rentang tanggal
     public function filterTransaksi(Request $request)
     {
-        $request->validate([
-            'start_date' => 'required|date',
-            'end_date'   => 'required|date|after_or_equal:start_date',
-        ]);
+        // Ambil input tanggal dan ubah jadi full datetime dengan Carbon
+        $startDate = Carbon::parse($request->input('start_date'))->startOfDay();
+        $endDate = Carbon::parse($request->input('end_date'))->endOfDay();
 
-        $transaksis = Transaksi::whereBetween('tanggal', [$request->start_date, $request->end_date])->get();
-        $totalNominal = $transaksis->sum('jumlah_transaksi');
+        // Filter transaksi yang created_at-nya berada di antara rentang waktu tersebut
+        $transaksis = Transaksi::whereBetween('created_at', [$startDate, $endDate])->get();
 
-        return view('transaksi.pencatatan_transaksi', compact('transaksis', 'totalNominal'));
+        // Hitung total jumlah transaksi dari hasil filter
+        $totalNominalFiltered = $transaksis->sum('jumlah_transaksi');
+
+        return view('transaksi.pencatatan_transaksi', compact('transaksis', 'totalNominalFiltered'));
     }
 
     // Menampilkan form input transaksi
-    public function create()
+    public function create(Request $request)
     {
-        $tim_projects = Project::all(); // Mengambil semua tim penelitian dari model Project
-        return view('transaksi.form_input_transaksi', compact('tim_projects'));
+        $projects = Project::all();
+        $subKategoriSumberdana = SubKategoriSumberdana::all(); 
+        $tanggalFormatted = now()->format('d-m-Y');
+
+        return view('transaksi.form_input_transaksi', compact('projects', 'subKategoriSumberdana', 'tanggalFormatted'));
+    }
+
+    public function getSubkategori(Request $request)
+    {
+        // Validasi bahwa project_id ada dalam request
+        $request->validate([
+            'project_id' => 'required|exists:project,id', // Pastikan project_id ada dan valid
+        ]);
+
+        // Ambil proyek berdasarkan ID
+        $project = Project::find($request->project_id);
+        
+        if (!$project) {
+            return response()->json(['message' => 'Project not found'], 404); // Jika proyek tidak ditemukan
+        }
+
+        // Debugging: Cek id_sumber_dana dari proyek
+        \Log::info('ID Sumber Dana dari Proyek: ' . $project->id_sumber_dana);
+
+        // Ambil sub kategori berdasarkan ID sumber dana proyek
+        $subkategori = SubkategoriSumberdana::where('id_sumberdana', $project->id_sumber_dana)->get();
+        
+        // Debugging: Cek data subkategori yang ditemukan
+        \Log::info('Subkategori found: ', $subkategori->toArray());
+        
+        return response()->json($subkategori);
     }
 
     // Menyimpan transaksi baru
     public function store(Request $request)
     {
+        \Log::info('Data yang diterima:', $request->all());
+
         $request->validate([
-            'tanggal' => 'required|date',
-            'jenis_transaksi' => 'required|string|max:255',
-            'deskripsi_transaksi' => 'required|string',
-            'jumlah_transaksi' => 'required|numeric|min:0',
-            'metode_pembayaran' => 'required|string|max:255',
-            'kategori_transaksi' => 'required|string|max:255',
-            'sub_kategori' => 'nullable|string|max:255',
-            'sub_sub_kategori' => 'nullable|string|max:255',
-            'tim_penelitian' => 'nullable|exists:projects,id', // Validasi tim penelitian
-            'bukti_transaksi' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
+            'tanggal' => 'required',
+            'project' => 'required',
+            'subkategori_sumberdana' => 'required|exists:subkategori_sumberdana,id',
+            'jenis_transaksi' => 'required',
+            'deskripsi' => 'required|string',
+            'jumlah_transaksi' => 'required|numeric',
+            'metode_pembayaran' => 'required',
+            'bukti_transaksi' => 'nullable|image|mimes:jpeg,png,jpg|max:2048'
         ]);
 
-        $jumlah = (float) str_replace(['Rp.', ',', ' '], '', $request->jumlah_transaksi);
-        $buktiPath = null;
+        // Convert tanggal dari d-m-Y ke Y-m-d
+        $tanggal = Carbon::createFromFormat('d-m-Y', $request->tanggal)->format('Y-m-d');
 
+        $jumlah = (float) str_replace(['Rp.', ',', ' '], '', $request->jumlah_transaksi);    
+
+        $project = Project::find($request->project);
+        if (!$project) {
+            return redirect()->back()->with('error', 'Project tidak ditemukan.');
+        }
+
+        $path = null;
         if ($request->hasFile('bukti_transaksi')) {
             $file = $request->file('bukti_transaksi');
             $filename = time() . '_' . $file->getClientOriginalName();
-            $buktiPath = $file->storeAs('bukti_transaksi', $filename, 'public');
+            $path = $file->storeAs('bukti_transaksi', $filename, 'public');
         }
 
-        Transaksi::create([
-            'tanggal' => $request->tanggal,
+        $transaksi = Transaksi::create([
+            'tanggal' => $tanggal,
+            'project_id' => $request->project,
+            'tim_peneliti' => $project->tim_peneliti, 
+            'sub_kategori_pendanaan' => $request->subkategori_sumberdana,
             'jenis_transaksi' => $request->jenis_transaksi,
-            'deskripsi_transaksi' => $request->deskripsi_transaksi,
+            'deskripsi_transaksi' => $request->deskripsi,
             'jumlah_transaksi' => $jumlah,
             'metode_pembayaran' => $request->metode_pembayaran,
-            'kategori_transaksi' => $request->kategori_transaksi,
-            'sub_kategori' => $request->sub_kategori,
-            'sub_sub_kategori' => $request->sub_sub_kategori,
-            'tim_penelitian' => $request->tim_penelitian,
-            'bukti_transaksi' => $buktiPath,
+            'bukti_transaksi' => $path, 
         ]);
 
-        return redirect()->route('pencatatan_transaksi')->with('success', 'Data transaksi berhasil disimpan!');
+        return response()->json(['success' => true, 'message' => 'Transaksi berhasil disimpan.']);
     }
 
     // Menampilkan form edit transaksi
-    public function edit($id)
+    public function edit($id) 
     {
         $transaksi = Transaksi::findOrFail($id);
-        $tim_projects = Project::all();
+        $projects = Project::all();
+        $subKategoriSumberdana = SubKategoriSumberdana::all();
 
-        return view('transaksi.form_input_transaksi', compact('transaksi', 'tim_projects'));
+        // Ambil tanggal dari old() atau dari $transaksi
+        $tanggal = old('tanggal', $transaksi->tanggal ?? now()->format('Y-m-d'));
+
+        // Konversi ke format d-m-Y
+        try {
+            $tanggalFormatted = \Carbon\Carbon::parse($tanggal)->format('d-m-Y');
+        } catch (\Exception $e) {
+            $tanggalFormatted = now()->format('d-m-Y'); // fallback kalau error
+        }
+
+        return view('transaksi.form_input_transaksi', compact('transaksi', 'projects', 'subKategoriSumberdana', 'tanggalFormatted'));
     }
 
-    // Mengupdate data transaksi
     public function update(Request $request, $id)
     {
         $request->validate([
-            'tanggal' => 'required|date',
-            'jenis_transaksi' => 'required|string|max:255',
-            'deskripsi_transaksi' => 'required|string',
-            'jumlah_transaksi' => 'required|numeric|min:0',
-            'metode_pembayaran' => 'required|string|max:255',
-            'kategori_transaksi' => 'required|string|max:255',
-            'sub_kategori' => 'nullable|string|max:255',
-            'sub_sub_kategori' => 'nullable|string|max:255',
-            'tim_penelitian' => 'nullable|exists:projects,id',
-            'bukti_transaksi' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
+            'tanggal' => 'required',
+            'project' => 'required',
+            'subkategori_sumberdana' => 'required',
+            'jenis_transaksi' => 'required',
+            'deskripsi' => 'required|string',
+            'jumlah_transaksi' => 'required|numeric',
+            'metode_pembayaran' => 'required',
+            'bukti_transaksi' => 'nullable|image|mimes:jpeg,png,jpg|max:2048'
         ]);
 
         $transaksi = Transaksi::findOrFail($id);
         $jumlah = (float) str_replace(['Rp.', ',', ' '], '', $request->jumlah_transaksi);
-        $buktiPath = $transaksi->bukti_transaksi;
+
+        $path = $transaksi->bukti_transaksi; // Default ke path lama jika tidak ada upload baru
 
         if ($request->hasFile('bukti_transaksi')) {
+            // Hapus file lama jika ada
             if ($transaksi->bukti_transaksi) {
                 Storage::disk('public')->delete($transaksi->bukti_transaksi);
             }
+
+            // Simpan file baru
             $file = $request->file('bukti_transaksi');
             $filename = time() . '_' . $file->getClientOriginalName();
-            $buktiPath = $file->storeAs('bukti_transaksi', $filename, 'public');
+            $path = $file->storeAs('bukti_transaksi', $filename, 'public');
         }
 
+        $tanggal = Carbon::createFromFormat('d-m-Y', $request->tanggal)->format('Y-m-d');
+
+        // Update data transaksi
         $transaksi->update([
-            'tanggal' => $request->tanggal,
+            'tanggal' => $tanggal,
+            'project_id' => $request->project,
+            'subkategori_sumberdana' => $request->subkategori_sumberdana,
             'jenis_transaksi' => $request->jenis_transaksi,
-            'deskripsi_transaksi' => $request->deskripsi_transaksi,
+            'deskripsi_transaksi' => $request-> deskripsi,
             'jumlah_transaksi' => $jumlah,
             'metode_pembayaran' => $request->metode_pembayaran,
-            'kategori_transaksi' => $request->kategori_transaksi,
-            'sub_kategori' => $request->sub_kategori,
-            'sub_sub_kategori' => $request->sub_sub_kategori,
-            'tim_penelitian' => $request->tim_penelitian,
-            'bukti_transaksi' => $buktiPath,
+            'bukti_transaksi' => $path,
         ]);
 
-        return redirect()->route('pencatatan_transaksi')->with('success', 'Data transaksi berhasil diperbarui!');
+        return response()->json(['success' => true, 'message' => 'Data transaksi berhasil diperbarui!']);
     }
 
     // Menghapus transaksi
     public function destroy($id)
     {
-        $transaksi = Transaksi::findOrFail($id);
-
-        if ($transaksi->bukti_transaksi) {
-            Storage::disk('public')->delete($transaksi->bukti_transaksi);
+        try {
+            $transaksi = Transaksi::findOrFail($id);
+            $transaksi->delete();
+            return response()->json(['success' => true, 'message' => 'Data berhasil dihapus.']);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => 'Gagal menghapus data.']);
         }
-
-        $transaksi->delete();
-
-        return redirect()->route('pencatatan_transaksi')->with('success', 'Transaksi berhasil dihapus!');
     }
 
     // Laporan Keuangan dengan filter berdasarkan Tim Penelitian dan Kategori Pendanaan
     public function laporanKeuangan(Request $request)
     {
-        $kategori = $request->input('kategoriPendanaan');
-        $tim = $request->input('timPenelitian');
+        $projects = Project::all();
 
+        // Mulai query untuk transaksi
         $query = Transaksi::query();
 
-        if ($kategori) {
-            $query->where('kategori_transaksi', $kategori);
+        // Filter berdasarkan tim peneliti
+        if ($request->filled('tim_peneliti')) {
+            $query->where('project_id', $request->tim_peneliti);
         }
 
-        if ($tim) {
-            $query->where('tim_penelitian', $tim);
+        // Filter berdasarkan metode pembayaran
+        if ($request->filled('metode_pembayaran')) {
+            $query->where('metode_pembayaran', $request->metode_pembayaran);
         }
 
+        // Filter berdasarkan sumber dana
+        if ($request->filled('sumber_dana')) {
+            $query->whereHas('project.sumberDana', function($q) use ($request) {
+                $q->where('jenis_pendanaan', $request->sumber_dana);
+            });
+        }
+
+        // Ambil data transaksi yang sudah difilter
         $transaksis = $query->get();
-        $totalNominal = $transaksis->sum('jumlah_transaksi');
 
-        return view('laporan_keuangan', compact('transaksis', 'totalNominal'));
+        // Log untuk memeriksa transaksi yang diambil
+        \Log::info('Transaksi yang diambil untuk laporan: ', $transaksis->toArray());
+
+        // Menghitung total pemasukan (debit)
+        $totalDebit = $transaksis->where('jenis_transaksi', 'pemasukan')->sum('jumlah_transaksi');
+
+        // Menghitung total pengeluaran (kredit)
+        $totalKredit = $transaksis->where('jenis_transaksi', 'pengeluaran')->sum('jumlah_transaksi');
+
+        // Menghitung total keseluruhan
+        $totalNominal = $totalDebit - $totalKredit;
+
+        return view('laporan_keuangan', compact('projects', 'transaksis', 'totalDebit', 'totalKredit', 'totalNominal'));
     }
 
     // Export laporan keuangan ke Excel
-    public function exportExcel(Request $request)
+    public function export(Request $request, $format)
     {
-        $kategori = $request->input('kategoriPendanaan');
-        $tim = $request->input('timPenelitian');
+        $query = Transaksi::with(['project', 'sumberDana']);
+        $filterInfo = [];
 
-        $query = Transaksi::query();
-
-        if ($kategori) {
-            $query->where('kategori_transaksi', $kategori);
+        // Filter berdasarkan tim peneliti
+        if ($request->filled('tim_peneliti')) {
+            $query->where('project_id', $request->tim_peneliti);
+            $project = Project::find($request->tim_peneliti);
+            $filterInfo['Tim Peneliti'] = $project ? ucwords(strtolower($project->nama_project)) : 'Unknown';
         }
-        if ($tim) {
-            $query->where('tim_penelitian', $tim);
+
+        // Filter berdasarkan metode pembayaran
+        if ($request->filled('metode_pembayaran')) {
+            $query->where('metode_pembayaran', $request->metode_pembayaran);
+            $filterInfo['Metode Pembayaran'] = ucwords(strtolower($request->metode_pembayaran));
+        }
+
+        // Filter berdasarkan sumber dana
+        if ($request->filled('sumber_dana')) {
+            $query->whereHas('project.sumberDana', function ($q) use ($request) {
+                $q->where('jenis_pendanaan', $request->sumber_dana);
+            });
+            $filterInfo['Sumber Dana'] = ucfirst(strtolower($request->sumber_dana));
         }
 
         $transaksis = $query->get();
 
-        return Excel::download(new LaporanExport($transaksis), 'Laporan_Keuangan.xlsx');
+        // Mendapatkan tanggal awal dan akhir
+        $tanggal_awal = $transaksis->min('created_at')?->format('Y-m-d');
+        $tanggal_akhir = $transaksis->max('created_at')?->format('Y-m-d');
+
+        if ($format === 'excel') {
+            return Excel::download(new LaporanExport($transaksis, $tanggal_awal, $tanggal_akhir), 'Laporan_Keuangan.xlsx');
+        } elseif ($format === 'pdf') {
+            // Tambahkan $tanggal_awal dan $tanggal_akhir ke dalam compact
+            return PDF::loadView('laporan.pdf', compact('transaksis', 'filterInfo', 'tanggal_awal', 'tanggal_akhir'))
+                ->download('Laporan_Keuangan.pdf');
+        }
+
+        return redirect()->back()->with('error', 'Format tidak valid');
     }
 }

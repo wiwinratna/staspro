@@ -12,9 +12,6 @@ class Sumberdana extends Model
     protected $fillable = [
         'nama_sumber_dana',
         'jenis_pendanaan',
-        'keterangan',
-        'anggaran_maksimal',
-        'tgl_berlaku',
         'user_id_created',
         'user_id_updated',
         'updated_at',

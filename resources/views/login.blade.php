@@ -128,14 +128,14 @@
                                 placeholder="Enter your full name" required>
                         </div>
                         <div class="mb-3">
-                            <label for="email-register" class="form-label">Email</label>
-                            <input type="email" id="email-register" name="email" class="form-control"
+                            <label for="email" class="form-label">Email</label>
+                            <input type="email" id="email" name="email" class="form-control"
                                 placeholder="Enter your email" required>
                         </div>
                         <div class="mb-3 row">
                             <div class="col-md-6">
-                                <label for="password-register" class="form-label">Password</label>
-                                <input type="password" id="password-register" name="password" class="form-control"
+                                <label for="password" class="form-label">Password</label>
+                                <input type="password" id="password" name="password" class="form-control"
                                     placeholder="Create a password" required autocomplete="new-password">
                             </div>
                             <div class="col-md-6">
@@ -143,7 +143,14 @@
                                 <input type="password" id="password_confirmation" name="password_confirmation"
                                     class="form-control" placeholder="Confirm your password" required>
                             </div>
-                        </div> <!-- Menutup div yang sebelumnya hilang -->
+                        </div>
+                        <div class="mb-3">
+                            <label for="role" class="form-label">Role</label>
+                            <select id="role" name="role" class="form-select" required>
+                                <option value="admin">Admin</option>
+                                <option value="peneliti">Peneliti</option>
+                            </select>
+                        </div>
                         <div class="d-grid">
                             <button type="submit" class="btn btn-primary">Register</button>
                         </div>

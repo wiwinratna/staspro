@@ -16,7 +16,8 @@ return new class extends Migration
             $table->id();
             $table->string('no_request')->unique();
             $table->date('tgl_request');
-            $table->enum('status_request', ['submit_request', 'approve_admin', 'submit_payment', 'approve_payment', 'done'])->default('submit_request');
+            $table->enum('status_request', ['submit_request', 'approve_request', 'reject_request', 'submit_payment', 'approve_payment', 'reject_payment', 'done'])->default('submit_request');
+            $table->string('keterangan_reject')->nullable();
             $table->unsignedBigInteger('id_project');
             $table->unsignedBigInteger('user_id_created');
             $table->unsignedBigInteger('user_id_updated');

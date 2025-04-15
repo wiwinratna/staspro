@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -18,8 +19,8 @@
 
         .sidebar {
             background-color: #d9d9d9;
-            height: 100vh;
             padding: 20px;
+            min-height: 100vh;
             width: 250px;
         }
 
@@ -33,9 +34,13 @@
             border-radius: 5px;
             transition: background 0.3s ease-in-out;
             text-decoration: none;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
-        .sidebar a:hover, .sidebar a.active {
+        .sidebar a:hover,
+        .sidebar a.active {
             background-color: #006400;
             color: white;
         }
@@ -52,10 +57,15 @@
         .card:hover {
             transform: scale(1.05);
         }
+
+        .card.no-hover:hover {
+            transform: none !important;
+        }
     </style>
 </head>
+
 <body>
-    <nav class="navbar navbar-expand-lg navbar-dark">
+    <nav class="navbar navbar-expand-lg">
         <div class="container-fluid d-flex justify-content-end">
             @include('navbar')
         </div>
@@ -63,43 +73,55 @@
 
     <div class="d-flex">
         <div class="sidebar">
-            <a href="{{ route('admin.dashboard') }}" class="active"><i class="fa-solid fa-home"></i> Dashboard</a>
+            <a href="{{ route('admin.dashboard') }}"class="active"><i class="fa-solid fa-home"></i> Dashboard</a>
             <a href="{{ route('project.index') }}"><i class="fa-solid fa-folder"></i> Project</a>
             <a href="{{ route('requestpembelian.index') }}"><i class="fa-solid fa-cart-plus"></i> Request Pembelian</a>
-            <a href="{{ route('pencatatan_transaksi') }}"><i class="fa-solid fa-book"></i> Pencatatan Transaksi</a>
-            <a href="{{ route('laporan_keuangan') }}"><i class="fa-solid fa-file-invoice"></i> Laporan Keuangan</a>
+            @if (Auth::user()->role == 'admin')
+                <a href="{{ route('sumberdana.index') }}"><i class="fa-solid fa-book"></i> Sumber Dana</a>
+                <a href="{{ route('pencatatan_transaksi') }}"><i class="fa-solid fa-book"></i> Pencatatan Transaksi</a>
+                <a href="{{ route('laporan_keuangan') }}"><i class="fa-solid fa-file-invoice"></i> Laporan Keuangan</a>
+            @endif
         </div>
 
-        <div class="container mt-4">
-            <h2 class="mb-4">Dashboard Admin</h2>
-            <div class="row">
-                <div class="col-md-4">
-                    <div class="card h-100 d-flex flex-column justify-content-center">
-                        <h5 class="fw-semibold">Request yang Belum Disetujui</h5>
-                        <p class="fs-4">{{ $pendingRequests }}</p>
+        <div class="container-fluid p-4">
+            <h1 class="mb-4">Dashboard</h1>
+            <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+
+                @if (Auth::user()->role == 'admin')
+                    <div class="col">
+                        <a href="{{ route('pencatatan_transaksi') }}" class="text-decoration-none">
+                            <div class="card h-100 text-white bg-success p-3 rounded-4 shadow">
+                                <h5 class="fw-semibold">Total Transaksi Bulan Ini</h5>
+                                <p class="fs-4">Rp {{ number_format($totalTransactions, 0, ',', '.') }}</p>
+                            </div>
+                        </a>
                     </div>
+                @endif
+
+                <div class="col">
+                    <a href="{{ route('project.index') }}" class="text-decoration-none">
+                        <div class="card h-100 text-white bg-success p-3 rounded-4 shadow">
+                            <h5 class="fw-semibold">Jumlah Project</h5>
+                            <p class="fs-4">{{ $totalProjects }}</p>
+                        </div>
+                    </a>
                 </div>
 
-                <div class="col-md-4">
-                    <div class="card h-100 d-flex flex-column justify-content-center">
-                        <h5 class="fw-semibold">Total Transaksi Bulan Ini</h5>
-                        <p class="fs-4">Rp {{ number_format($totalTransactions, 0, ',', '.') }}</p>
-                    </div>
-                </div>
-
-                <div class="col-md-4">
-                    <div class="card h-100 d-flex flex-column justify-content-center">
-                        <h5 class="fw-semibold">Jumlah Tim Project</h5>
-                        <p class="fs-4">{{ $totalTeams }}</p>
-                    </div>
+                <div class="col">
+                    <a href="{{ route('requestpembelian.index') }}" class="text-decoration-none">
+                        <div class="card h-100 text-white bg-success p-3 rounded-4 shadow">
+                            <h5 class="fw-semibold">Total Request Pembelian</h5>
+                            <p class="fs-4">{{ $totalRequests }}</p>
+                        </div>
+                    </a>
                 </div>
             </div>
 
-            <div class="row mt-4">
-                <div class="col-md-4">
-                    <div class="card h-100 d-flex flex-column justify-content-center">
-                        <h5 class="fw-semibold">Total Request Pembelian</h5>
-                        <p class="fs-4">{{ $totalRequests }}</p>
+            <div class="row mt-5">
+                <div class="col-md-12">
+                    <div class="card no-hover" style="max-width: 1000px; margin: auto;">
+                        <h5 class="fw-semibold text-white">Grafik Transaksi per Project</h5>
+                        <canvas id="grafikPengeluaranProject"></canvas>
                     </div>
                 </div>
             </div>
@@ -108,14 +130,14 @@
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
-        var ctx = document.getElementById('chartTransaksi').getContext('2d');
-        var myChart = new Chart(ctx, {
+        const ctxProject = document.getElementById('grafikPengeluaranProject').getContext('2d');
+        const chartPengeluaran = new Chart(ctxProject, {
             type: 'bar',
             data: {
-                labels: ['Total Transaksi'],
+                labels: {!! json_encode($namaProjects) !!},
                 datasets: [{
-                    label: 'Jumlah Transaksi',
-                    data: [{{ $totalTransactions }}],
+                    label: 'Total Transaksi (Rp)',
+                    data: {!! json_encode($pengeluaranPerProject) !!},
                     backgroundColor: 'rgba(255, 255, 255, 0.5)',
                     borderColor: 'rgba(255, 255, 255, 1)',
                     borderWidth: 2
@@ -131,16 +153,29 @@
                 },
                 scales: {
                     x: {
-                        ticks: { color: 'white' },
-                        grid: { color: 'rgba(255, 255, 255, 0.2)' }
+                        ticks: {
+                            color: 'white'
+                        },
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.2)'
+                        }
                     },
                     y: {
-                        ticks: { color: 'white' },
-                        grid: { color: 'rgba(255, 255, 255, 0.2)' }
+                        ticks: {
+                            color: 'white'
+                        },
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.2)',
+                        },
+                        beginAtZero: true
                     }
                 }
             }
         });
     </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.min.js"></script>
 </body>
+
 </html>

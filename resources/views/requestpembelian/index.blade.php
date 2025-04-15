@@ -47,7 +47,8 @@
             margin-bottom: 10px;
         }
 
-        .sidebar a:hover, .sidebar a.active {
+        .sidebar a:hover,
+        .sidebar a.active {
             background-color: #006400;
             color: white;
         }
@@ -108,8 +109,11 @@
             <a href="{{ route('dashboard') }}">Dashboard</a>
             <a href="{{ route('project.index') }}">Project</a>
             <a href="{{ route('requestpembelian.index') }}"class="active">Request Pembelian</a>
-            <a href="{{ route('pencatatan_transaksi') }}">Pencatatan Transaksi</a>
-            <a href="{{ route('laporan_keuangan') }}">Laporan Keuangan</a>
+            @if (Auth::user()->role == 'admin')
+                <a href="{{ route('sumberdana.index') }}">Sumber Dana</a>
+                <a href="{{ route('pencatatan_transaksi') }}">Pencatatan Transaksi</a>
+                <a href="{{ route('laporan_keuangan') }}">Laporan Keuangan</a>
+            @endif
         </div>
 
         <!-- Main Content -->
@@ -161,35 +165,29 @@
                                         xmlns="http://www.w3.org/2000/svg">
                                         <path
                                             d="M21 21.625L21.3475 19.8925C21.53 18.9763 22.02 18.13 22.195 17.2125C22.2325 17.0217 22.2508 16.8258 22.25 16.625C22.2495 16.1901 22.1582 15.76 21.9819 15.3624C21.8056 14.9648 21.5483 14.6083 21.2264 14.3159C20.9045 14.0234 20.5251 13.8013 20.1124 13.6639C19.6998 13.5265 19.263 13.4767 18.83 13.5178C18.397 13.5588 17.9773 13.6898 17.5979 13.9024C17.2184 14.1149 16.8875 14.4043 16.6263 14.7521C16.3651 15.0999 16.1793 15.4983 16.081 15.922C15.9826 16.3457 15.9738 16.7852 16.055 17.2125C16.23 18.1313 16.72 18.975 16.9037 19.8925L17.25 21.625M21 21.625H17.25M21 21.625L24.1212 22.4575C24.6541 22.5761 25.1307 22.8728 25.4722 23.2986C25.8138 23.7245 26 24.2541 26 24.8C26 25.4625 25.4625 26 24.8 26H13.45C13.1317 26 12.8265 25.8736 12.6015 25.6485C12.3764 25.4235 12.25 25.1183 12.25 24.8C12.25 23.675 13.0313 22.7013 14.1288 22.4575L17.25 21.625M19.75 9.75V8.5C19.75 4.965 19.75 3.19625 18.6513 2.09875C17.5538 1 15.785 1 12.25 1H8.5C4.965 1 3.19625 1 2.09875 2.09875C1 3.19625 1 4.965 1 8.5V18.5C1 22.035 1 23.8038 2.09875 24.9013C3.19625 26 4.965 26 8.5 26"
-                                            stroke="{{ $r->status_request == 'approve_admin' || $r->status_request == 'submit_payment' || $r->status_request == 'approve_payment' || $r->status_request == 'done' ? '#439E2C' : 'black' }}"
+                                            stroke="{{ $r->status_request == 'approve_request' || $r->status_request == 'submit_payment' || $r->status_request == 'approve_payment' || $r->status_request == 'reject_payment' || $r->status_request == 'done' ? '#439E2C' : ($r->status_request == 'reject_request' ? 'red' : 'black') }}"
                                             stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
                                         <path
                                             d="M7.25 9.33375C7.25 9.33375 8.03125 9.33375 8.8125 11C8.8125 11 11.2938 6.83375 13.5 6M6 16H11M6 19.75H11"
-                                            stroke="{{ $r->status_request == 'approve_admin' || $r->status_request == 'submit_payment' || $r->status_request == 'approve_payment' || $r->status_request == 'done' ? '#439E2C' : 'black' }}"
+                                            stroke="{{ $r->status_request == 'approve_request' || $r->status_request == 'submit_payment' || $r->status_request == 'approve_payment' || $r->status_request == 'reject_payment' || $r->status_request == 'done' ? '#439E2C' : ($r->status_request == 'reject_request' ? 'red' : 'black') }}"
                                             stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
                                     </svg>
                                     <svg width="21" height="21" viewBox="0 0 21 21" fill="none"
                                         xmlns="http://www.w3.org/2000/svg">
                                         <path
                                             d="M9.25 15.5V5.3125L6 8.5625L4.25 6.75L10.5 0.5L16.75 6.75L15 8.5625L11.75 5.3125V15.5H9.25ZM3 20.5C2.3125 20.5 1.72417 20.2554 1.235 19.7663C0.745833 19.2771 0.500833 18.6883 0.5 18V14.25H3V18H18V14.25H20.5V18C20.5 18.6875 20.2554 19.2763 19.7663 19.7663C19.2771 20.2563 18.6883 20.5008 18 20.5H3Z"
-                                            fill="{{ $r->status_request == 'submit_payment' || $r->status_request == 'approve_payment' || $r->status_request == 'done' ? '#439E2C' : 'black' }}" />
+                                            fill="{{ $r->status_request == 'submit_payment' || $r->status_request == 'approve_payment' || $r->status_request == 'reject_payment' || $r->status_request == 'done' ? '#439E2C' : 'black' }}" />
                                     </svg>
                                     <svg width="23" height="23" viewBox="0 0 27 27" fill="none"
                                         xmlns="http://www.w3.org/2000/svg">
                                         <path
                                             d="M21 21.625L21.3475 19.8925C21.53 18.9763 22.02 18.13 22.195 17.2125C22.2325 17.0217 22.2508 16.8258 22.25 16.625C22.2495 16.1901 22.1582 15.76 21.9819 15.3624C21.8056 14.9648 21.5483 14.6083 21.2264 14.3159C20.9045 14.0234 20.5251 13.8013 20.1124 13.6639C19.6998 13.5265 19.263 13.4767 18.83 13.5178C18.397 13.5588 17.9773 13.6898 17.5979 13.9024C17.2184 14.1149 16.8875 14.4043 16.6263 14.7521C16.3651 15.0999 16.1793 15.4983 16.081 15.922C15.9826 16.3457 15.9738 16.7852 16.055 17.2125C16.23 18.1313 16.72 18.975 16.9037 19.8925L17.25 21.625M21 21.625H17.25M21 21.625L24.1212 22.4575C24.6541 22.5761 25.1307 22.8728 25.4722 23.2986C25.8138 23.7245 26 24.2541 26 24.8C26 25.4625 25.4625 26 24.8 26H13.45C13.1317 26 12.8265 25.8736 12.6015 25.6485C12.3764 25.4235 12.25 25.1183 12.25 24.8C12.25 23.675 13.0313 22.7013 14.1288 22.4575L17.25 21.625M19.75 9.75V8.5C19.75 4.965 19.75 3.19625 18.6513 2.09875C17.5538 1 15.785 1 12.25 1H8.5C4.965 1 3.19625 1 2.09875 2.09875C1 3.19625 1 4.965 1 8.5V18.5C1 22.035 1 23.8038 2.09875 24.9013C3.19625 26 4.965 26 8.5 26"
-                                            stroke="{{ $r->status_request == 'approve_payment' || $r->status_request == 'done' ? '#439E2C' : 'black' }}"
+                                            stroke="{{ $r->status_request == 'approve_payment' || $r->status_request == 'done' ? '#439E2C' : ($r->status_request == 'reject_payment' ? 'red' : 'black') }}"
                                             stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
                                         <path
                                             d="M7.25 9.33375C7.25 9.33375 8.03125 9.33375 8.8125 11C8.8125 11 11.2938 6.83375 13.5 6M6 16H11M6 19.75H11"
-                                            stroke="{{ $r->status_request == 'approve_payment' || $r->status_request == 'done' ? '#439E2C' : 'black' }}"
+                                            stroke="{{ $r->status_request == 'approve_payment' || $r->status_request == 'done' ? '#439E2C' : ($r->status_request == 'reject_payment' ? 'red' : 'black') }}"
                                             stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
-                                    </svg>
-                                    <svg width="23" height="23" viewBox="0 0 23 23" fill="none"
-                                        xmlns="http://www.w3.org/2000/svg">
-                                        <path
-                                            d="M22.9587 11.4998L20.417 8.604L20.7712 4.77067L17.0107 3.9165L15.042 0.604004L11.5003 2.12484L7.95866 0.604004L5.98991 3.9165L2.22949 4.76025L2.58366 8.59359L0.0419922 11.4998L2.58366 14.3957L2.22949 18.2394L5.98991 19.0936L7.95866 22.4061L11.5003 20.8748L15.042 22.3957L17.0107 19.0832L20.7712 18.229L20.417 14.3957L22.9587 11.4998ZM9.41699 16.7082L5.25033 12.5415L6.71908 11.0728L9.41699 13.7603L16.2816 6.89567L17.7503 8.37484L9.41699 16.7082Z"
-                                            fill="{{ $r->status_request == 'done' ? '#439E2C' : 'black' }}" />
                                     </svg>
                                 </td>
                                 <td>
@@ -229,16 +227,6 @@
                             </tr>
                         @endforeach
                     </tbody>
-                    <tfoot>
-                        <tr>
-                            <th>Nomor Request</th>
-                            <th>Tim Penelitian</th>
-                            <th>Nama Barang</th>
-                            <th>Total Harga</th>
-                            <th>Status</th>
-                            <th>Aksi</th>
-                        </tr>
-                    </tfoot>
                 </table>
             </div>
         </div>

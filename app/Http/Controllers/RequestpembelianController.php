@@ -7,6 +7,7 @@ use App\Models\RequestpembelianHeader;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\File;
 
 class RequestpembelianController extends Controller
 {
@@ -144,6 +145,36 @@ class RequestpembelianController extends Controller
         }
     }
 
+    public function addbukti(string $id)
+    {
+        $detail = RequestpembelianDetail::find($id);
+
+        return view('requestpembelian.addbukti', ['detail' => $detail]);
+    }
+
+    public function storebukti(Request $request, string $id)
+    {
+        $validated = $request->validate([
+            'bukti_bayar' => 'required|image|mimes:jpeg,png,jpg|max:2048',
+        ]);
+
+        try {
+            $bukti_bayar         = $request->file('bukti_bayar');
+            $filename_buktibayar = time() . '.' . $bukti_bayar->getClientOriginalExtension();
+            $bukti_bayar->move('bukti_bayar', $filename_buktibayar);
+
+            RequestpembelianDetail::where('id', $id)->update([
+                'bukti_bayar'     => $filename_buktibayar,
+                'user_id_updated' => Auth::user()->id,
+                'updated_at'      => now(),
+            ]);
+
+            return redirect()->route('requestpembelian.detail', $request->id_request_pembelian_header)->with('success', 'Bukti Pembayaran berhasil diunggah');
+        } catch (\Exception) {
+            return redirect()->route('requestpembelian.detail', $request->id_request_pembelian_header)->with('error', 'Bukti Pembayaran gagal diunggah');
+        }
+    }
+
     public function editdetail(string $id)
     {
         $detail = RequestpembelianDetail::find($id);
@@ -161,11 +192,24 @@ class RequestpembelianController extends Controller
         ]);
 
         try {
+            $detail = RequestpembelianDetail::find($id);
+
+            if ($request->hasFile('bukti_bayar')) {
+                if ($detail->bukti_bayar && File::exists('bukti_bayar/' . $detail->bukti_bayar)) {
+                    File::delete('bukti_bayar/' . $detail->bukti_bayar);
+                }
+
+                $bukti_bayar         = $request->file('bukti_bayar');
+                $filename_buktibayar = time() . '.' . $bukti_bayar->getClientOriginalExtension();
+                $bukti_bayar->move('bukti_bayar', $filename_buktibayar);
+            }
+
             RequestpembelianDetail::where('id', $id)->update([
                 'nama_barang'     => $request->nama_barang,
                 'kuantitas'       => $request->kuantitas,
                 'harga'           => $request->harga,
                 'link_pembelian'  => $request->link_pembelian,
+                'bukti_bayar'     => $request->hasFile('bukti_bayar') ? $filename_buktibayar : $detail->bukti_bayar,
                 'user_id_updated' => Auth::user()->id,
                 'updated_at'      => now(),
             ]);
@@ -181,6 +225,9 @@ class RequestpembelianController extends Controller
         $detail = RequestpembelianDetail::find($id);
 
         try {
+            if ($detail->bukti_bayar && File::exists('bukti_bayar/' . $detail->bukti_bayar)) {
+                File::delete('bukti_bayar/' . $detail->bukti_bayar);
+            }
             $detail->delete();
 
             return redirect()->route('requestpembelian.detail', $detail->id_request_pembelian_header)->with('success', 'Detail Request Pembelian berhasil dihapus');
@@ -195,16 +242,40 @@ class RequestpembelianController extends Controller
             'status_request' => 'required',
         ]);
 
+        if ($request->status_request == 'reject_request' || $request->status_request == 'reject_payment') {
+            $request->validate([
+                'keterangan_reject' => 'required',
+            ]);
+        }
+
         try {
             RequestpembelianHeader::where('id', $request->id_request_pembelian_header)->update([
-                'status_request'  => $request->status_request,
-                'user_id_updated' => Auth::user()->id,
-                'updated_at'      => now(),
+                'status_request'    => $request->status_request,
+                'keterangan_reject' => $request->keterangan_reject,
+                'user_id_updated'   => Auth::user()->id,
+                'updated_at'        => now(),
             ]);
 
             return redirect()->route('requestpembelian.index')->with('success', 'Status Request Pembelian berhasil diubah');
         } catch (\Exception $e) {
             return redirect()->route('requestpembelian.index')->with('error', $e->getMessage());
+        }
+    }
+
+    public function pengajuanulang(string $id)
+    {
+        $request_pembelian = RequestpembelianHeader::find($id);
+        try {
+            RequestpembelianHeader::where('id', $id)->update([
+                'status_request'    => $request_pembelian->status_request == 'reject_request' ? 'submit_request' : 'submit_payment',
+                'keterangan_reject' => null,
+                'user_id_updated'   => Auth::user()->id,
+                'updated_at'        => now(),
+            ]);
+
+            return redirect()->route('requestpembelian.index')->with('success', 'Pengajuan ulang berhasil');
+        } catch (\Exception) {
+            return redirect()->route('requestpembelian.index')->with('error', 'Pengajuan ulang gagal');
         }
     }
 }

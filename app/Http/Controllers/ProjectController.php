@@ -1,7 +1,9 @@
 <?php
 namespace App\Http\Controllers;
 
+use App\Models\DetailSubkategori;
 use App\Models\Project;
+use App\Models\SubkategoriSumberdana;
 use App\Models\Sumberdana;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -35,18 +37,16 @@ class ProjectController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'jumlah_dana'        => 'required',
-            'tahun'              => 'required',
-            'nama_project'       => 'required',
-            'kategori_pendanaan' => 'required',
-            'durasi'             => 'required',
-            'deskripsi'          => 'required',
-            'file_proposal'      => 'required|mimes:pdf|max:5120',
-            'file_rab'           => 'required|mimes:xlsx,xls,csv|max:5120',
+            'tahun'         => 'required',
+            'nama_project'  => 'required',
+            'durasi'        => 'required',
+            'deskripsi'     => 'required',
+            'file_proposal' => 'required|mimes:pdf|max:5120',
+            'file_rab'      => 'required|mimes:xlsx,xls,csv|max:5120',
         ]);
 
         try {
-            $file_proposal = $request->file('file_proposal');
+            $file_proposal     = $request->file('file_proposal');
             $filename_proposal = time() . '.' . $file_proposal->getClientOriginalExtension();
             $file_proposal->move('file_proposal', $filename_proposal);
 
@@ -54,11 +54,12 @@ class ProjectController extends Controller
             $filename_rab = time() . '.' . $file_rab->getClientOriginalExtension();
             $file_rab->move('file_rab', $filename_rab);
 
-            Project::create([
-                'jumlah_dana'     => $request->jumlah_dana,
+            $subkategori_sumberdana = SubkategoriSumberdana::where('id_sumberdana', $request->sumber_dana == 'internal' ? $request->kategori_pendanaan_internal : $request->kategori_pendanaan_eksternal)->get();
+
+            $project = Project::create([
                 'tahun'           => $request->tahun,
                 'nama_project'    => $request->nama_project,
-                'id_sumber_dana'  => $request->kategori_pendanaan,
+                'id_sumber_dana'  => $request->sumber_dana == 'internal' ? $request->kategori_pendanaan_internal : $request->kategori_pendanaan_eksternal,
                 'durasi'          => $request->durasi,
                 'deskripsi'       => $request->deskripsi,
                 'file_proposal'   => $filename_proposal,
@@ -66,6 +67,22 @@ class ProjectController extends Controller
                 'user_id_created' => Auth::user()->id,
                 'user_id_updated' => Auth::user()->id,
             ]);
+
+            foreach ($subkategori_sumberdana as $subkategori) {
+                $nama_form = $subkategori->nama_form;
+                if ($request->has($nama_form)) {
+                    $nominal = str_replace(['Rp.', '.', ','], ['', '', '.'], $request->$nama_form);
+                    $nominal = (float) $nominal;  // Mengubah nominal ke tipe data numerik
+            
+                    DetailSubkategori::create([
+                        'nominal'                   => $nominal,  // Menggunakan nominal yang sudah diproses
+                        'id_subkategori_sumberdana' => $subkategori->id,
+                        'id_project'                => $project->id,
+                        'user_id_created'           => Auth::user()->id,
+                        'user_id_updated'           => Auth::user()->id,
+                    ]);
+                }
+            }            
 
             return redirect()->route('project.index')->with('success', 'Data berhasil ditambahkan');
         } catch (\Exception $e) {
@@ -96,20 +113,83 @@ class ProjectController extends Controller
             ->select('b.name', 'b.id')
             ->get();
 
-        return view('detail_project', ['project' => $project, 'anggota' => $anggota, 'users' => $users]);
+        $detail_dana = DB::table('detail_subkategori as a')
+            ->leftJoin('subkategori_sumberdana as b', 'a.id_subkategori_sumberdana', '=', 'b.id')
+            ->where('a.id_project', $project->id)
+            ->select('b.nama', 'a.nominal')
+            ->get();
+
+        $detail_request = DB::table('request_pembelian_detail as a')
+            ->leftJoin('request_pembelian_header as b', 'a.id_request_pembelian_header', '=', 'b.id')
+            ->where('b.id_project', $project->id)
+            ->select('a.nama_barang', 'a.kuantitas', 'a.harga', DB::raw('a.kuantitas * a.harga as total'))
+            ->get();
+
+        return view('detail_project', ['project' => $project, 'anggota' => $anggota, 'users' => $users, 'detail_dana' => $detail_dana, 'detail_request' => $detail_request]);
     }
 
     public function download_proposal($id)
     {
         $project = Project::find($id);
+        $filename = $project->nama_project . '_proposal.pdf'; // Menggunakan nama project untuk nama file
 
-        return response()->download(public_path('file_proposal/' . $project->file_proposal));
+        return response()->download(public_path('file_proposal/' . $project->file_proposal), $filename);
     }
 
     public function download_rab($id)
     {
         $project = Project::find($id);
+        $filename = $project->nama_project . '_rab.xlsx'; // Menggunakan nama project untuk nama file
 
-        return response()->download(public_path('file_rab/' . $project->file_rab));
+        return response()->download(public_path('file_rab/' . $project->file_rab), $filename);
+    }
+
+    public function getSubkategori($id)
+    {
+        $subkategori = SubkategoriSumberdana::where('id_sumberdana', $id)->get();
+
+        return response()->json($subkategori);
+    }
+
+    public function edit($id)
+    {
+        $project = Project::findOrFail($id);
+        $sumber_internal = SumberDana::where('jenis_pendanaan', 'internal')->get();
+        $sumber_eksternal = SumberDana::where('jenis_pendanaan', 'eksternal')->get();
+
+        return view('input_project', compact('project', 'sumber_internal', 'sumber_eksternal'));
+    }
+
+    public function update(Request $request, $id)
+    {
+        $project = Project::findOrFail($id);
+        
+        $project->update([
+                'nama_project' => $request->nama_project,
+                'tahun' => $request->tahun,
+                'durasi' => $request->durasi,
+                'deskripsi' => $request->deskripsi,
+                'id_sumber_dana' => $request->sumber_dana == 'internal'
+                    ? $request->kategori_pendanaan_internal
+                    : $request->kategori_pendanaan_eksternal,
+            'bahan_habis_pakai_dan_peralatan' => $request->bahan_habis_pakai_dan_peralatan,
+            'biaya_transportasi_dan_perjalanan' => $request->biaya_transportasi_dan_perjalanan,
+            'biaya_lainnya' => $request->biaya_lainnya,
+        ]);
+
+        return redirect()->route('project.index')->with('success', 'Project berhasil diupdate!');
+    }
+
+    public function destroy($id)
+    {
+        // Hapus detail_subkategori yang terkait dengan project
+        DB::table('detail_subkategori')->where('id_project', $id)->delete();
+
+        // Hapus project
+        $project = Project::findOrFail($id);
+        $project->delete();
+
+        // Redirect ke halaman project tanpa pesan sukses
+        return redirect()->route('project.index');
     }
 }

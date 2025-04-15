@@ -13,6 +13,7 @@ class RequestpembelianHeader extends Model
         'no_request',
         'tgl_request',
         'status_request',
+        'keterangan_reject',
         'id_project',
         'user_id_created',
         'user_id_updated',
