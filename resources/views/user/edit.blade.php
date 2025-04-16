@@ -4,8 +4,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sumber Dana</title>
+    <title>Edit User</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
     <style>
         body {
             background-color: #f8f9fa;
@@ -16,18 +17,6 @@
         .navbar {
             background-color: #006400;
             color: white;
-        }
-
-        .navbar .profile {
-            display: flex;
-            align-items: center;
-        }
-
-        .navbar .profile img {
-            border-radius: 50%;
-            width: 30px;
-            height: 30px;
-            margin-right: 10px;
         }
 
         /* Sidebar */
@@ -93,11 +82,6 @@
             border-radius: 5px;
         }
 
-        .form-group input::placeholder {
-            color: #aaa;
-            font-style: italic;
-        }
-
         .submit-btn {
             background-color: #006400;
             color: #fff;
@@ -111,6 +95,29 @@
 
         .submit-btn:hover {
             background-color: #249C00;
+        }
+
+        .text {
+            margin-top: 20px;
+            margin-bottom: 40px;
+        }
+
+        .text a {
+            color: white;
+            text-decoration: none;
+            font-size: 14px;
+            position: relative;
+            left: 10px;
+            border: 2px solid #006400;
+            padding: 5px 10px;
+            border-radius: 20px;
+            background-color: #006400;
+        }
+
+        .text a:hover {
+            text-decoration: underline;
+            background-color: white;
+            color: #006400;
         }
     </style>
 </head>
@@ -126,42 +133,69 @@
     <div class="d-flex">
         <!-- Sidebar -->
         <div class="sidebar">
-    <a href="{{ route('dashboard') }}">Dashboard</a>
-    <a href="{{ route('project.index') }}">Project</a>
-    <a href="{{ route('requestpembelian.index') }}" class="active">Request Pembelian</a>
-    @if (Auth::user()->role == 'admin')
-        <a href="{{ route('sumberdana.index') }}">Sumber Dana</a>
-        <a href="{{ route('pencatatan_transaksi') }}">Pencatatan Transaksi</a>
-        <a href="{{ route('laporan_keuangan') }}">Laporan Keuangan</a>
-        <a href="{{ route('users.index') }}">Management User</a>
-    @endif
-</div>
+            <a href="{{ route('dashboard') }}">Dashboard</a>
+            <a href="{{ route('project.index') }}">Project</a>
+            <a href="{{ route('requestpembelian.index') }}">Request Pembelian</a>
+            @if (Auth::user()->role == 'admin')
+                <a href="{{ route('sumberdana.index') }}">Sumber Dana</a>
+                <a href="{{ route('pencatatan_transaksi') }}">Pencatatan Transaksi</a>
+                <a href="{{ route('laporan_keuangan') }}">Laporan Keuangan</a>
+                <a href="{{ route('users.index') }}" class="active">Management User</a>
+            @endif
+        </div>
 
         <!-- Main Content -->
         <div class="main-content">
-            <h1>Tambah Sumber Dana</h1>
+            <h1>Edit User</h1>
+            <div class="text mt-10">
+                <a href="{{ route('users.index') }}" class="px-3"><span class="me-1"><- </span>Kembali ke Daftar User</a>
+            </div>
             <div class="form-container">
-                <form action="{{ route('sumberdana.store') }}" method="POST">
+                <form action="{{ route('users.update', $user->id) }}" method="POST">
                     @csrf
+                    @method('PUT')
                     <div class="form-group">
-                        <label for="nama_sumber_dana">Nama Sumber Dana</label>
-                        <input type="text" id="nama_sumber_dana" name="nama_sumber_dana">
+                        <label for="name">Nama</label>
+                        <input type="text" id="name" name="name" value="{{ $user->name }}" required>
                     </div>
                     <div class="form-group">
-                        <label for="jenis_pendanaan">Jenis Pendanaan</label>
-                        <select class="form-select" id="jenis_pendanaan" name="jenis_pendanaan">
-                            <option value="internal">
-                                Internal</option>
-                            <option value="eksternal">Eksternal</option>
+                        <label for="email">Email</label>
+                        <input type="email" id="email" name="email" value="{{ $user->email }}" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="role">Role</label>
+                        <select class="form-select" id="role" name="role">
+                            <option value="admin" {{ $user->role == 'admin' ? 'selected' : '' }}>Admin</option>
+                            <option value="peneliti" {{ $user->role == 'peneliti' ? 'selected' : '' }}>Peneliti </option>
                         </select>
                     </div>
-                    <button class="submit-btn mt-2">SUBMIT</button>
+                    <button class="submit-btn mt-2">UPDATE</button>
                 </form>
             </div>
         </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        @if (session('success'))
+            Swal.fire({
+                icon: 'success',
+                title: 'Sukses',
+                text: '{{ session('success') }}',
+                confirmButtonText: 'OK'
+            });
+        @endif
+
+        @if (session('error'))
+            Swal.fire({
+                icon: 'error',
+                title: 'Gagal',
+                text: '{{ session('error') }}',
+                confirmButtonText: 'OK'
+            });
+        @endif
+    </script>
 </body>
 
 </html>

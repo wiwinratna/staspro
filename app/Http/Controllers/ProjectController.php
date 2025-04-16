@@ -113,10 +113,11 @@ class ProjectController extends Controller
             ->select('b.name', 'b.id')
             ->get();
 
+        // Update query ini untuk mengambil realisasi anggaran
         $detail_dana = DB::table('detail_subkategori as a')
             ->leftJoin('subkategori_sumberdana as b', 'a.id_subkategori_sumberdana', '=', 'b.id')
             ->where('a.id_project', $project->id)
-            ->select('b.nama', 'a.nominal')
+            ->select('b.nama', 'a.nominal', 'a.realisasi_anggaran') // Ambil realisasi anggaran
             ->get();
 
         $detail_request = DB::table('request_pembelian_detail as a')
@@ -125,7 +126,13 @@ class ProjectController extends Controller
             ->select('a.nama_barang', 'a.kuantitas', 'a.harga', DB::raw('a.kuantitas * a.harga as total'))
             ->get();
 
-        return view('detail_project', ['project' => $project, 'anggota' => $anggota, 'users' => $users, 'detail_dana' => $detail_dana, 'detail_request' => $detail_request]);
+        return view('detail_project', [
+            'project' => $project,
+            'anggota' => $anggota,
+            'users' => $users,
+            'detail_dana' => $detail_dana,
+            'detail_request' => $detail_request
+        ]);
     }
 
     public function download_proposal($id)

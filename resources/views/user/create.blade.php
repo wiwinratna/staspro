@@ -4,8 +4,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Request Pembelian</title>
+    <title>Tambah User</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
     <style>
         body {
             background-color: #f8f9fa;
@@ -16,18 +17,6 @@
         .navbar {
             background-color: #006400;
             color: white;
-        }
-
-        .navbar .profile {
-            display: flex;
-            align-items: center;
-        }
-
-        .navbar .profile img {
-            border-radius: 50%;
-            width: 30px;
-            height: 30px;
-            margin-right: 10px;
         }
 
         /* Sidebar */
@@ -93,11 +82,6 @@
             border-radius: 5px;
         }
 
-        .form-group input::placeholder {
-            color: #aaa;
-            font-style: italic;
-        }
-
         .submit-btn {
             background-color: #006400;
             color: #fff;
@@ -126,43 +110,85 @@
     <div class="d-flex">
         <!-- Sidebar -->
         <div class="sidebar">
-    <a href="{{ route('dashboard') }}">Dashboard</a>
-    <a href="{{ route('project.index') }}">Project</a>
-    <a href="{{ route('requestpembelian.index') }}" class="active">Request Pembelian</a>
-    @if (Auth::user()->role == 'admin')
-        <a href="{{ route('sumberdana.index') }}">Sumber Dana</a>
-        <a href="{{ route('pencatatan_transaksi') }}">Pencatatan Transaksi</a>
-        <a href="{{ route('laporan_keuangan') }}">Laporan Keuangan</a>
-        <a href="{{ route('users.index') }}">Management User</a>
-    @endif
-</div>
+            <a href="{{ route('dashboard') }}">Dashboard</a>
+            <a href="{{ route('project.index') }}">Project</a>
+            <a href="{{ route('requestpembelian.index') }}">Request Pembelian</a>
+            @if (Auth::user()->role == 'admin')
+                <a href="{{ route('sumberdana.index') }}">Sumber Dana</a>
+                <a href="{{ route('pencatatan_transaksi') }}">Pencatatan Transaksi</a>
+                <a href="{{ route('laporan_keuangan') }}">Laporan Keuangan</a>
+                <a href="{{ route('users.index') }}" class="active">Management User</a>
+            @endif
+        </div>
 
         <!-- Main Content -->
         <div class="main-content">
-            <h1>Tambah Request Pembelian</h1>
+            <h1>Tambah User</h1>
             <div class="form-container">
-                <form action="{{ route('requestpembelian.store') }}" method="POST">
+                @if ($errors->any())
+                    <div class="alert alert-danger">
+                        <ul>
+                            @foreach ($errors->all() as $error)
+                                <li>{{ $error }}</li>
+                            @endforeach
+                        </ul>
+                    </div>
+                @endif
+                <form action="{{ route('users.store') }}" method="POST">
                     @csrf
                     <div class="form-group">
-                        <label for="id_project">Tim Penelitian</label>
-                        <select class="form-select" id="id_project" name="id_project">
-                            <option value="" selected disabled> -> Pilih Tim Penelitian <- </option>
-                                    @foreach ($project as $p)
-                            <option value="{{ $p->id }}">{{ $p->nama_project }}</option>
-                            @endforeach
-                        </select>
+                        <label for="name">Nama</label>
+                        <input type="text" id="name" name="name" required>
                     </div>
                     <div class="form-group">
-                        <label for="tgl_request">Tanggal Request</label>
-                        <input type="date" id="tgl_request" name="tgl_request">
+                        <label for="email">Email</label>
+                        <input type="email" id="email" name="email" required>
                     </div>
-                    <button class="submit-btn mt-2">SUBMIT</button>
+                    <div class="form-group">
+                        <label for="role">Role</label>
+                        <select class="form-select" id="role" name="role" required>
+                            <option value="admin">Admin</option>
+                            <option value="peneliti">Peneliti </option>
+                        </select>
+                    </div>
+                    <button class="submit-btn mt-2" type="submit">SUBMIT</button>
                 </form>
             </div>
         </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.getElementById('role').addEventListener('change', function() {
+            const role = this.value;
+            const passwordField = document.getElementById('password');
+            if (role === 'admin') {
+                passwordField.value = 'Admin@123'; 
+            } else {
+                passwordField.value = 'User @123'; 
+            }
+        });
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        @if (session('success'))
+            Swal.fire({
+                icon: 'success',
+                title: 'Sukses',
+                text: '{{ session('success') }}',
+                confirmButtonText: 'OK'
+            });
+        @endif
+
+        @if (session('error'))
+            Swal.fire({
+                icon: 'error',
+                title: 'Gagal',
+                text: '{{ session('error') }}',
+                confirmButtonText: 'OK'
+            });
+        @endif
+    </script>
 </body>
 
 </html>

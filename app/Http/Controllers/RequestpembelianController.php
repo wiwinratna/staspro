@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 use App\Models\Project;
 use App\Models\RequestpembelianDetail;
 use App\Models\RequestpembelianHeader;
+use App\Models\Transaksi;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -55,7 +56,7 @@ class RequestpembelianController extends Controller
             ]);
 
             return redirect()->route('requestpembelian.detail', $request_pembelian->id)->with('success', 'Request Pembelian berhasil dibuat');
-        } catch (\Exception) {
+        } catch (\Exception $e) {
             return redirect()->route('requestpembelian.index')->with('error', 'Request Pembelian gagal dibuat');
         }
     }
@@ -148,6 +149,13 @@ class RequestpembelianController extends Controller
     public function addbukti(string $id)
     {
         $detail = RequestpembelianDetail::find($id);
+        $request_pembelian = RequestpembelianHeader::find($detail->id_request_pembelian_header);
+
+        // Cek status request
+        if ($request_pembelian->status_request !== 'approved') {
+            return redirect()->route('requestpembelian.detail', $request_pembelian->id)
+                ->with('error', 'Anda tidak dapat mengupload bukti pembayaran karena request belum disetujui.');
+        }
 
         return view('requestpembelian.addbukti', ['detail' => $detail]);
     }
@@ -157,6 +165,15 @@ class RequestpembelianController extends Controller
         $validated = $request->validate([
             'bukti_bayar' => 'required|image|mimes:jpeg,png,jpg|max:2048',
         ]);
+
+        $detail = RequestpembelianDetail::find($id);
+        $request_pembelian = RequestpembelianHeader::find($detail->id_request_pembelian_header);
+
+        // Cek status request
+        if ($request_pembelian->status_request !== 'approved') {
+            return redirect()->route('requestpembelian.detail', $request_pembelian->id)
+                ->with('error', 'Anda tidak dapat mengupload bukti pembayaran karena request belum disetujui.');
+        }
 
         try {
             $bukti_bayar         = $request->file('bukti_bayar');
@@ -170,7 +187,7 @@ class RequestpembelianController extends Controller
             ]);
 
             return redirect()->route('requestpembelian.detail', $request->id_request_pembelian_header)->with('success', 'Bukti Pembayaran berhasil diunggah');
-        } catch (\Exception) {
+        } catch (\Exception $e) {
             return redirect()->route('requestpembelian.detail', $request->id_request_pembelian_header)->with('error', 'Bukti Pembayaran gagal diunggah');
         }
     }
@@ -276,6 +293,59 @@ class RequestpembelianController extends Controller
             return redirect()->route('requestpembelian.index')->with('success', 'Pengajuan ulang berhasil');
         } catch (\Exception) {
             return redirect()->route('requestpembelian.index')->with('error', 'Pengajuan ulang gagal');
+        }
+    }
+
+    public function approve($id)
+    {
+        DB::beginTransaction();
+
+        try {
+            // Ambil request dan pastikan ada
+            $request = RequestpembelianHeader::with('details')->findOrFail($id);
+
+            // Cek apakah sudah approved sebelumnya
+            if ($request->status_request === 'approved') {
+                return redirect()->back()->with('info', 'Request sudah disetujui sebelumnya.');
+            }
+
+            // Update status request
+            $request->status_request = 'approved';
+            $request->user_id_updated = Auth::id();
+            $request->updated_at = now();
+            $request->save();
+
+            // Hitung total pengeluaran
+            $jumlah_pengeluaran = $request->details->sum(function($detail) {
+                return $detail->kuantitas * $detail->harga;
+            });
+
+            // Ambil project terkait
+            $project = Project::findOrFail($request->id_project);
+
+            // Update realisasi anggaran di detail subkategori
+            foreach ($request->details as $detail) {
+                DetailSubkategori::where('id_project', $project->id)
+                    ->where('id_subkategori_sumberdana', $detail->id_subkategori_sumberdana)
+                    ->increment('realisasi_anggaran', $detail->kuantitas * $detail->harga);
+    }
+
+            // Buat transaksi otomatis
+            Transaksi::create([
+                'tanggal' => now(),
+                'project_id' => $project->id,
+                'jenis_transaksi' => 'pengeluaran',
+                'jumlah_transaksi' => $jumlah_pengeluaran,
+                'deskripsi_transaksi' => 'Otomatis dari request pembelian no. ' . $request->no_request,
+                'sub_kategori_pendanaan' => $project->sub_kategori_pendanaan ?? '-',
+                'metode_pembayaran' => 'default',
+            ]);
+
+            DB::commit();
+            return redirect()->back()->with('success', 'Request berhasil disetujui dan dana project diperbarui.');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()->back()->with('error', 'Gagal menyetujui request: ' . $e->getMessage());
         }
     }
 }

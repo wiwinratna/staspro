@@ -108,12 +108,13 @@
         <!-- Sidebar -->
         <div class="sidebar">
             <a href="{{ route('dashboard') }}">Dashboard</a>
-            <a href="{{ route('project.index') }}"class="active">Project</a>
+            <a href="{{ route('project.index') }}" class="active">Project</a>
             <a href="{{ route('requestpembelian.index') }}">Request Pembelian</a>
             @if (Auth::user()->role == 'admin')
                 <a href="{{ route('sumberdana.index') }}">Sumber Dana</a>
                 <a href="{{ route('pencatatan_transaksi') }}">Pencatatan Transaksi</a>
                 <a href="{{ route('laporan_keuangan') }}">Laporan Keuangan</a>
+                <a href="{{ route('users.index') }}">Management User</a>
             @endif
         </div>
 
@@ -225,7 +226,9 @@
                         <thead>
                             <tr>
                                 <th>Nama</th>
-                                <th>Nominal</th>
+                                <th>Rincian Anggaran</th>
+                                <th>Realisasi Anggaran</th>
+                                <th>Sisa Anggaran</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -236,6 +239,8 @@
                                 <tr>
                                     <td>{{ $dd->nama }}</td>
                                     <td>Rp. {{ number_format($dd->nominal, 0, ',', '.') }}</td>
+                                    <td>Rp. {{ number_format($dd->realisasi_anggaran, 0, ',', '.') }}</td>
+                                    <td>Rp. {{ number_format($dd->nominal - $dd->realisasi_anggaran, 0, ',', '.') }}</td> <!-- Hitung sisa anggaran -->
                                 </tr>
                                 @php
                                     $total_dana += $dd->nominal;
@@ -244,6 +249,8 @@
                             <tr class="fw-bold">
                                 <td>Total Dana</td>
                                 <td>Rp. {{ number_format($total_dana, 0, ',', '.') }}</td>
+                                <td></td> <!-- Kosongkan kolom untuk total -->
+                                <td></td> <!-- Kosongkan kolom untuk total -->
                             </tr>
                         </tbody>
                     </table>

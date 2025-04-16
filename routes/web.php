@@ -8,6 +8,7 @@ use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\RequestpembelianController;
 use App\Http\Controllers\SumberdanaController;
 use App\Http\Controllers\TransaksiController;
+use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/login', [AuthController::class, 'index'])->name('login')->middleware('guest');
@@ -58,6 +59,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/requestpembelian/detail/edit/{id}', [RequestpembelianController::class, 'updatedetail'])->name('requestpembelian.updatedetail');
     Route::get('/requestpembelian/detail/destroy/{id}', [RequestpembelianController::class, 'destroydetail'])->name('requestpembelian.destroydetail');
     Route::get('/requestpembelian/detail/pengajuanulang/{id}', [RequestpembelianController::class, 'pengajuanulang'])->name('requestpembelian.pengajuanulang');
+    Route::post('/requestpembelian/{id}/approve', [RequestpembelianController::class, 'approve'])->name('requestpembelian.approve');
 
     Route::get('sumberdana', [SumberdanaController::class, 'index'])->name('sumberdana.index');
     Route::get('sumberdana/create', [SumberdanaController::class, 'create'])->name('sumberdana.create');
@@ -86,4 +88,24 @@ Route::middleware('auth')->group(function () {
     // Laporan Keuangan dengan filter berdasarkan Tim Penelitian dan Kategori Pendanaan
     Route::get('/laporan_keuangan', [TransaksiController::class, 'laporanKeuangan'])->name('laporan_keuangan');
     Route::get('/laporan/export/{format}', [TransaksiController::class, 'export'])->name('laporan.export');
+
+    Route::middleware(['auth'])->group(function () {
+        // Menampilkan daftar user (GET /users)
+        Route::get('/users', [UserController::class, 'index'])->name('users.index');
+    
+        // Menampilkan form create user
+        Route::get('/users/create', [UserController::class, 'create'])->name('users.create');
+    
+        // Menyimpan user baru
+        Route::post('/users', [UserController::class, 'store'])->name('users.store');
+    
+        // Menampilkan form edit
+        Route::get('/users/{user}/edit', [UserController::class, 'edit'])->name('users.edit');
+    
+        // Menyimpan hasil edit
+        Route::put('/users/{user}', [UserController::class, 'update'])->name('users.update');
+    
+        // Menghapus user
+        Route::delete('/users/{user}', [UserController::class, 'destroy'])->name('users.destroy');
+    });    
 });

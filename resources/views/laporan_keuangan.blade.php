@@ -77,13 +77,14 @@
     <div class="d-flex">
         <!-- Sidebar -->
         <div class="sidebar">
-            <a href="{{ route('admin.dashboard') }}"><i class="fa-solid fa-home"></i> Dashboard</a>
-            <a href="{{ route('project.index') }}"><i class="fa-solid fa-folder"></i> Project</a>
-            <a href="{{ route('requestpembelian.index') }}"><i class="fa-solid fa-cart-plus"></i> Request Pembelian</a>
+            <a href="{{ route('dashboard') }}">Dashboard</a>
+            <a href="{{ route('project.index') }}">Project</a>
+            <a href="{{ route('requestpembelian.index') }}">Request Pembelian</a>
             @if (Auth::user()->role == 'admin')
-                <a href="{{ route('sumberdana.index') }}"><i class="fa-solid fa-book"></i> Sumber Dana</a>
-                <a href="{{ route('pencatatan_transaksi') }}"><i class="fa-solid fa-book"></i> Pencatatan Transaksi</a>
-                <a href="{{ route('laporan_keuangan') }}"class="active"><i class="fa-solid fa-file-invoice"></i> Laporan Keuangan</a>
+                <a href="{{ route('sumberdana.index') }}">Sumber Dana</a>
+                <a href="{{ route('pencatatan_transaksi') }}">Pencatatan Transaksi</a>
+                <a href="{{ route('laporan_keuangan') }}" class="active">Laporan Keuangan</a>
+                <a href="{{ route('users.index') }}">Management User</a>
             @endif
         </div>
 
