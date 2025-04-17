@@ -126,16 +126,15 @@
     <div class="d-flex">
         <!-- Sidebar -->
         <div class="sidebar">
-    <a href="{{ route('dashboard') }}">Dashboard</a>
-    <a href="{{ route('project.index') }}">Project</a>
-    <a href="{{ route('requestpembelian.index') }}" class="active">Request Pembelian</a>
-    @if (Auth::user()->role == 'admin')
-        <a href="{{ route('sumberdana.index') }}">Sumber Dana</a>
-        <a href="{{ route('pencatatan_transaksi') }}">Pencatatan Transaksi</a>
-        <a href="{{ route('laporan_keuangan') }}">Laporan Keuangan</a>
-        <a href="{{ route('users.index') }}">Management User</a>
-    @endif
-</div>
+            <a href="{{ route('dashboard') }}">Dashboard</a>
+            <a href="{{ route('project.index') }}">Project</a>
+            <a href="{{ route('requestpembelian.index') }}" class="active">Request Pembelian</a>
+            @if (Auth::user()->role == 'admin')
+                <a href="{{ route('sumberdana.index') }}">Sumber Dana</a>
+                <a href="{{ route('pencatatan_transaksi') }}">Pencatatan Transaksi</a>
+                <a href="{{ route('laporan_keuangan') }}">Laporan Keuangan</a>
+            @endif
+        </div>
 
         <!-- Main Content -->
         <div class="main-content">

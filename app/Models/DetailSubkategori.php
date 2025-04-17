@@ -11,6 +11,7 @@ class DetailSubkategori extends Model
     protected $table    = 'detail_subkategori';
     protected $fillable = [
         'nominal',
+        'realisasi_anggaran',
         'id_subkategori_sumberdana',
         'id_project',
         'user_id_created',

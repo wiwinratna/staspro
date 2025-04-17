@@ -51,7 +51,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/requestpembelian/{id}', [RequestpembelianController::class, 'update'])->name('requestpembelian.update');
     Route::get('/requestpembelian/destroy/{id}', [RequestpembelianController::class, 'destroy'])->name('requestpembelian.destroy');
     Route::get('/requestpembelian/detail/{id}', [RequestpembelianController::class, 'detail'])->name('requestpembelian.detail');
-    Route::post('/requestpembelian/detail/changestatus', [RequestpembelianController::class, 'changestatus'])->name('requestpembelian.changestatus');
+    Route::post('/requestpembelian/detail/changestatus', [RequestPembelianController::class, 'changeStatus']);
     Route::post('/requestpembelian/detail/store', [RequestpembelianController::class, 'storedetail'])->name('requestpembelian.storedetail');
     Route::get('/requestpembelian/detail/bukti/{id}', [RequestpembelianController::class, 'addbukti'])->name('requestpembelian.addbukti');
     Route::get('/requestpembelian/detail/edit/{id}', [RequestpembelianController::class, 'editdetail'])->name('requestpembelian.editdetail');
@@ -59,7 +59,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/requestpembelian/detail/edit/{id}', [RequestpembelianController::class, 'updatedetail'])->name('requestpembelian.updatedetail');
     Route::get('/requestpembelian/detail/destroy/{id}', [RequestpembelianController::class, 'destroydetail'])->name('requestpembelian.destroydetail');
     Route::get('/requestpembelian/detail/pengajuanulang/{id}', [RequestpembelianController::class, 'pengajuanulang'])->name('requestpembelian.pengajuanulang');
-    Route::post('/requestpembelian/{id}/approve', [RequestpembelianController::class, 'approve'])->name('requestpembelian.approve');
+    Route::post('/requestpembelian/changestatus', [RequestpembelianController::class, 'changeStatus'])->name('requestpembelian.changestatus');
 
     Route::get('sumberdana', [SumberdanaController::class, 'index'])->name('sumberdana.index');
     Route::get('sumberdana/create', [SumberdanaController::class, 'create'])->name('sumberdana.create');

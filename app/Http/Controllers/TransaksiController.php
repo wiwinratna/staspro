@@ -136,6 +136,13 @@ class TransaksiController extends Controller
             'bukti_transaksi' => $path, 
         ]);
 
+        // Update realisasi anggaran jika transaksi adalah pengeluaran
+        if ($request->jenis_transaksi === 'pengeluaran') {
+            DetailSubkategori::where('id_project', $project->id)
+                ->where('id_subkategori_sumberdana', $request->subkategori_sumberdana)
+                ->increment('realisasi_anggaran', $jumlah);
+        }
+
         return response()->json(['success' => true, 'message' => 'Transaksi berhasil disimpan.']);
     }
 

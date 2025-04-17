@@ -126,16 +126,15 @@
     <div class="d-flex">
         <!-- Sidebar -->
         <div class="sidebar">
-    <a href="{{ route('dashboard') }}">Dashboard</a>
-    <a href="{{ route('project.index') }}">Project</a>
-    <a href="{{ route('requestpembelian.index') }}" class="active">Request Pembelian</a>
-    @if (Auth::user()->role == 'admin')
-        <a href="{{ route('sumberdana.index') }}">Sumber Dana</a>
-        <a href="{{ route('pencatatan_transaksi') }}">Pencatatan Transaksi</a>
-        <a href="{{ route('laporan_keuangan') }}">Laporan Keuangan</a>
-        <a href="{{ route('users.index') }}">Management User</a>
-    @endif
-</div>
+            <a href="{{ route('dashboard') }}">Dashboard</a>
+            <a href="{{ route('project.index') }}">Project</a>
+            <a href="{{ route('requestpembelian.index') }}" class="active">Request Pembelian</a>
+            @if (Auth::user()->role == 'admin')
+                <a href="{{ route('sumberdana.index') }}">Sumber Dana</a>
+                <a href="{{ route('pencatatan_transaksi') }}">Pencatatan Transaksi</a>
+                <a href="{{ route('laporan_keuangan') }}">Laporan Keuangan</a>
+            @endif
+        </div>
 
         <!-- Main Content -->
         <div class="main-content">
@@ -145,18 +144,18 @@
                     @csrf
                     <div class="form-group">
                         <label for="id_project">Tim Penelitian</label>
-                        <select class="form-select" id="id_project" name="id_project">
+                        <select class="form-select" id="id_project" name="id_project" required>
                             <option value="" selected disabled> -> Pilih Tim Penelitian <- </option>
-                                    @foreach ($project as $p)
-                            <option value="{{ $p->id }}">{{ $p->nama_project }}</option>
+                            @foreach ($project as $p)
+                                <option value="{{ $p->id }}">{{ $p->nama_project }}</option>
                             @endforeach
                         </select>
                     </div>
                     <div class="form-group">
                         <label for="tgl_request">Tanggal Request</label>
-                        <input type="date" id="tgl_request" name="tgl_request">
+                        <input type="date" id="tgl_request" name="tgl_request" required>
                     </div>
-                    <button class="submit-btn mt-2">SUBMIT</button>
+                    <button type="submit" class="submit-btn">Lanjutkan</button>
                 </form>
             </div>
         </div>

@@ -29,7 +29,7 @@ class UserController extends Controller
         ]);
 
         try {
-            $defaultPassword = $request->role === 'admin' ? 'defaultAdminPassword' : 'defaultUser  Password';
+            $defaultPassword = $request->role === 'admin' ? 'Admin@123' : 'User@321';
 
             User::create([
                 'name' => $request->name,
@@ -55,11 +55,21 @@ class UserController extends Controller
         $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255',
-            'role' => 'required|string',
+            'role' => 'required|string|in:admin,peneliti',
         ]);
 
         $user = User::findOrFail($id);
-        $user->update($request->only('name', 'email', 'role'));
+        
+        // Update nama dan email
+        $user->name = $request->name;
+        $user->email = $request->email;
+        $user->role = $request->role;
+
+        // Set password default sesuai role baru
+        $defaultPassword = $request->role === 'admin' ? 'Admin@123' : 'User @123';
+        $user->password = Hash::make($defaultPassword);
+
+        $user->save();
 
         return redirect()->route('users.index')->with('success', 'User  berhasil diperbarui.');
     }
