@@ -160,7 +160,7 @@
 
         <!-- Main Content -->
         <div class="main-content">
-            <h1>Project</h1>
+            <h1 class="mb-4" style="font-weight: bold; font-size: 2rem;">Project</h1>
             @if ($message = Session::get('success'))
                 <div class="alert alert-success">{{ $message }}</div>
             @endif

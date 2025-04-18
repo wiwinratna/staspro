@@ -49,7 +49,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/requestpembelian', [RequestpembelianController::class, 'store'])->name('requestpembelian.store');
     Route::get('/requestpembelian/{id}', [RequestpembelianController::class, 'edit'])->name('requestpembelian.edit');
     Route::post('/requestpembelian/{id}', [RequestpembelianController::class, 'update'])->name('requestpembelian.update');
-    Route::get('/requestpembelian/destroy/{id}', [RequestpembelianController::class, 'destroy'])->name('requestpembelian.destroy');
+    Route::delete('/requestpembelian/destroy/{id}', [RequestpembelianController::class, 'destroy'])->name('requestpembelian.destroy');
     Route::get('/requestpembelian/detail/{id}', [RequestpembelianController::class, 'detail'])->name('requestpembelian.detail');
     Route::post('/requestpembelian/detail/changestatus', [RequestpembelianController::class, 'changestatus'])->name('requestpembelian.changestatus');
     Route::post('/requestpembelian/detail/store', [RequestpembelianController::class, 'storedetail'])->name('requestpembelian.storedetail');
@@ -65,7 +65,7 @@ Route::middleware('auth')->group(function () {
     Route::post('sumberdana', [SumberdanaController::class, 'store'])->name('sumberdana.store');
     Route::get('sumberdana/edit/{id}', [SumberdanaController::class, 'edit'])->name('sumberdana.edit');
     Route::post('sumberdana/{id}', [SumberdanaController::class, 'update'])->name('sumberdana.update');
-    Route::get('sumberdana/destroy/{id}', [SumberdanaController::class, 'destroy'])->name('sumberdana.destroy');
+    Route::delete('sumberdana/destroy/{id}', [SumberdanaController::class, 'destroy'])->name('sumberdana.destroy');
     Route::get('sumberdana/detail/{id}', [SumberdanaController::class, 'detail'])->name('sumberdana.detail');
     Route::post('sumberdana/detail/store', [SumberdanaController::class, 'storedetail'])->name('sumberdana.storedetail');
     Route::get('sumberdana/detail/destroy/{id}', [SumberdanaController::class, 'destroydetail'])->name('sumberdana.destroydetail');

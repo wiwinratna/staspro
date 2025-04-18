@@ -138,7 +138,7 @@
 
         <!-- Main Content -->
         <div class="main-content">
-            <h1>Edit Request Pembelian</h1>
+            <h1 class="mb-4" style="font-weight: bold; font-size: 2rem;">Edit Request Pembelian</h1>
             <div class="form-container">
                 <form action="{{ route('requestpembelian.updatedetail', $detail->id) }}" method="POST"
                     enctype="multipart/form-data">

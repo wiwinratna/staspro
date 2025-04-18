@@ -110,20 +110,20 @@
     <div class="d-flex">
         <!-- Sidebar -->
         <div class="sidebar">
-    <a href="{{ route('dashboard') }}">Dashboard</a>
-    <a href="{{ route('project.index') }}">Project</a>
-    <a href="{{ route('requestpembelian.index') }}">Request Pembelian</a>
-    @if (Auth::user()->role == 'admin')
-        <a href="{{ route('sumberdana.index') }}" class="active">Sumber Dana</a>
-        <a href="{{ route('pencatatan_transaksi') }}">Pencatatan Transaksi</a>
-        <a href="{{ route('laporan_keuangan') }}">Laporan Keuangan</a>
-        <a href="{{ route('users.index') }}">Management User</a>
-    @endif
-</div>
+            <a href="{{ route('dashboard') }}">Dashboard</a>
+            <a href="{{ route('project.index') }}">Project</a>
+            <a href="{{ route('requestpembelian.index') }}">Request Pembelian</a>
+            @if (Auth::user()->role == 'admin')
+                <a href="{{ route('sumberdana.index') }}" class="active">Sumber Dana</a>
+                <a href="{{ route('pencatatan_transaksi') }}">Pencatatan Transaksi</a>
+                <a href="{{ route('laporan_keuangan') }}">Laporan Keuangan</a>
+                <a href="{{ route('users.index') }}">Management User</a>
+            @endif
+        </div>
 
         <!-- Main Content -->
         <div class="container-fluid p-4">
-            <h1 class="mb-4">Sumber Dana</h1>
+            <h1 class="mb-4" style="font-weight: bold; font-size: 2rem;">Sumber Dana</h1>
 
             @if ($message = Session::get('success'))
                 <p class="text-success">{{ $message }}</p>
@@ -154,7 +154,7 @@
                                     <a href="{{ route('sumberdana.edit', $r->id) }}" class="btn btn-warning btn-sm" data-bs-toggle="tooltip" data-bs-placement="top" title="Edit Sumber Dana">
                                         <i class="bi bi-pencil-square"></i>
                                     </a>
-                                    <form action="{{ route('sumberdana.destroy', $r->id) }}" method="POST" style="display:inline;">
+                                    <form action="{{ route('sumberdana.destroy', $r->id) }}" method="POST" style="display:inline;" data-id="{{ $r->id }}">
                                         @csrf
                                         @method('DELETE')
                                         <button type="button" class="btn btn-danger btn-sm" onclick="confirmDelete({{ $r->id }})" data-bs-toggle="tooltip" data-bs-placement="top" title="Hapus Sumber Dana">
@@ -190,10 +190,14 @@
     </div>
 
     <script>
-        function deleteModal(e) {
-            const id = e.getAttribute('data-id');
-            const url = "{{ url('sumberdana/destroy/') }}";
-            document.querySelector('#popup-modal a').href = url + '/' + id;
+        function confirmDelete(id) {
+            if (confirm('Apakah yakin akan menghapus sumber dana?')) {
+                // Temukan form yang sesuai dengan ID
+                const form = document.querySelector(`form[data-id="${id}"]`);
+                if (form) {
+                    form.submit();
+                }
+            }
         }
     </script>
 

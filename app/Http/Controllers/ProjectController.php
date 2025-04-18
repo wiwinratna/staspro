@@ -6,6 +6,7 @@ use App\Models\Project;
 use App\Models\SubkategoriSumberdana;
 use App\Models\Sumberdana;
 use App\Models\User;
+use App\Models\RequestpembelianHeader;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -189,6 +190,17 @@ class ProjectController extends Controller
 
     public function destroy($id)
     {
+        // Hapus data di tabel request_pembelian_detail yang terkait dengan request_pembelian_header
+        $requestHeaders = RequestpembelianHeader::where('id_project', $id)->get();
+
+        foreach ($requestHeaders as $header) {
+            // Hapus data di tabel request_pembelian_detail yang terkait dengan request_pembelian_header
+            DB::table('request_pembelian_detail')->where('id_request_pembelian_header', $header->id)->delete();
+        }
+
+        // Hapus data di tabel request_pembelian_header
+        RequestpembelianHeader::where('id_project', $id)->delete();
+
         // Hapus detail_subkategori yang terkait dengan project
         DB::table('detail_subkategori')->where('id_project', $id)->delete();
 

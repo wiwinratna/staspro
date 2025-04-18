@@ -102,11 +102,15 @@ class RequestpembelianController extends Controller
     public function destroy(string $id)
     {
         try {
+            // Hapus detail terkait sebelum menghapus header
+            RequestpembelianDetail::where('id_request_pembelian_header', $id)->delete();
+
+            // Hapus header request pembelian
             RequestpembelianHeader::destroy($id);
 
             return redirect()->route('requestpembelian.index')->with('success', 'Request Pembelian berhasil dihapus');
-        } catch (\Exception) {
-            return redirect()->route('requestpembelian.index')->with('error', 'Request Pembelian gagal dihapus');
+        } catch (\Exception $e) {
+            return redirect()->route('requestpembelian.index')->with('error', 'Request Pembelian gagal dihapus: ' . $e->getMessage());
         }
     }
 
@@ -258,7 +262,7 @@ class RequestpembelianController extends Controller
 
             return redirect()->route('requestpembelian.index')->with('success', 'Status Request Pembelian berhasil diubah');
         } catch (\Exception $e) {
-            return redirect()->route('requestpembelian.index')->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
+            return redirect()->route('requestpembelian.index')->with('error', $e->getMessage());
         }
     }
 

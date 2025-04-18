@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard</title>
+    <title>Detail Project</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         body {
@@ -92,29 +92,6 @@
             text-decoration: underline;
             background-color: white;
             color: #006400;
-        }
-
-        .table td, .table th {
-            text-align: center;
-        }
-
-        .table .harga, .table .total {
-            text-align: right;
-        }
-
-        .table .harga .currency, .table .total .currency {
-            display: inline-block;
-            text-align: left;
-            margin-right: 5px; 
-        }
-
-        .table .harga .amount, .table .total .amount {
-            display: inline-block;
-            text-align: right;
-        }
-
-        .card .table {
-            background-color: transparent !important;
         }
     </style>
 </head>
@@ -206,15 +183,15 @@
                     <div class="card">
                         <h5 class="mt-3 text-center fw-bold">Detail Pembelian</h5>
                         <table width="100%" class="table table-bordered mt-3">
-                            <thead>
-                                <tr>
-                                    <th>Nama Barang</th>
-                                    <th>Kuantitas</th>
-                                    <th>Harga</th>
-                                    <th>Total</th>
-                                </tr>
-                            </thead>
-                            <tbody>
+                        <thead>
+                            <tr>
+                                <th class="text-center">Nama Barang</th>
+                                <th class="text-center">Kuantitas</th>
+                                <th class="text-center">Harga</th>
+                                <th class="text-center">Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
                                 @php
                                     $total_request = 0;
                                 @endphp
@@ -225,10 +202,10 @@
                                 @else
                                     @foreach ($detail_request as $dd)
                                         <tr>
-                                            <td>{{ $dd->nama_barang }}</td>
-                                            <td>{{ $dd->kuantitas }}</td>
-                                            <td class="harga"><span class="currency">Rp.</span><span class="amount">{{ number_format($dd->harga, 0, ',', '.') }}</span></td>
-                                            <td class="total"><span class="currency">Rp.</span><span class="amount">{{ number_format($dd->total, 0, ',', '.') }}</span></td>
+                                            <td class="text-center">{{ $dd->nama_barang }}</td>
+                                            <td class="text-center">{{ $dd->kuantitas }}</td>
+                                            <td class="text-end">Rp. {{ number_format($dd->harga, 0, ',', '.') }}</td>
+                                            <td class="text-end">Rp. {{ number_format($dd->total, 0, ',', '.') }}</td>
                                         </tr>
                                         @php
                                             $total_request += $dd->total;
@@ -236,7 +213,7 @@
                                     @endforeach
                                     <tr class="fw-bold">
                                         <td colspan="3">Total Request Pembelian</td>
-                                        <td class="total"><span class="currency">Rp.</span><span class="amount">{{ number_format($total_request, 0, ',', '.') }}</span></td>
+                                        <td class="text-end">Rp. {{ number_format($total_request, 0, ',', '.') }}</td>
                                     </tr>
                                 @endif
                             </tbody>
@@ -249,9 +226,7 @@
                         <thead>
                             <tr>
                                 <th>Nama</th>
-                                <th>Rincian Anggaran</th>
-                                <th>Realisasi Anggaran</th>
-                                <th>Sisa Anggaran</th>
+                                <th>Nominal</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -262,8 +237,6 @@
                                 <tr>
                                     <td>{{ $dd->nama }}</td>
                                     <td>Rp. {{ number_format($dd->nominal, 0, ',', '.') }}</td>
-                                    <td>Rp. {{ number_format($dd->realisasi_anggaran, 0, ',', '.') }}</td>
-                                    <td>Rp. {{ number_format($dd->nominal - $dd->realisasi_anggaran, 0, ',', '.') }}</td> <!-- Hitung sisa anggaran -->
                                 </tr>
                                 @php
                                     $total_dana += $dd->nominal;
@@ -272,8 +245,6 @@
                             <tr class="fw-bold">
                                 <td>Total Dana</td>
                                 <td>Rp. {{ number_format($total_dana, 0, ',', '.') }}</td>
-                                <td></td> <!-- Kosongkan kolom untuk total -->
-                                <td></td> <!-- Kosongkan kolom untuk total -->
                             </tr>
                         </tbody>
                     </table>

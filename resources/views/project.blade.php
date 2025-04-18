@@ -147,7 +147,8 @@
 
         <!-- Main Content -->
         <div class="container-fluid p-4">
-            <h1 class="mb-4">Project</h1>
+            <h1 class="mb-4" style="font-weight: bold; font-size: 2rem;">Project</h1>
+
 
             @if ($message = Session::get('success'))
                 <p class="text-success">{{ $message }}</p>

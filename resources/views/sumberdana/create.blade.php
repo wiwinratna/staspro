@@ -139,7 +139,7 @@
 
         <!-- Main Content -->
         <div class="main-content">
-            <h1>Tambah Sumber Dana</h1>
+            <h1 class="mb-4" style="font-weight: bold; font-size: 2rem;">Tambah Sumber Dana</h1>
             <div class="form-container">
                 <form action="{{ route('sumberdana.store') }}" method="POST">
                     @csrf

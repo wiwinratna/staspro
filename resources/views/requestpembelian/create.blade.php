@@ -138,7 +138,7 @@
 
         <!-- Main Content -->
         <div class="main-content">
-            <h1>Tambah Request Pembelian</h1>
+            <h1 class="mb-4" style="font-weight: bold; font-size: 2rem;">Tambah Request Pembelian</h1>
             <div class="form-container">
                 <form action="{{ route('requestpembelian.store') }}" method="POST">
                     @csrf

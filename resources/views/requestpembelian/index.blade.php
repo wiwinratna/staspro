@@ -70,7 +70,7 @@
 
         <!-- Main Content -->
         <div class="container-fluid p-4">
-            <h1 class="mb-4">Request Pembelian</h1>
+            <h1 class="mb-4" style="font-weight: bold; font-size: 2rem;">Request Pembelian</h1>
 
             @if ($message = Session::get('success'))
                 <div class="alert alert-success">{{ $message }}</div>
@@ -128,7 +128,11 @@
                     <p>Apakah yakin akan menghapus request?</p>
                 </div>
                 <div class="modal-footer">
-                    <a href="#" class="btn btn-danger">Ya</a>
+                    <form id="delete-form" method="POST">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit" class="btn btn-danger">Ya</button>
+                    </form>
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
                 </div>
             </div>
@@ -138,8 +142,9 @@
     <script>
         function deleteModal(e) {
             const id = e.getAttribute('data-id');
-            const url = "{{ url('requestpembelian/destroy/') }}";
-            document.querySelector('#popup-modal a').href = url + '/' + id;
+            const url = "{{ url('requestpembelian/destroy') }}";
+            const form = document.querySelector('#delete-form');
+            form.action = url + '/' + id;
         }
     </script>
 

@@ -162,7 +162,7 @@
 
         <!-- Main Content -->
         <div class="main-content">
-            <h1>Tambah Sumber Dana</h1>
+            <h1 class="mb-4" style="font-weight: bold; font-size: 2rem;">Tambah Sumber Dana</h1>
             <div class="text mt-10">
                 <a href="{{ route('sumberdana.index') }}" class="px-3"><span class="me-1"><- </span>Lihat Sumber
                             Dana</a>

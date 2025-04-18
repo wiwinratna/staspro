@@ -8,6 +8,7 @@
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.5.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.5.0/font/bootstrap-icons.css">
     <style>
         body {
             background-color: #f8f9fa;
@@ -46,12 +47,14 @@
         }
 
         .card {
-            background: linear-gradient(135deg, #006400,  #28a745);
+            background: linear-gradient(135deg, #006400, #228B22);
             color: white;
-            border-radius: 15px;
+            border-radius: 10px;
             padding: 20px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            margin-top: 20px;
+            position: relative;
             transition: transform 0.3s ease-in-out;
+            text-align: left; /* Ubah menjadi left */
         }
 
         .filter-container {
@@ -73,20 +76,20 @@
     <div class="d-flex">
         <!-- Sidebar -->
         <div class="sidebar">
-    <a href="{{ route('dashboard') }}">Dashboard</a>
-    <a href="{{ route('project.index') }}">Project</a>
-    <a href="{{ route('requestpembelian.index') }}">Request Pembelian</a>
-    @if (Auth::user()->role == 'admin')
-        <a href="{{ route('sumberdana.index') }}">Sumber Dana</a>
-        <a href="{{ route('pencatatan_transaksi') }}" class="active">Pencatatan Transaksi</a>
-        <a href="{{ route('laporan_keuangan') }}">Laporan Keuangan</a>
-        <a href="{{ route('users.index') }}">Management User</a>
-    @endif
-</div>
+            <a href="{{ route('dashboard') }}">Dashboard</a>
+            <a href="{{ route('project.index') }}">Project</a>
+            <a href="{{ route('requestpembelian.index') }}">Request Pembelian</a>
+            @if (Auth::user()->role == 'admin')
+                <a href="{{ route('sumberdana.index') }}">Sumber Dana</a>
+                <a href="{{ route('pencatatan_transaksi') }}" class="active">Pencatatan Transaksi</a>
+                <a href="{{ route('laporan_keuangan') }}">Laporan Keuangan</a>
+                <a href="{{ route('users.index') }}">Management User</a>
+            @endif
+        </div>
 
         <!-- Main Content -->
         <div class="container-fluid p-4">
-            <h1 class="mb-4">Pencatatan Transaksi</h1>
+            <h1 class="mb-4" style="font-weight: bold; font-size: 2rem;">Pencatatan Transaksi</h1>
 
             @if(session('success'))
                 <div class="alert alert-success">

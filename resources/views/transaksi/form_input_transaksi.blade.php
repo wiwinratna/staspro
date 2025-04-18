@@ -71,22 +71,22 @@
 
     <div class="d-flex">
     <div class="sidebar">
-        <a href="{{ route('dashboard') }}">Dashboard</a>
-        <a href="{{ route('project.index') }}">Project</a>
-        <a href="{{ route('requestpembelian.index') }}">Request Pembelian</a>
-        @if (Auth::user()->role == 'admin')
-            <a href="{{ route('sumberdana.index') }}">Sumber Dana</a>
-            <a href="{{ route('pencatatan_transaksi') }}" class="active">Pencatatan Transaksi</a>
-            <a href="{{ route('laporan_keuangan') }}">Laporan Keuangan</a>
-            <a href="{{ route('users.index') }}">Management User</a>
-        @endif
-    </div>
+            <a href="{{ route('dashboard') }}">Dashboard</a>
+            <a href="{{ route('project.index') }}">Project</a>
+            <a href="{{ route('requestpembelian.index') }}">Request Pembelian</a>
+            @if (Auth::user()->role == 'admin')
+                <a href="{{ route('sumberdana.index') }}">Sumber Dana</a>
+                <a href="{{ route('pencatatan_transaksi') }}" class="active">Pencatatan Transaksi</a>
+                <a href="{{ route('laporan_keuangan') }}">Laporan Keuangan</a>
+                <a href="{{ route('users.index') }}">Management User</a>
+            @endif
+        </div>
 
         <div class="content container-fluid p-4">
             <a href="javascript:window.history.back();" class="btn btn-secondary mb-4">
                 <i class="bi bi-arrow-left-circle"></i> Kembali
             </a>
-            <h1 class="mb-4">{{ isset($transaksi) ? 'Edit Transaksi' : 'Tambah Transaksi' }}</h1>
+            <h1 class="mb-4" style="font-weight: bold; font-size: 2rem;">{{ isset($transaksi) ? 'Edit Transaksi' : 'Tambah Transaksi' }}</h1>
 
             @if ($errors->any())
                 <div class="alert alert-danger">

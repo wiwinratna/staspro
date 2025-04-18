@@ -5,13 +5,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Daftar User</title>
+    <!-- Menambahkan link ke Google Fonts untuk ganti font -->
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.datatables.net/2.2.2/css/dataTables.bootstrap5.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
     <style>
         body {
             background-color: #f8f9fa;
-            font-family: Arial, sans-serif;
+            font-family: 'Roboto', sans-serif; /* Mengganti font */
         }
 
         .navbar {
@@ -41,6 +43,14 @@
             color: white;
         }
 
+        /* Mengubah gaya untuk judul "Daftar User" */
+        h1 {
+            font-weight: bold;
+            font-size: 2rem;
+            color: black;
+            text-shadow: none; /* Menghapus shadow */
+        }
+
         .text {
             margin-top: 20px;
             margin-bottom: 40px;
@@ -62,6 +72,20 @@
             text-decoration: underline;
             background-color: white;
             color: #006400;
+        }
+
+        /* Mengubah alignment tabel menjadi kiri */
+        table th, table td {
+            text-align: left;
+        }
+
+        /* Tabel dengan kolom belang */
+        .table-striped tbody tr:nth-of-type(odd) {
+            background-color: #f2f2f2;
+        }
+
+        .table-bordered {
+            border: 1px solid #dee2e6;
         }
     </style>
 </head>
@@ -90,14 +114,14 @@
 
         <!-- Main Content -->
         <div class="container-fluid p-4">
-            <h1 class="mb-4">Daftar User</h1>
+            <h1 class="mb-4" style="font-weight: bold; font-size: 2rem;">Daftar User Baru</h1>
 
             <div class="text">
                 <a href="{{ route('users.create') }}" class="px-3"><span class="me-1">+</span>Input User</a>
             </div>
 
             <div>
-                <table id="table" class="table table-bordered">
+                <table id="table" class="table table-bordered table-striped">
                     <thead>
                         <tr>
                             <th>Nama</th>

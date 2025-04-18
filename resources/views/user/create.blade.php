@@ -123,7 +123,7 @@
 
         <!-- Main Content -->
         <div class="main-content">
-            <h1>Tambah User</h1>
+            <h1 class="mb-4" style="font-weight: bold; font-size: 2rem;">Tambah User</h1>
             <div class="form-container">
                 @if ($errors->any())
                     <div class="alert alert-danger">

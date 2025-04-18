@@ -9,9 +9,6 @@ use Illuminate\Support\Facades\DB;
 
 class RabController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index()
     {
         $rab = DB::table('rab as a')
@@ -22,19 +19,12 @@ class RabController extends Controller
         return view('rab.index', ['rab' => $rab]);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
     public function create()
     {
         $project = Project::all();
-
         return view('rab.create', ['project' => $project]);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -72,21 +62,18 @@ class RabController extends Controller
     public function download($id)
     {
         $rab = Rab::find($id);
-
         return response()->download(public_path('file_rab/' . $rab->file_rab));
     }
 
     public function approve($id)
     {
         Rab::where('id', $id)->update(['status' => 'disetujui']);
-
         return redirect()->route('rab.index')->with('success', 'Data berhasil disetujui');
     }
 
     public function reject($id)
     {
         Rab::where('id', $id)->update(['status' => 'ditolak']);
-
         return redirect()->route('rab.index')->with('success', 'Data berhasil ditolak');
     }
 }

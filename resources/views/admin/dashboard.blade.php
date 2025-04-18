@@ -85,7 +85,7 @@
     </div>
 
         <div class="container-fluid p-4">
-            <h1 class="mb-4">Dashboard</h1>
+            <h1 class="mb-4" style="font-weight: bold; font-size: 2rem;">Dashboard</h1>
             <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
 
                 @if (Auth::user()->role == 'admin')

@@ -190,7 +190,7 @@
                             @csrf
                             <input type="hidden" name="id_request_pembelian_header"
                                 value="{{ $request_pembelian->id }}">
-                            <label for="status_request">Status</label>
+                            <label for="status_request">Tim Penelitian</label>
                             <select class="form-select" id="status_request" name="status_request"
                                 @if (count($detail) == 0) disabled @endif>
                                 <option value="approve_request"
@@ -218,7 +218,7 @@
                 @endif
                 @if (Auth::user()->role != 'admin')
                     <div class="form-group">
-                        <label for="status_request">Status</label>
+                        <label for="status_request">Tim Penelitian</label>
                         <select class="form-select" id="status_request" name="status_request" disabled>
                             <option value="approve_request"
                                 {{ $request_pembelian->status_request == 'approve_request' ? 'selected' : '' }}>

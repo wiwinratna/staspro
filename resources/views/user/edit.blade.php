@@ -146,7 +146,7 @@
 
         <!-- Main Content -->
         <div class="main-content">
-            <h1>Edit User</h1>
+            <h1 class="mb-4" style="font-weight: bold; font-size: 2rem;">Edit User</h1>
             <div class="text mt-10">
                 <a href="{{ route('users.index') }}" class="px-3"><span class="me-1"><- </span>Kembali ke Daftar User</a>
             </div>
