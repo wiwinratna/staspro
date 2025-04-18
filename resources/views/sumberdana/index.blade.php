@@ -126,10 +126,27 @@
             <h1 class="mb-4" style="font-weight: bold; font-size: 2rem;">Sumber Dana</h1>
 
             @if ($message = Session::get('success'))
-                <p class="text-success">{{ $message }}</p>
+                <script>
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Berhasil',
+                        text: '{{ $message }}',
+                        showConfirmButton: false,
+                        timer: 2000
+                    });
+                </script>
             @endif
+
             @if ($message = Session::get('error'))
-                <p class="text-danger">{{ $message }}</p>
+                <script>
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Gagal',
+                        text: '{{ $message }}',
+                        showConfirmButton: false,
+                        timer: 2000
+                    });
+                </script>
             @endif
             <div class="text">
                 <a href="{{ route('sumberdana.create') }}" class="px-3"><span class="me-1">+</span>Input
@@ -207,6 +224,28 @@
     <script src="https://cdn.datatables.net/2.2.2/js/dataTables.bootstrap5.js"></script>
     <script>
         new DataTable('#table');
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        function confirmDelete(id) {
+            Swal.fire({
+                title: 'Apakah kamu yakin?',
+                text: "Data ini akan dihapus permanen!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Ya, hapus!',
+                cancelButtonText: 'Batal'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    const form = document.querySelector(`form[data-id="${id}"]`);
+                    if (form) {
+                        form.submit();
+                    }
+                }
+            });
+        }
     </script>
 </body>
 
