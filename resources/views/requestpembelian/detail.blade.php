@@ -291,7 +291,8 @@
                                         <input type="number" name="kuantitas" placeholder="Qty">
                                     </td>
                                     <td>
-                                        <input type="number" name="harga" placeholder="Harga">
+                                        <input type="text" id="harga" name="harga" placeholder="Harga" 
+                                            value="{{ old('harga', $d->harga ?? '') }}">
                                     </td>
                                     <td>
                                         <input type="text" name="link_pembelian" placeholder="Link Pembelian">
@@ -328,6 +329,39 @@
         });
     </script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function formatRupiah(angka) {
+            const numberString = angka.replace(/[^,\d]/g, "").toString();
+            const split = numberString.split(",");
+            const sisa = split[0].length % 3;
+            let rupiah = split[0].substr(0, sisa);
+            const ribuan = split[0].substr(sisa).match(/\d{3}/gi);
+
+            if (ribuan) {
+                const separator = sisa ? "." : "";
+                rupiah += separator + ribuan.join(".");
+            }
+
+            rupiah = split[1] !== undefined ? rupiah + "," + split[1] : rupiah;
+            return "Rp. " + rupiah;
+        }
+
+        document.addEventListener("DOMContentLoaded", function () {
+            const hargaInput = document.getElementById("harga");
+
+            hargaInput.addEventListener("input", function () {
+                // Hapus "Rp. " sebelum memformat
+                const value = this.value.replace(/Rp. /, '');
+                const formatted = formatRupiah(value);
+                this.value = formatted;
+            });
+
+            // Optional: Hapus format saat submit form
+            document.querySelector("form").addEventListener("submit", function () {
+                hargaInput.value = hargaInput.value.replace(/[^0-9]/g, ''); // Hanya ambil angka
+            });
+        });
+    </script>
 </body>
 
 </html>
