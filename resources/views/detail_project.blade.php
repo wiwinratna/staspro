@@ -93,6 +93,29 @@
             background-color: white;
             color: #006400;
         }
+
+        .table td, .table th {
+            text-align: center;
+        }
+
+        .table .harga, .table .total {
+            text-align: right;
+        }
+
+        .table .harga .currency, .table .total .currency {
+            display: inline-block;
+            text-align: left;
+            margin-right: 5px; 
+        }
+
+        .table .harga .amount, .table .total .amount {
+            display: inline-block;
+            text-align: right;
+        }
+
+        .card .table {
+            background-color: transparent !important;
+        }
     </style>
 </head>
 
@@ -204,8 +227,8 @@
                                         <tr>
                                             <td>{{ $dd->nama_barang }}</td>
                                             <td>{{ $dd->kuantitas }}</td>
-                                            <td>Rp. {{ number_format($dd->harga, 0, ',', '.') }}</td>
-                                            <td>Rp. {{ number_format($dd->total, 0, ',', '.') }}</td>
+                                            <td class="harga"><span class="currency">Rp.</span><span class="amount">{{ number_format($dd->harga, 0, ',', '.') }}</span></td>
+                                            <td class="total"><span class="currency">Rp.</span><span class="amount">{{ number_format($dd->total, 0, ',', '.') }}</span></td>
                                         </tr>
                                         @php
                                             $total_request += $dd->total;
@@ -213,7 +236,7 @@
                                     @endforeach
                                     <tr class="fw-bold">
                                         <td colspan="3">Total Request Pembelian</td>
-                                        <td>Rp. {{ number_format($total_request, 0, ',', '.') }}</td>
+                                        <td class="total"><span class="currency">Rp.</span><span class="amount">{{ number_format($total_request, 0, ',', '.') }}</span></td>
                                     </tr>
                                 @endif
                             </tbody>

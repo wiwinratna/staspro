@@ -46,10 +46,12 @@
         }
 
         .card {
-            background-color: #006400;
+            background: linear-gradient(135deg, #006400,  #28a745);
             color: white;
-            border-radius: 10px;
+            border-radius: 15px;
             padding: 20px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            transition: transform 0.3s ease-in-out;
         }
 
         .filter-container {

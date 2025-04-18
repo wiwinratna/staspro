@@ -144,18 +144,18 @@
                     @csrf
                     <div class="form-group">
                         <label for="id_project">Tim Penelitian</label>
-                        <select class="form-select" id="id_project" name="id_project" required>
+                        <select class="form-select" id="id_project" name="id_project">
                             <option value="" selected disabled> -> Pilih Tim Penelitian <- </option>
-                            @foreach ($project as $p)
-                                <option value="{{ $p->id }}">{{ $p->nama_project }}</option>
+                                    @foreach ($project as $p)
+                            <option value="{{ $p->id }}">{{ $p->nama_project }}</option>
                             @endforeach
                         </select>
                     </div>
                     <div class="form-group">
                         <label for="tgl_request">Tanggal Request</label>
-                        <input type="date" id="tgl_request" name="tgl_request" required>
+                        <input type="date" id="tgl_request" name="tgl_request">
                     </div>
-                    <button type="submit" class="submit-btn">Lanjutkan</button>
+                    <button class="submit-btn mt-2">SUBMIT</button>
                 </form>
             </div>
         </div>

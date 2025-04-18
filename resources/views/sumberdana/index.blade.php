@@ -137,12 +137,12 @@
             </div>
 
             <div>
-                <table id="table" class="table">
+                <table id="table" class="table table-striped">
                     <thead>
                         <tr>
-                            <th>Nama Sumber Dana</th>
-                            <th>Jenis Pendanaan</th>
-                            <th>Aksi</th>
+                            <th class="text-center">Nama Sumber Dana</th>
+                            <th class="text-center">Jenis Pendanaan</th>
+                            <th class="text-center">Aksi</th>
                         </tr>
                     </thead>
                     <tbody>

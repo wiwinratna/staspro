@@ -258,7 +258,7 @@ class RequestpembelianController extends Controller
 
             return redirect()->route('requestpembelian.index')->with('success', 'Status Request Pembelian berhasil diubah');
         } catch (\Exception $e) {
-            return redirect()->route('requestpembelian.index')->with('error', $e->getMessage());
+            return redirect()->route('requestpembelian.index')->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
         }
     }
 
