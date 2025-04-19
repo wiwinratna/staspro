@@ -96,35 +96,49 @@ class ProjectController extends Controller
      */
     public function show(Project $project)
     {
-        $project = Project::find($project->id);
+        // Pastikan project selalu fresh dari DB
+        $project = Project::findOrFail($project->id);
+
+        // Ambil anggota project
         $anggota = DB::table('detail_project as a')
             ->leftJoin('users as b', 'a.id_user', '=', 'b.id')
             ->where('a.id_project', $project->id)
             ->select('b.name')
             ->get();
 
+        // Ambil user yang belum jadi anggota project
         $users = DB::table('users as b')
             ->leftJoin('detail_project as a', function ($join) use ($project) {
                 $join->on('a.id_user', '=', 'b.id')
                     ->where('a.id_project', '=', $project->id);
             })
             ->whereNull('a.id_user')
-            ->where('b.id', '!=', Auth::user()->id)
+            ->where('b.id', '!=', Auth::id())
             ->where('b.role', '!=', 'admin')
             ->select('b.name', 'b.id')
             ->get();
 
-        // Update query ini untuk mengambil realisasi anggaran
+        // Ambil dana & realisasi
         $detail_dana = DB::table('detail_subkategori as a')
             ->leftJoin('subkategori_sumberdana as b', 'a.id_subkategori_sumberdana', '=', 'b.id')
             ->where('a.id_project', $project->id)
-            ->select('b.nama', 'a.nominal', 'a.realisasi_anggaran') // Ambil realisasi anggaran
+            ->select(
+                'b.nama as nama_subkategori', // ini sudah benar
+                'a.nominal',
+                'a.realisasi_anggaran'
+            )
             ->get();
 
+        // Ambil detail request pembelian
         $detail_request = DB::table('request_pembelian_detail as a')
             ->leftJoin('request_pembelian_header as b', 'a.id_request_pembelian_header', '=', 'b.id')
             ->where('b.id_project', $project->id)
-            ->select('a.nama_barang', 'a.kuantitas', 'a.harga', DB::raw('a.kuantitas * a.harga as total'))
+            ->select(
+                'a.nama_barang',
+                'a.kuantitas',
+                'a.harga',
+                DB::raw('a.kuantitas * a.harga as total')
+            )
             ->get();
 
         return view('detail_project', [

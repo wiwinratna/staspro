@@ -58,4 +58,9 @@ class Transaksi extends Model
     {
         return $this->belongsTo(KategoriTransaksi::class, 'kategori_transaksi_id');
     }
+
+    public function requestPembelian()
+    {
+        return $this->belongsTo(RequestpembelianHeader::class, 'request_pembelian_id');
+    }
 }

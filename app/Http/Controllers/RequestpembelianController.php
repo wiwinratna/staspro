@@ -4,10 +4,14 @@ namespace App\Http\Controllers;
 use App\Models\Project;
 use App\Models\RequestpembelianDetail;
 use App\Models\RequestpembelianHeader;
+use App\Models\DetailSubkategori;
+use App\Models\Transaksi;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Log;
 
 class RequestpembelianController extends Controller
 {
@@ -126,26 +130,31 @@ class RequestpembelianController extends Controller
     public function storedetail(Request $request)
     {
         $validated = $request->validate([
-            'nama_barang'    => 'required',
-            'kuantitas'      => 'required',
-            'harga'          => 'required',
-            'link_pembelian' => 'required',
+            'nama_barang'    => 'required|string|max:255',
+            'kuantitas'      => 'required|numeric|min:1',
+            'harga'          => 'required|numeric|min:0',
+            'link_pembelian' => 'required|url',
+            'id_request_pembelian_header' => 'required|exists:request_pembelian_header,id',
         ]);
 
         try {
             RequestpembelianDetail::create([
-                'nama_barang'                 => $request->nama_barang,
-                'kuantitas'                   => $request->kuantitas,
-                'harga'                       => $request->harga,
-                'link_pembelian'              => $request->link_pembelian,
-                'id_request_pembelian_header' => $request->id_request_pembelian_header,
-                'user_id_created'             => Auth::user()->id,
-                'user_id_updated'             => Auth::user()->id,
+                'nama_barang'                 => $validated['nama_barang'],
+                'kuantitas'                   => $validated['kuantitas'],
+                'harga'                       => $validated['harga'],
+                'link_pembelian'              => $validated['link_pembelian'],
+                'id_request_pembelian_header' => $validated['id_request_pembelian_header'],
+                'user_id_created'             => Auth::id(),
+                'user_id_updated'             => Auth::id(),
             ]);
 
-            return redirect()->route('requestpembelian.detail', $request->id_request_pembelian_header)->with('success', 'Detail Request Pembelian berhasil dibuat');
-        } catch (\Exception) {
-            return redirect()->route('requestpembelian.detail', $request->id_request_pembelian_header)->with('error', 'Detail Request Pembelian gagal dibuat');
+            return redirect()
+                ->route('requestpembelian.detail', $validated['id_request_pembelian_header'])
+                ->with('success', 'Detail Request Pembelian berhasil dibuat');
+        } catch (\Exception $e) {
+            return redirect()
+                ->route('requestpembelian.detail', $validated['id_request_pembelian_header'])
+                ->with('error', 'Detail Request Pembelian gagal dibuat: ' . $e->getMessage());
         }
     }
 
@@ -242,27 +251,60 @@ class RequestpembelianController extends Controller
 
     public function changestatus(Request $request)
     {
+        Log::info('Fungsi changestatus dipanggil');
+        
         $validated = $request->validate([
             'status_request' => 'required',
+            'id_request_pembelian_header' => 'required|exists:request_pembelian_header,id',
         ]);
 
-        if ($request->status_request == 'reject_request' || $request->status_request == 'reject_payment') {
-            $request->validate([
-                'keterangan_reject' => 'required',
-            ]);
-        }
+        Log::info('Status request yang diterima: ' . $request->status_request);
 
         try {
-            RequestpembelianHeader::where('id', $request->id_request_pembelian_header)->update([
-                'status_request'    => $request->status_request,
-                'keterangan_reject' => $request->keterangan_reject,
-                'user_id_updated'   => Auth::user()->id,
-                'updated_at'        => now(),
-            ]);
+            $header = RequestpembelianHeader::findOrFail($validated['id_request_pembelian_header']);
+
+            if ($request->status_request == 'approve_payment') {
+                Log::info('ID Request Pembelian: ' . $header->id);
+                // Ubah status jadi done
+                $header->status_request = 'done';
+                $header->user_id_updated = Auth::user()->id;
+                $header->updated_at = now();
+                $header->save();
+
+                // Cegah duplikasi transaksi
+                $existing = Transaksi::where('request_pembelian_id', $header->id)->exists();
+                if (!$existing) {
+                    Log::info('Membuat transaksi baru untuk request ID: ' . $header->id);
+                    $details = RequestpembelianDetail::where('id_request_pembelian_header', $header->id)->get();
+
+                    foreach ($details as $detail) {
+                        $totalNominal = $detail->kuantitas * $detail->harga;
+
+                        Transaksi::create([
+                            'tanggal'                => $header->tgl_request, // gunakan tanggal request
+                            'project_id'             => $header->id_project,
+                            'sub_kategori_pendanaan' => $detail->id_subkategori_sumberdana ?? null,
+                            'jenis_transaksi'        => 'pengeluaran',
+                            'deskripsi_transaksi'    => 'Pembelian: ' . $detail->nama_barang,
+                            'jumlah_transaksi'       => $totalNominal,
+                            'metode_pembayaran'      => 'Transfer', // default transfer
+                            'bukti_transaksi'        => $detail->bukti_bayar ?? null,
+                            'request_pembelian_id'   => $header->id, // Pastikan ini diisi
+                        ]);
+                    }
+                }
+            } else {
+                // Untuk status lain
+                $header->status_request = $request->status_request;
+                $header->user_id_updated = Auth::user()->id;
+                $header->updated_at = now();
+                $header->save();
+            }
 
             return redirect()->route('requestpembelian.index')->with('success', 'Status Request Pembelian berhasil diubah');
         } catch (\Exception $e) {
-            return redirect()->route('requestpembelian.index')->with('error', $e->getMessage());
+            Log::error('Error: ' . $e->getMessage());
+            return redirect()->route('requestpembelian.index')->with('error', 'Gagal mengubah status: ' . $e->getMessage());
         }
     }
 

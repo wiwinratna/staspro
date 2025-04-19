@@ -226,25 +226,33 @@
                         <thead>
                             <tr>
                                 <th>Nama</th>
-                                <th>Nominal</th>
+                                <th>Rincian Anggaran</th>
+                                <th>Realisasi Anggaran</th>
+                                <th>Sisa Anggaran</th>
                             </tr>
                         </thead>
                         <tbody>
                             @php
-                                $total_dana = 0;
+                                $total_nominal = 0;
+                                $total_realisasi = 0;
                             @endphp
                             @foreach ($detail_dana as $dd)
                                 <tr>
-                                    <td>{{ $dd->nama }}</td>
+                                    <td>{{ $dd->nama_subkategori }}</td>
                                     <td>Rp. {{ number_format($dd->nominal, 0, ',', '.') }}</td>
+                                    <td>Rp. {{ number_format($dd->realisasi_anggaran, 0, ',', '.') }}</td>
+                                    <td>Rp. {{ number_format($dd->nominal - $dd->realisasi_anggaran, 0, ',', '.') }}</td>
                                 </tr>
                                 @php
-                                    $total_dana += $dd->nominal;
+                                    $total_nominal += $dd->nominal;
+                                    $total_realisasi += $dd->realisasi_anggaran;
                                 @endphp
                             @endforeach
                             <tr class="fw-bold">
-                                <td>Total Dana</td>
-                                <td>Rp. {{ number_format($total_dana, 0, ',', '.') }}</td>
+                                <td>Total</td>
+                                <td>Rp. {{ number_format($total_nominal, 0, ',', '.') }}</td>
+                                <td>Rp. {{ number_format($total_realisasi, 0, ',', '.') }}</td>
+                                <td>Rp. {{ number_format($total_nominal - $total_realisasi, 0, ',', '.') }}</td>
                             </tr>
                         </tbody>
                     </table>

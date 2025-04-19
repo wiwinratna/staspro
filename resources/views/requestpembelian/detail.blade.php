@@ -247,64 +247,62 @@
                 @endif
             </div>
             <div>
-                <form action="{{ route('requestpembelian.storedetail') }}" method="POST">
-                    @csrf
-                    <input type="hidden" name="id_request_pembelian_header" value="{{ $request_pembelian->id }}">
-                    <table class="table">
-                        <thead>
+            <form action="{{ route('requestpembelian.storedetail') }}" method="POST">
+                @csrf
+                <input type="hidden" name="id_request_pembelian_header" value="{{ $request_pembelian->id }}">
+
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Nama Barang</th>
+                            <th>Qty</th>
+                            <th>Harga</th>
+                            <th>Link Pembelian</th>
+                            <th>Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach ($detail as $d)
                             <tr>
-                                <th>Nama Barang</th>
-                                <th>Qty</th>
-                                <th>Harga</th>
-                                <th>Link Pembelian</th>
-                                <th></th>
+                                <td>{{ $d->nama_barang }}</td>
+                                <td>{{ $d->kuantitas }}</td>
+                                <td>{{ number_format($d->harga, 0, ',', '.') }}</td>
+                                <td><a href="{{ $d->link_pembelian }}" target="_blank">Lihat Link</a></td>
+                                <td>
+                                    @if ($d->bukti_bayar)
+                                        <a href="{{ asset('bukti_bayar/' . $d->bukti_bayar) }}" class="btn btn-success btn-sm">Lihat Bukti</a>
+                                    @else
+                                        <a href="{{ route('requestpembelian.addbukti', $d->id) }}" class="btn btn-primary btn-sm">Tambah Bukti</a>
+                                    @endif
+                                    <a href="{{ route('requestpembelian.editdetail', $d->id) }}" class="btn btn-warning btn-sm">Edit</a>
+                                    <a href="{{ route('requestpembelian.destroydetail', $d->id) }}" class="btn btn-danger btn-sm"
+                                    onclick="return confirm('Yakin ingin menghapus item ini?')">Delete</a>
+                                </td>
                             </tr>
-                        </thead>
-                        <tbody>
-                            @foreach ($detail as $d)
-                                <tr>
-                                    <td>{{ $d->nama_barang }}</td>
-                                    <td>{{ $d->kuantitas }}</td>
-                                    <td>{{ $d->harga }}</td>
-                                    <td>{{ $d->link_pembelian }}</td>
-                                    <td>
-                                        @if ($d->bukti_bayar)
-                                            <a href="{{ asset('bukti_bayar/' . $d->bukti_bayar) }}"
-                                                class="btn btn-success">Lihat Bukti</a>
-                                        @else
-                                            <a href="{{ route('requestpembelian.addbukti', $d->id) }}"
-                                                class="btn btn-primary">Tambah Bukti</a>
-                                        @endif
-                                        <a href="{{ route('requestpembelian.editdetail', $d->id) }}"
-                                            class="btn btn-warning">Edit</a>
-                                        <a href="{{ route('requestpembelian.destroydetail', $d->id) }}"
-                                            class="btn btn-danger">Delete</a>
-                                    </td>
-                                </tr>
-                            @endforeach
-                            @if (Auth::user()->role != 'admin')
-                                <tr>
-                                    <td>
-                                        <input type="text" name="nama_barang" placeholder="Nama Barang">
-                                    </td>
-                                    <td>
-                                        <input type="number" name="kuantitas" placeholder="Qty">
-                                    </td>
-                                    <td>
-                                        <input type="text" id="harga" name="harga" placeholder="Harga" 
-                                            value="{{ old('harga', $d->harga ?? '') }}">
-                                    </td>
-                                    <td>
-                                        <input type="text" name="link_pembelian" placeholder="Link Pembelian">
-                                    </td>
-                                    <td>
-                                        <button class="submit-btn">Tambah</button>
-                                    </td>
-                                </tr>
-                            @endif
-                        </tbody>
-                    </table>
-                </form>
+                        @endforeach
+
+                        @if (Auth::user()->role != 'admin')
+                            <tr>
+                                <td>
+                                    <input type="text" name="nama_barang" placeholder="Nama Barang" class="form-control" required>
+                                </td>
+                                <td>
+                                    <input type="number" name="kuantitas" placeholder="Qty" class="form-control" min="1" required>
+                                </td>
+                                <td>
+                                    <input type="number" step="any" name="harga" placeholder="Harga" class="form-control" required>
+                                </td>
+                                <td>
+                                    <input type="url" name="link_pembelian" placeholder="Link Pembelian" class="form-control" required>
+                                </td>
+                                <td>
+                                    <button type="submit" class="btn btn-success btn-sm">Tambah</button>
+                                </td>
+                            </tr>
+                        @endif
+                    </tbody>
+                </table>
+            </form>
             </div>
         </div>
     </div>

@@ -19,24 +19,15 @@ class TransaksiController extends Controller
     public function index()
     {
         if (auth()->user()->role === 'admin') {
-            $transaksis = Transaksi::with(['project', 'subKategoriPendanaan'])->get(); 
+            $transaksis = Transaksi::with(['project', 'subKategoriPendanaan', 'requestPembelian'])->get(); 
 
             $totalNominalFiltered = $transaksis->sum('jumlah_transaksi');
+
             return view('transaksi.pencatatan_transaksi', compact('transaksis', 'totalNominalFiltered'));
-        } else {
-            $transaksis = Transaksi::with(['project', 'subKategoriSumberDana'])
-                ->where('tim_peneliti', auth()->user()->name)
-                ->get();
-            
-            $totalNominalKeseluruhan = $transaksis->sum('jumlah_transaksi');
-
-            return view('transaksi.pencatatan_transaksi_user', compact('transaksis', 'totalNominalKeseluruhan'));
-
-            $totalDebit = $transaksis->where('jenis_transaksi', 'pemasukan')->sum('jumlah_transaksi');
-            $totalKredit = $transaksis->where('jenis_transaksi', 'pengeluaran')->sum('jumlah_transaksi');
-
-            return view('laporan_keuangan', compact('transaksis', 'totalDebit', 'totalKredit'));
         }
+
+        // Kalau bukan admin, bisa diarahkan ke halaman lain atau kasih abort
+        abort(403, 'Unauthorized');
     }
 
     // Filter transaksi berdasarkan rentang tanggal
@@ -161,7 +152,6 @@ class TransaksiController extends Controller
 
     public function update(Request $request, $id)
     {
-        // Validasi input
         $request->validate([
             'tanggal' => 'required',
             'project' => 'required',
@@ -176,12 +166,15 @@ class TransaksiController extends Controller
         $transaksi = Transaksi::findOrFail($id);
         $jumlah = (float) str_replace(['Rp.', ',', ' '], '', $request->jumlah_transaksi);
 
-        // Simpan file baru jika ada
         $path = $transaksi->bukti_transaksi; // Default ke path lama jika tidak ada upload baru
+
         if ($request->hasFile('bukti_transaksi')) {
+            // Hapus file lama jika ada
             if ($transaksi->bukti_transaksi) {
                 Storage::disk('public')->delete($transaksi->bukti_transaksi);
             }
+
+            // Simpan file baru
             $file = $request->file('bukti_transaksi');
             $filename = time() . '_' . $file->getClientOriginalName();
             $path = $file->storeAs('bukti_transaksi', $filename, 'public');
@@ -195,13 +188,11 @@ class TransaksiController extends Controller
             'project_id' => $request->project,
             'subkategori_sumberdana' => $request->subkategori_sumberdana,
             'jenis_transaksi' => $request->jenis_transaksi,
-            'deskripsi_transaksi' => $request->deskripsi,
+            'deskripsi_transaksi' => $request-> deskripsi,
             'jumlah_transaksi' => $jumlah,
             'metode_pembayaran' => $request->metode_pembayaran,
             'bukti_transaksi' => $path,
         ]);
-
-        \Log::info('Transaksi updated:', $transaksi->toArray()); // Tambahkan log ini
 
         return response()->json(['success' => true, 'message' => 'Data transaksi berhasil diperbarui!']);
     }

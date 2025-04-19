@@ -19,4 +19,9 @@ class RequestpembelianHeader extends Model
         'user_id_updated',
         'updated_at',
     ];
+
+    public function transaksis()
+    {
+        return $this->hasMany(Transaksi::class, 'request_pembelian_id');
+    }
 }
