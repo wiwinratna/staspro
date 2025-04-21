@@ -109,6 +109,14 @@
                                 <a href="{{ route('requestpembelian.detail', $r->id) }}" class="btn btn-success btn-sm">Detail</a>
                                 <a href="{{ route('requestpembelian.edit', $r->id) }}" class="btn btn-outline-success btn-sm">Edit</a>
                                 <button class="btn btn-outline-danger btn-sm" onclick="confirmDelete({{ $r->id }})">Delete</button>
+
+                                @if ($r->status_request !== 'done')
+                                    <form action="{{ route('requestpembelian.updateStatus', $r->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Yakin ingin menyelesaikan request ini?');">
+                                        @csrf
+                                        @method('PUT')
+                                        <button type="submit" class="btn btn-warning btn-sm mt-1">Set Done</button>
+                                    </form>
+                                @endif
                             </td>
                         </tr>
                     @endforeach

@@ -118,14 +118,14 @@ class ProjectController extends Controller
             ->select('b.name', 'b.id')
             ->get();
 
-        // Ambil dana & realisasi
+        // Ambil dana & realisasi anggaran
         $detail_dana = DB::table('detail_subkategori as a')
             ->leftJoin('subkategori_sumberdana as b', 'a.id_subkategori_sumberdana', '=', 'b.id')
             ->where('a.id_project', $project->id)
             ->select(
-                'b.nama as nama_subkategori', // ini sudah benar
-                'a.nominal',
-                'a.realisasi_anggaran'
+                'b.nama as nama_subkategori', // Nama subkategori
+                'a.nominal',                  // Nominal dana yang diajukan
+                'a.realisasi_anggaran'        // Realisasi anggaran
             )
             ->get();
 
@@ -141,6 +141,7 @@ class ProjectController extends Controller
             )
             ->get();
 
+        // Return data ke view
         return view('detail_project', [
             'project' => $project,
             'anggota' => $anggota,

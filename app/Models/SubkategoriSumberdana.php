@@ -16,4 +16,9 @@ class SubkategoriSumberdana extends Model
         'user_id_created',
         'user_id_updated',
     ];
+
+    public function detailProject()
+    {
+        return $this->hasOne(DetailProject::class, 'subkategori_sumberdana_id');
+    }
 }

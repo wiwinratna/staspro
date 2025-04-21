@@ -233,6 +233,76 @@ class RequestpembelianController extends Controller
         }
     }
 
+    public function setujuiBuktiPembayaran($id)
+    {
+        $requestHeader = RequestPembelianHeader::findOrFail($id);
+        $requestHeader->status = 'done';
+        $requestHeader->save();
+
+        // Insert otomatis ke pencatatan transaksi
+        $this->createTransaksiFromRequest($requestHeader);
+
+        return redirect()->route('request_pembelian.index')->with('success', 'Bukti disetujui dan transaksi tercatat.');
+    }
+
+    private function createTransaksiFromRequest(RequestpembelianHeader $requestPembelian)
+    {
+        foreach ($requestPembelian->requestPembelianDetail as $detail) {
+            $totalNominal = $detail->kuantitas * $detail->harga;
+
+            // Tentukan subkategori berdasarkan id_project
+            $project = $requestPembelian->project; // Ambil project terkait
+            $subkategori = $this->tentukanSubkategoriPendanaan($requestPembelian);
+
+            Transaksi::create([
+                'tanggal'                => $requestPembelian->tgl_request,
+                'project_id'             => $project->id,
+                'sub_kategori_pendanaan' => $subkategori, // Gunakan subkategori yang ditentukan
+                'jenis_transaksi'        => 'pengeluaran',
+                'deskripsi_transaksi'    => 'Pembelian: ' . $detail->nama_barang,
+                'jumlah_transaksi'       => $totalNominal,
+                'metode_pembayaran'      => 'Transfer', // Default
+                'bukti_transaksi'        => $detail->bukti_bayar ?? null,
+                'request_pembelian_id'   => $requestPembelian->id,
+            ]);
+        }
+    }
+
+    private function tentukanSubkategoriPendanaan(RequestpembelianHeader $requestPembelian)
+    {
+        $project = $requestPembelian->project; // Ambil project terkait
+        $sumberDana = $project->sumberDana; // Asumsi ada relasi ke sumber dana
+        
+        \Log::info('Sumber Dana: ' . $sumberDana);
+
+        if ($sumberDana) {
+            switch ($sumberDana->kategori) {
+                case 'internal':
+                    return 'Bahan Habis Pakai dan Peralatan'; // Subkategori untuk internal
+                case 'DRTPM':
+                    return 'Bahan'; // Subkategori untuk DRTPM
+                case 'Kedaireka':
+                    return 'Bahan Prototype/Produksi Skala Terbatas'; // Subkategori untuk Kedaireka
+                case 'LPDP':
+                    return 'Biaya Non Personil'; // Subkategori untuk LPDP
+                default:
+                    return null; // Jika tidak ada kategori yang cocok
+            }
+        }
+
+        return null; // Jika tidak ada sumber dana
+    }
+
+    private function getSubkategori($sumberDana)
+    {
+        switch ($sumberDana) {
+            case 'DRTPM': return 'Bahan';
+            case 'Kedaireka': return 'Bahan Habis Penelitian';
+            case 'LPDP': return 'Biaya Non-Personil';
+            default: return 'Bahan Habis Pakai dan Peralatan'; // asumsikan internal
+        }
+    }
+
     public function destroydetail(string $id)
     {
         $detail = RequestpembelianDetail::find($id);
@@ -323,5 +393,30 @@ class RequestpembelianController extends Controller
         } catch (\Exception) {
             return redirect()->route('requestpembelian.index')->with('error', 'Pengajuan ulang gagal');
         }
+    }
+
+    public function updateStatus(Request $request, $id)
+    {
+        $requestPembelian = RequestpembelianHeader::with('requestPembelianDetail')->find($id);
+
+        if (!$requestPembelian) {
+            return redirect()->back()->with('error', 'Data request pembelian tidak ditemukan.');
+        }
+
+        // Buat objek transaksi baru
+        $transaksi = new Transaksi();
+        $transaksi->tanggal = now(); // Bisa juga pakai $requestPembelian->tgl_request;
+        $transaksi->project_id = $requestPembelian->project->id ?? null;
+        $transaksi->sub_kategori_pendanaan = $requestPembelian->pendanaan->sub_kategori ?? '-';
+        $transaksi->jenis_transaksi = 'Pengeluaran';
+        $transaksi->deskripsi_transaksi = $requestPembelian->requestPembelianDetail->pluck('nama_barang')->implode(', ');
+        $transaksi->jumlah_transaksi = $requestPembelian->requestPembelianDetail->sum(function ($item) {
+            return $item->harga * $item->kuantitas;
+        });
+        $transaksi->metode_pembayaran = 'Transfer'; // Default
+        $transaksi->bukti_transaksi = '-'; // Nanti bisa diisi manual
+        $transaksi->save();
+
+        return redirect()->route('pencatatan_transaksi')->with('success', 'Data transaksi berhasil dibuat dari request pembelian.');
     }
 }

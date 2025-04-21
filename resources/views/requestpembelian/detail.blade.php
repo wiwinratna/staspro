@@ -156,6 +156,7 @@
                 <a href="{{ route('sumberdana.index') }}">Sumber Dana</a>
                 <a href="{{ route('pencatatan_transaksi') }}">Pencatatan Transaksi</a>
                 <a href="{{ route('laporan_keuangan') }}">Laporan Keuangan</a>
+                <a href="{{ route('users.index') }}">Management User</a>
             @endif
         </div>
 
