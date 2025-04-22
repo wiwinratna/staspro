@@ -10,9 +10,6 @@ use Illuminate\Support\Facades\DB;
 
 class ProposalController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index()
     {
         $proposal = DB::table('proposal as a')
@@ -24,9 +21,6 @@ class ProposalController extends Controller
         return view('proposal.index', ['proposal' => $proposal]);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
     public function create()
     {
         $project     = Project::all();
@@ -35,9 +29,6 @@ class ProposalController extends Controller
         return view('proposal.create', ['project' => $project, 'sumber_dana' => $sumber_dana]);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
         $validated = $request->validate([

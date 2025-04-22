@@ -9,9 +9,6 @@ use Illuminate\Database\QueryException;
 
 class DetailprojectController extends Controller
 {
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
         // Validasi input yang lebih ketat

@@ -59,7 +59,6 @@ Route::middleware('auth')->group(function () {
     Route::post('/requestpembelian/detail/edit/{id}', [RequestpembelianController::class, 'updatedetail'])->name('requestpembelian.updatedetail');
     Route::get('/requestpembelian/detail/destroy/{id}', [RequestpembelianController::class, 'destroydetail'])->name('requestpembelian.destroydetail');
     Route::get('/requestpembelian/detail/pengajuanulang/{id}', [RequestpembelianController::class, 'pengajuanulang'])->name('requestpembelian.pengajuanulang');
-    Route::put('/requestpembelian/{id}/setdone', [RequestPembelianController::class, 'updateStatus'])->name('requestpembelian.updateStatus');
 
     Route::get('sumberdana', [SumberdanaController::class, 'index'])->name('sumberdana.index');
     Route::get('sumberdana/create', [SumberdanaController::class, 'create'])->name('sumberdana.create');

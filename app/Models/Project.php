@@ -27,25 +27,16 @@ class Project extends Model
         'user_id_updated',
     ];
 
-    /**
-     * Relasi ke tabel sumberdana.
-     */
     public function sumberDana(): BelongsTo
     {
         return $this->belongsTo(Sumberdana::class, 'id_sumber_dana');
     }
 
-    /**
-     * Relasi ke user yang membuat project.
-     */
     public function createdBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'user_id_created');
     }
 
-    /**
-     * Relasi ke user yang terakhir mengupdate project.
-     */
     public function updatedBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'user_id_updated');

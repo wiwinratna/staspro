@@ -64,8 +64,8 @@
             position: relative;
             cursor: pointer;
             transition: transform 0.3s ease-in-out;
-            justify-content: center; /* Horizontal center */
-            align-items: center;     /* Vertical center */
+            justify-content: center; 
+            align-items: center;     
             text-align: center;
         }
 
@@ -104,12 +104,12 @@
             right: 10px;
             display: flex;
             gap: 10px;
-            opacity: 0; /* Default state is hidden */
-            transition: opacity 0.3s ease; /* Smooth transition for opacity */
+            opacity: 0; 
+            transition: opacity 0.3s ease;
         }
 
         .card:hover .card-icons {
-            opacity: 1; /* Ikon muncul saat hover */
+            opacity: 1;
         }
 
         .card-icons i {
@@ -200,7 +200,7 @@
                 cancelButtonText: 'Batal'
             }).then((result) => {
                 if (result.isConfirmed) {
-                    document.getElementById(`delete-form-${id}`).submit(); // Submit form untuk hapus project
+                    document.getElementById(`delete-form-${id}`).submit(); 
                 }
             });
         }

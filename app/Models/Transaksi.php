@@ -20,7 +20,8 @@ class Transaksi extends Model
         'deskripsi_transaksi',
         'jumlah_transaksi',
         'metode_pembayaran',
-        'bukti_transaksi'
+        'bukti_transaksi',
+        'nama'
     ];
 
     protected $dates = ['tanggal'];

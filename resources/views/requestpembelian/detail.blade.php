@@ -12,7 +12,6 @@
             font-family: Arial, sans-serif;
         }
 
-        /* Navbar */
         .navbar {
             background-color: #006400;
             color: white;
@@ -30,7 +29,6 @@
             margin-right: 10px;
         }
 
-        /* Sidebar */
         .sidebar {
             background-color: #d9d9d9;
             padding: 20px;
@@ -53,7 +51,6 @@
             color: white;
         }
 
-        /* Main Content */
         .main-content {
             flex: 1;
             padding: 20px;
@@ -291,7 +288,7 @@
                                     <input type="number" name="kuantitas" placeholder="Qty" class="form-control" min="1" required>
                                 </td>
                                 <td>
-                                    <input type="number" step="any" name="harga" placeholder="Harga" class="form-control" required>
+                                    <input type="text" id="harga" name="harga" placeholder="Harga" class="form-control" required>
                                 </td>
                                 <td>
                                     <input type="url" name="link_pembelian" placeholder="Link Pembelian" class="form-control" required>
@@ -349,15 +346,15 @@
             const hargaInput = document.getElementById("harga");
 
             hargaInput.addEventListener("input", function () {
-                // Hapus "Rp. " sebelum memformat
-                const value = this.value.replace(/Rp. /, '');
-                const formatted = formatRupiah(value);
-                this.value = formatted;
+                let value = this.value.replace(/[^,\d]/g, "");
+                this.value = formatRupiah(value);
             });
 
-            // Optional: Hapus format saat submit form
-            document.querySelector("form").addEventListener("submit", function () {
-                hargaInput.value = hargaInput.value.replace(/[^0-9]/g, ''); // Hanya ambil angka
+            // Bersihkan format sebelum submit
+            const form = hargaInput.closest("form");
+            form.addEventListener("submit", function () {
+                let rawValue = hargaInput.value.replace(/[^0-9]/g, ""); // hanya angka
+                hargaInput.value = rawValue;
             });
         });
     </script>

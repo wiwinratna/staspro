@@ -106,16 +106,16 @@
                 method: formEditProfil.method,
                 body: formData
             })
-            .then(response => response.json()) // Pastikan server merespons dengan JSON
+            .then(response => response.json()) 
             .then(data => {
-                if (data.status === 'success') { // Periksa status dari respons
+                if (data.status === 'success') { 
                     Swal.fire({
                         title: 'Profil Berhasil Diperbarui!',
                         icon: 'success',
                         showConfirmButton: false,
                         timer: 1500
                     }).then(() => {
-                        window.location.href = "{{ route('dashboard') }}"; // Mengarah ke halaman utama setelah beberapa detik
+                        window.location.href = "{{ route('dashboard') }}"; 
                     });
                 } else {
                     Swal.fire({

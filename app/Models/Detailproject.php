@@ -14,15 +14,6 @@ class Detailproject extends Model
         'id_user',
         'user_id_created',
         'user_id_updated',
-        'rincian_anggaran',
-        'realisasi_anggaran',
-        'sisa_anggaran',
-        'subkategori_sumberdana_id',
         'updated_at',
-    ];    
-
-    public function subkategori()
-    {
-        return $this->belongsTo(SubkategoriSumberdana::class, 'subkategori_sumberdana_id');
-    }
+    ];
 }

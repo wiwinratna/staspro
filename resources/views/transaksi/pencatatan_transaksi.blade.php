@@ -337,14 +337,14 @@
         // Event listener untuk input tanggal mulai
         startDateInput.addEventListener("change", function () {
             if (startDateInput.value && endDateInput.value) {
-                filterForm.submit(); // Kirim form jika kedua tanggal terisi
+                filterForm.submit(); 
             }
         });
 
         // Event listener untuk input tanggal akhir
         endDateInput.addEventListener("change", function () {
             if (startDateInput.value && endDateInput.value) {
-                filterForm.submit(); // Kirim form jika kedua tanggal terisi
+                filterForm.submit();
             }
         });
     });

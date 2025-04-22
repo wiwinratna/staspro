@@ -13,7 +13,7 @@
     <style>
         body {
             background-color: #f8f9fa;
-            font-family: 'Roboto', sans-serif; /* Mengganti font */
+            font-family: 'Roboto', sans-serif; 
         }
 
         .navbar {
@@ -43,12 +43,11 @@
             color: white;
         }
 
-        /* Mengubah gaya untuk judul "Daftar User" */
         h1 {
             font-weight: bold;
             font-size: 2rem;
             color: black;
-            text-shadow: none; /* Menghapus shadow */
+            text-shadow: none; 
         }
 
         .text {
@@ -74,12 +73,10 @@
             color: #006400;
         }
 
-        /* Mengubah alignment tabel menjadi kiri */
         table th, table td {
             text-align: left;
         }
 
-        /* Tabel dengan kolom belang */
         .table-striped tbody tr:nth-of-type(odd) {
             background-color: #f2f2f2;
         }

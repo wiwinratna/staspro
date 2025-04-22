@@ -272,7 +272,7 @@
 
             // Optional: Hapus format saat submit form
             document.querySelector("form").addEventListener("submit", function () {
-                hargaInput.value = hargaInput.value.replace(/[^0-9]/g, ''); // Hanya ambil angka
+                hargaInput.value = hargaInput.value.replace(/[^0-9]/g, '');
             });
         });
     </script>

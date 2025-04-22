@@ -10,7 +10,7 @@ class UserController extends Controller
 {
     public function index()
     {
-        $users = User::all(); // Ambil semua user
+        $users = User::all();
         return view('user.index', compact('users'));
     }
 
@@ -47,7 +47,7 @@ class UserController extends Controller
     public function edit($id)
     {
         $user = User::findOrFail($id);
-        return view('user.edit', compact('user')); // Pastikan ini merujuk ke 'users.edit'
+        return view('user.edit', compact('user'));
     }
 
     public function update(Request $request, $id)

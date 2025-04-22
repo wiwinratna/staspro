@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Models\Transaksi;
 use App\Models\Project;
 use App\Models\SubkategoriSumberdana;
-use App\Models\DetailProject;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Schema;
@@ -61,14 +60,14 @@ class TransaksiController extends Controller
     {
         // Validasi bahwa project_id ada dalam request
         $request->validate([
-            'project_id' => 'required|exists:project,id', // Pastikan project_id ada dan valid
+            'project_id' => 'required|exists:project,id',
         ]);
 
         // Ambil proyek berdasarkan ID
         $project = Project::find($request->project_id);
         
         if (!$project) {
-            return response()->json(['message' => 'Project not found'], 404); // Jika proyek tidak ditemukan
+            return response()->json(['message' => 'Project not found'], 404);
         }
 
         // Debugging: Cek id_sumber_dana dari proyek

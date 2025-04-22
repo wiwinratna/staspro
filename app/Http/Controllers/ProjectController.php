@@ -13,18 +13,12 @@ use Illuminate\Support\Facades\DB;
 
 class ProjectController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index()
     {
         $projects = Project::all();
         return view('project', ['projects' => $projects]);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
     public function create()
     {
         $sumber_internal  = Sumberdana::where('jenis_pendanaan', 'internal')->get();
@@ -32,9 +26,6 @@ class ProjectController extends Controller
         return view('input_project', ['sumber_internal' => $sumber_internal, 'sumber_eksternal' => $sumber_eksternal]);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -91,12 +82,8 @@ class ProjectController extends Controller
         }
     }
 
-    /**
-     * Display the specified resource.
-     */
     public function show(Project $project)
     {
-        // Pastikan project selalu fresh dari DB
         $project = Project::findOrFail($project->id);
 
         // Ambil anggota project
@@ -123,9 +110,9 @@ class ProjectController extends Controller
             ->leftJoin('subkategori_sumberdana as b', 'a.id_subkategori_sumberdana', '=', 'b.id')
             ->where('a.id_project', $project->id)
             ->select(
-                'b.nama as nama_subkategori', // Nama subkategori
-                'a.nominal',                  // Nominal dana yang diajukan
-                'a.realisasi_anggaran'        // Realisasi anggaran
+                'b.nama as nama_subkategori', 
+                'a.nominal',                 
+                'a.realisasi_anggaran'        
             )
             ->get();
 

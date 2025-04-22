@@ -215,16 +215,16 @@
             // Inisialisasi Flatpickr
             flatpickr("#tanggal", {
                 enableTime: false,
-                dateFormat: "d-m-Y", // tampilan di website
+                dateFormat: "d-m-Y",
                 defaultDate: "{{ $tanggalFormatted }}",
-                maxDate: "today" // Batasi pemilihan tanggal hingga hari ini
+                maxDate: "today"
             });
 
             const projectSelect = document.getElementById("project");
             const subkategoriSelect = document.getElementById("subkategori_sumberdana");
             const selectedSubkategoriId = "{{ old('subkategori_sumberdana', $transaksi->subkategori_sumberdana_id ?? '') }}";
 
-            console.log("Selected Subkategori ID:", selectedSubkategoriId); // Debugging
+            console.log("Selected Subkategori ID:", selectedSubkategoriId); 
 
             // Jika halaman dalam mode edit dan project sudah ada isinya
             if (projectSelect.value !== "") {
@@ -243,8 +243,8 @@
 
                             // Cek apakah subkategori ini adalah yang dipilih sebelumnya
                             if (sub.id == selectedSubkategoriId) {
-                                option.selected = true; // Tandai sebagai terpilih
-                                console.log("Subkategori terpilih:", sub.nama); // Debugging
+                                option.selected = true; 
+                                console.log("Subkategori terpilih:", sub.nama); 
                             }
                             subkategoriSelect.appendChild(option);
                         });
@@ -280,8 +280,8 @@
 
                             // Cek apakah subkategori ini adalah yang dipilih sebelumnya
                             if (sub.id == selectedSubkategoriId) {
-                                option.selected = true; // Tandai sebagai terpilih
-                                console.log("Subkategori terpilih saat project berubah:", sub.nama); // Debugging
+                                option.selected = true; 
+                                console.log("Subkategori terpilih saat project berubah:", sub.nama); 
                             }
                             subkategoriSelect.appendChild(option);
                         });
@@ -329,11 +329,11 @@
 
                     if (!value) {
                         isValid = false;
-                        field.classList.add("error-border"); // Tandai field yang tidak terisi
+                        field.classList.add("error-border"); 
 
                         const errorMsg = document.createElement("div");
                         errorMsg.className = "error-message";
-                        errorMsg.innerText = "Harap isi"; // Pesan kesalahan
+                        errorMsg.innerText = "Harap isi";
                         field.parentNode.appendChild(errorMsg);
                     }
                 });
@@ -344,11 +344,11 @@
                     // Jika ada file baru yang diunggah, tambahkan validasi
                     if (!fileInput.value) {
                         isValid = false;
-                        fileInput.classList.add("error-border"); // Tandai field yang tidak terisi
+                        fileInput.classList.add("error-border");
 
                         const errorMsg = document.createElement("div");
                         errorMsg.className = "error-message";
-                        errorMsg.innerText = "Harap unggah bukti transaksi baru jika ingin mengganti."; // Pesan kesalahan
+                        errorMsg.innerText = "Harap unggah bukti transaksi baru jika ingin mengganti."; 
                         fileInput.parentNode.appendChild(errorMsg);
                     }
                 }
@@ -361,7 +361,7 @@
                         icon: 'error',
                         confirmButtonText: 'OK'
                     });
-                    return; // Hentikan eksekusi jika ada field yang tidak valid
+                    return; 
                 }
 
                 // Kirim data pakai Fetch jika semua field valid

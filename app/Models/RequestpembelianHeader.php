@@ -24,14 +24,4 @@ class RequestpembelianHeader extends Model
     {
         return $this->hasMany(Transaksi::class, 'request_pembelian_id');
     }
-
-    public function requestPembelianDetail()
-    {
-        return $this->hasMany(RequestpembelianDetail::class, 'id_request_pembelian_header');
-    }
-
-    public function project()
-    {
-        return $this->belongsTo(Project::class, 'id_project');
-    }
 }

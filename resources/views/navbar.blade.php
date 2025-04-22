@@ -106,23 +106,23 @@
         var changePasswordCheckbox = document.getElementById("changePassword");
 
         if (changePasswordCheckbox.checked) {
-            passwordFields.style.display = "block"; // Tampilkan password fields
+            passwordFields.style.display = "block"; 
         } else {
-            passwordFields.style.display = "none"; // Sembunyikan password fields
+            passwordFields.style.display = "none"; 
         }
     }
 
     $(document).ready(function() {
         $('#editProfileForm').submit(function(e) {
-            e.preventDefault();  // Cegah form untuk submit secara biasa
+            e.preventDefault();  
 
-            var formData = new FormData(this);  // Ambil data form
+            var formData = new FormData(this);  
             $.ajax({
-                url: '{{ route('profile.update') }}',  // Ganti dengan route update profil
+                url: '{{ route('profile.update') }}',  
                 type: 'POST',
                 data: formData,
-                processData: false,  // Agar tidak mengubah data ke format string
-                contentType: false,  // Untuk menghandle file upload
+                processData: false,  
+                contentType: false, 
                 success: function(response) {
                     if (response.status === 'success') {
                         // Tampilkan pesan sukses menggunakan SweetAlert
@@ -133,7 +133,7 @@
                             showConfirmButton: false,
                             timer: 1500
                         }).then(() => {
-                            window.location.href = "{{ route('dashboard') }}"; // Redirect ke dashboard
+                            window.location.href = "{{ route('dashboard') }}"; 
                         });
                     } else {
                         Swal.fire({
