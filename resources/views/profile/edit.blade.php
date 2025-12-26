@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('title', 'Edit Profil')
-
+@extends('layouts.app')
 @section('content')
 <div class="container mx-auto p-6">
     <div class="max-w-3xl mx-auto bg-white rounded-2xl shadow-lg p-8">
@@ -77,7 +77,6 @@
     <div id="modalOverlay" class="fixed inset-0 bg-black opacity-50 z-40"></div>
 </div>
 
-<!-- Input Password Baru dan Konfirmasi Password (Hidden by default) -->
 <div id="passwordFields" style="display: none;">
     <div class="mb-3">
         <label for="new_password" class="form-label">Password Baru</label>

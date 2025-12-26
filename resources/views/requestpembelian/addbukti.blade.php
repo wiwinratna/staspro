@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
+    @extends('layouts.app')
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Request Pembelian</title>
@@ -113,6 +113,7 @@
             background-color: #249C00;
         }
     </style>
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 
 <body>
@@ -131,7 +132,7 @@
             <a href="{{ route('requestpembelian.index') }}" class="active">Request Pembelian</a>
             @if (Auth::user()->role == 'admin')
                 <a href="{{ route('sumberdana.index') }}">Sumber Dana</a>
-                <a href="{{ route('pencatatan_transaksi') }}">Pencatatan Transaksi</a>
+                <a href="{{ route('pencatatan_keuangan') }}">Pencatatan Keuangan</a>
                 <a href="{{ route('laporan_keuangan') }}">Laporan Keuangan</a>
                 <a href="{{ route('users.index') }}">Management User</a>
             @endif

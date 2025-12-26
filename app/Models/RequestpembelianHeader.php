@@ -20,8 +20,8 @@ class RequestpembelianHeader extends Model
         'updated_at',
     ];
 
-    public function transaksis()
+    public function pencatatanKeuangans()
     {
-        return $this->hasMany(Transaksi::class, 'request_pembelian_id');
+        return $this->hasMany(PencatatanKeuangan::class, 'request_pembelian_id');
     }
 }

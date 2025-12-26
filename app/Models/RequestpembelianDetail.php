@@ -16,8 +16,19 @@ class RequestpembelianDetail extends Model
         'link_pembelian',
         'bukti_bayar',
         'id_request_pembelian_header',
+        'id_subkategori_sumberdana',
         'user_id_created',
         'user_id_updated',
         'updated_at',
     ];
+    
+    public function subkategori()
+    {
+        return $this->belongsTo(SubkategoriSumberdana::class, 'id_subkategori_sumberdana');
+    }
+    
+    public function header()
+    {
+        return $this->belongsTo(RequestpembelianHeader::class, 'id_request_pembelian_header');
+    }
 }

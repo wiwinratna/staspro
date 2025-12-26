@@ -8,7 +8,7 @@ class DetailSubkategori extends Model
 {
     use HasFactory;
 
-    protected $table    = 'detail_subkategori';
+    protected $table = 'detail_subkategori';
     protected $fillable = [
         'nominal',
         'realisasi_anggaran',
@@ -17,4 +17,14 @@ class DetailSubkategori extends Model
         'user_id_created',
         'user_id_updated',
     ];
+
+    public function subkategori()
+    {
+        return $this->belongsTo(SubkategoriSumberdana::class, 'id_subkategori_sumberdana');
+    }
+
+    public function project()
+    {
+        return $this->belongsTo(Project::class, 'id_project');
+    }
 }

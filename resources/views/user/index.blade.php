@@ -1,198 +1,140 @@
 <!DOCTYPE html>
-<html lang="en">
-
+<html lang="id">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Daftar User</title>
-    <!-- Menambahkan link ke Google Fonts untuk ganti font -->
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.datatables.net/2.2.2/css/dataTables.bootstrap5.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
-    <style>
-        body {
-            background-color: #f8f9fa;
-            font-family: 'Roboto', sans-serif; 
-        }
+  @extends('layouts.app')
+  <meta charset="UTF-8" />
+  <title>Management User</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
 
-        .navbar {
-            background-color: #006400;
-            color: white;
-        }
+  <!-- Fonts & CSS -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdn.datatables.net/2.2.2/css/dataTables.bootstrap5.css"/>
 
-        .sidebar {
-            background-color: #d9d9d9;
-            padding: 20px;
-            min-height: 100vh;
-            width: 250px;
-        }
+  <style>
+    :root{
+      --brand:#16a34a; --brand-700:#15803d; --brand-50:#ecfdf5;
+      --ink:#0f172a; --ink-600:#475569; --line:#e2e8f0; --bg:#f6f7fb; --card:#fff;
+    }
+    body{ background:var(--bg); font-family:'Inter',sans-serif; color:var(--ink); }
 
-        .sidebar a {
-            display: block;
-            color: #333;
-            padding: 10px;
-            border-radius: 5px;
-            text-decoration: none;
-            margin-bottom: 10px;
-        }
+    .topbar{ background:linear-gradient(135deg,var(--brand-700),var(--brand)); color:#fff; }
+    .topbar .brand-title{ font-weight:700; }
 
-        .sidebar a:hover,
-        .sidebar a.active {
-            background-color: #006400;
-            color: white;
-        }
+    .app{ display:flex; min-height:calc(100vh - 56px); }
+    .sidebar{ width:260px; background:var(--card); border-right:1px solid var(--line); padding:18px; }
+    .menu-title{ font-size:.8rem; letter-spacing:.06em; color:var(--ink-600); text-transform:uppercase; margin:6px 0 10px; font-weight:600; }
+    .nav-link-custom{ display:flex; align-items:center; gap:10px; padding:10px 12px; color:var(--ink); border-radius:12px; text-decoration:none; font-weight:500; transition:.18s; }
+    .nav-link-custom:hover{ background:var(--brand-50); color:var(--brand-700); }
+    .nav-link-custom.active{ background:var(--brand); color:#fff; box-shadow:0 6px 16px rgba(22,163,74,.18); }
 
-        h1 {
-            font-weight: bold;
-            font-size: 2rem;
-            color: black;
-            text-shadow: none; 
-        }
+    .content{ flex:1; padding:24px; }
+    .page-title{ font-size:1.5rem; font-weight:700; margin-bottom:18px; }
 
-        .text {
-            margin-top: 20px;
-            margin-bottom: 40px;
-        }
+    .table-wrap{ background:var(--card); border:1px solid var(--line); border-radius:18px; overflow:hidden; box-shadow:0 6px 16px rgba(15,23,42,.06); }
+    .table-modern thead th{ background:#f9fafb; color:var(--ink-600); font-weight:700; border-bottom:1px solid var(--line); }
+    .table-modern tbody tr:hover{ background:#fafafa; }
+    .table-modern td, .table-modern th{ padding:.85rem .9rem; }
 
-        .text a {
-            color: white;
-            text-decoration: none;
-            font-size: 14px;
-            position: relative;
-            left: 10px;
-            border: 2px solid #006400;
-            padding: 5px 10px;
-            border-radius: 20px;
-            background-color: #006400;
-        }
-
-        .text a:hover {
-            text-decoration: underline;
-            background-color: white;
-            color: #006400;
-        }
-
-        table th, table td {
-            text-align: left;
-        }
-
-        .table-striped tbody tr:nth-of-type(odd) {
-            background-color: #f2f2f2;
-        }
-
-        .table-bordered {
-            border: 1px solid #dee2e6;
-        }
-    </style>
+    .btn-brand{ background:var(--brand); border-color:var(--brand); color:#fff; }
+    .btn-brand:hover{ background:var(--brand-700); border-color:var(--brand-700); }
+  </style>
 </head>
-
 <body>
-    <!-- Top Navbar -->
-    <nav class="navbar navbar-expand-lg">
-        <div class="container-fluid d-flex justify-content-end">
-            @include('navbar')
-        </div>
-    </nav>
-
-    <div class="d-flex">
-        <!-- Sidebar -->
-        <div class="sidebar">
-            <a href="{{ route('dashboard') }}">Dashboard</a>
-            <a href="{{ route('project.index') }}">Project</a>
-            <a href="{{ route('requestpembelian.index') }}">Request Pembelian</a>
-            @if (Auth::user()->role == 'admin')
-                <a href="{{ route('sumberdana.index') }}">Sumber Dana</a>
-                <a href="{{ route('pencatatan_transaksi') }}">Pencatatan Transaksi</a>
-                <a href="{{ route('laporan_keuangan') }}">Laporan Keuangan</a>
-                <a href="{{ route('users.index') }}" class="active">Management User</a>
-            @endif
-        </div>
-
-        <!-- Main Content -->
-        <div class="container-fluid p-4">
-            <h1 class="mb-4" style="font-weight: bold; font-size: 2rem;">Daftar User Baru</h1>
-
-            <div class="text">
-                <a href="{{ route('users.create') }}" class="px-3"><span class="me-1">+</span>Input User</a>
-            </div>
-
-            <div>
-                <table id="table" class="table table-bordered table-striped">
-                    <thead>
-                        <tr>
-                            <th>Nama</th>
-                            <th>Email</th>
-                            <th>Role</th>
-                            <th>Aksi</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach($users as $user)
-                        <tr>
-                            <td>{{ $user->name }}</td>
-                            <td>{{ $user->email }}</td>
-                            <td>{{ ucfirst($user->role) }}</td>
-                            <td>
-                                <a href="{{ route('users.edit', $user->id) }}" class="btn btn-warning btn-sm ">Edit</a>
-                                <form action="{{ route('users.destroy', $user->id) }}" method="POST" class="d-inline" onsubmit="return confirmDelete(event, this)">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button class="btn btn-danger btn-sm">Hapus</button>
-                                </form>
-                            </td>
-                        </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-            </div>
-        </div>
+  <!-- Topbar -->
+  <nav class="navbar topbar navbar-expand-lg">
+    <div class="container-fluid">
+      <button class="btn btn-light d-lg-none me-2" id="sidebarToggle"><i class="bi bi-list"></i></button>
+      <div class="brand-title">STAS-RG • Management User</div>
+      <div class="ms-auto">@include('navbar')</div>
     </div>
+  </nav>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://code.jquery.com/jquery-3.7.1.js"></script>
-    <script src="https://cdn.datatables.net/2.2.2/js/dataTables.js"></script>
-    <script src="https://cdn.datatables.net/2.2.2/js/dataTables.bootstrap5.js"></script>
-    <script>
-        new DataTable('#table');
-    </script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script>
-        @if (session('success'))
-            Swal.fire({
-                icon: 'success',
-                title: 'Sukses',
-                text: '{{ session('success') }}',
-                confirmButtonText: 'OK'
-            });
-        @endif
+  <div class="app">
+    <!-- Sidebar -->
+    <aside class="sidebar" id="appSidebar">
+      <div class="menu-title">Menu</div>
+      <a class="nav-link-custom" href="{{ route('dashboard') }}"><i class="bi bi-speedometer2"></i> Dashboard</a>
+      <a class="nav-link-custom" href="{{ route('project.index') }}"><i class="bi bi-kanban"></i> Project</a>
+      <a class="nav-link-custom" href="{{ route('requestpembelian.index') }}"><i class="bi bi-bag-check"></i> Request Pembelian</a>
+      @if (Auth::user()->role == 'admin')
+        <div class="menu-title mt-3">Administrasi</div>
+        <a class="nav-link-custom" href="{{ route('sumberdana.index') }}"><i class="bi bi-cash-coin"></i> Sumber Dana</a>
+        <a class="nav-link-custom" href="{{ route('pencatatan_keuangan') }}"><i class="bi bi-journal-text"></i> Pencatatan Keuangan</a>
+        <a class="nav-link-custom" href="{{ route('laporan_keuangan') }}"><i class="bi bi-graph-up"></i> Laporan Keuangan</a>
+        <a class="nav-link-custom active" href="{{ route('users.index') }}"><i class="bi bi-people"></i> Management User</a>
+      @endif
+    </aside>
 
-        @if (session('error'))
-            Swal.fire({
-                icon: 'error',
-                title: 'Gagal',
-                text: '{{ session('error') }}',
-                confirmButtonText: 'OK'
-            });
-        @endif
-    </script>
-    <script>
-        function confirmDelete(event, form) {
-            event.preventDefault(); // Mencegah form dari pengiriman otomatis
-            Swal.fire({
-                title: 'Apakah Anda yakin?',
-                text: "Anda tidak akan dapat mengembalikan ini!",
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#d33',
-                cancelButtonColor: '#3085d6',
-                confirmButtonText: 'Ya, hapus!'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    form.submit(); // Mengirim form jika pengguna mengkonfirmasi
-                }
-            });
-        }
-    </script>
+    <!-- Main -->
+    <main class="content">
+      <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
+        <div class="page-title">Daftar User</div>
+        <a href="{{ route('users.create') }}" class="btn btn-brand shadow-sm"><i class="bi bi-plus-lg me-1"></i> Input User</a>
+      </div>
+
+      <div class="table-wrap">
+        <div class="table-responsive">
+          <table id="table" class="table table-modern table-striped align-middle">
+            <thead>
+              <tr>
+                <th>Nama</th>
+                <th>Email</th>
+                <th>Role</th>
+                <th style="width:140px">Aksi</th>
+              </tr>
+            </thead>
+            <tbody>
+              @foreach($users as $user)
+              <tr>
+                <td>{{ $user->name }}</td>
+                <td>{{ $user->email }}</td>
+                <td>{{ ucfirst($user->role) }}</td>
+                <td>
+                  <div class="d-flex gap-1">
+                    <a href="{{ route('users.edit', $user->id) }}" class="btn btn-warning btn-sm" title="Edit"><i class="bi bi-pencil-square"></i></a>
+                    <form action="{{ route('users.destroy', $user->id) }}" method="POST" class="d-inline" onsubmit="return confirmDelete(event,this)">
+                      @csrf @method('DELETE')
+                      <button class="btn btn-danger btn-sm" title="Hapus"><i class="bi bi-trash-fill"></i></button>
+                    </form>
+                  </div>
+                </td>
+              </tr>
+              @endforeach
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://code.jquery.com/jquery-3.7.1.js"></script>
+  <script src="https://cdn.datatables.net/2.2.2/js/dataTables.js"></script>
+  <script src="https://cdn.datatables.net/2.2.2/js/dataTables.bootstrap5.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+  <script> new DataTable('#table'); </script>
+  <script>
+    @if(session('success'))
+      Swal.fire({ icon:'success', title:'Sukses', text:'{{ session('success') }}', timer:2000, showConfirmButton:false });
+    @endif
+    @if(session('error'))
+      Swal.fire({ icon:'error', title:'Gagal', text:'{{ session('error') }}' });
+    @endif
+
+    function confirmDelete(e,form){
+      e.preventDefault();
+      Swal.fire({
+        title:'Apakah Anda yakin?',
+        text:'Data user akan dihapus permanen!',
+        icon:'warning', showCancelButton:true,
+        confirmButtonColor:'#d33', cancelButtonColor:'#3085d6',
+        confirmButtonText:'Ya, hapus!', cancelButtonText:'Batal'
+      }).then(res=>{ if(res.isConfirmed) form.submit(); });
+    }
+  </script>
 </body>
 </html>

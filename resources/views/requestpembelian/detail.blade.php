@@ -1,363 +1,264 @@
 <!DOCTYPE html>
-<html lang="en">
-
+<html lang="id">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Request Pembelian</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-        body {
-            background-color: #f8f9fa;
-            font-family: Arial, sans-serif;
-        }
+  @extends('layouts.app')
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Request Pembelian</title>
 
-        .navbar {
-            background-color: #006400;
-            color: white;
-        }
+  <!-- Fonts & CSS -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet" />
 
-        .navbar .profile {
-            display: flex;
-            align-items: center;
-        }
+  <style>
+    :root{
+      --brand:#16a34a; --brand-700:#15803d; --brand-50:#ecfdf5;
+      --ink:#0f172a; --ink-600:#475569; --line:#e2e8f0; --bg:#f6f7fb; --card:#fff;
+    }
+    *{box-sizing:border-box}
+    body{ background:var(--bg); font-family:'Inter',system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif; color:var(--ink); }
 
-        .navbar .profile img {
-            border-radius: 50%;
-            width: 30px;
-            height: 30px;
-            margin-right: 10px;
-        }
+    /* Topbar */
+    .topbar{ background:linear-gradient(135deg,var(--brand-700),var(--brand)); color:#fff; }
+    .topbar .brand-title{ font-weight:700; letter-spacing:.2px; }
 
-        .sidebar {
-            background-color: #d9d9d9;
-            padding: 20px;
-            min-height: 100vh;
-            width: 250px;
-        }
+    /* Shell */
+    .app{ display:flex; min-height:calc(100vh - 56px); }
+    .sidebar{ width:260px; background:var(--card); border-right:1px solid var(--line); padding:18px; position:sticky; top:0; height:calc(100vh - 56px); }
+    .menu-title{ font-size:.8rem; letter-spacing:.06em; color:var(--ink-600); text-transform:uppercase; margin: 6px 0 10px; font-weight:600; }
+    .nav-link-custom{ display:flex; align-items:center; gap:10px; padding:10px 12px; color:var(--ink); border-radius:12px; text-decoration:none; transition:all .18s; font-weight:500; }
+    .nav-link-custom:hover{ background:var(--brand-50); color:var(--brand-700); }
+    .nav-link-custom.active{ background:var(--brand); color:#fff; box-shadow:0 6px 16px rgba(22,163,74,.18); }
 
-        .sidebar a {
-            display: block;
-            color: #333;
-            padding: 10px;
-            border-radius: 5px;
-            text-decoration: none;
-            margin-bottom: 10px;
-        }
+    .content{ flex:1; padding:24px; }
 
-        .sidebar a:hover,
-        .sidebar a.active {
-            background-color: #006400;
-            color: white;
-        }
+    /* Page header */
+    .page-title{ font-size:1.5rem; font-weight:700; }  /* <= tebal */
+    .page-sub{ color:var(--ink-600); }
 
-        .main-content {
-            flex: 1;
-            padding: 20px;
-            background-color: #fff;
-        }
+    /* Cards & table */
+    .card-soft{ background:var(--card); border:1px solid var(--line); border-radius:18px; box-shadow:0 8px 22px rgba(15,23,42,.06); }
+    .btn-icon{ padding:.35rem .5rem; line-height:1; display:inline-flex; align-items:center; gap:.25rem }
+    .btn-icon i{ font-size:1rem }
+    td.actions{ white-space:nowrap; width:1%; }
 
-        .main-content h1 {
-            font-size: 2rem;
-            margin-bottom: 20px;
-            color: #333;
-        }
+    /* Mobile sidebar */
+    @media (max-width: 991.98px){
+      .sidebar{ position:fixed; left:-280px; z-index:1040; transition:left .2s; }
+      .sidebar.open{ left:0; }
+      .content{ padding:18px; }
+      .backdrop{ display:none; position:fixed; inset:0; background:rgba(15,23,42,.38); z-index:1035; }
+      .backdrop.show{ display:block; }
+    }
+  </style>
+  @vite(['resources/css/app.css', 'resources/js/app.js'])
 
-        .form-container {
-            background-color: #f9f9f9;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            width: 100%;
-        }
-
-        .form-group {
-            margin-bottom: 15px;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: bold;
-            color: #333;
-        }
-
-        .form-group input,
-        .form-group select {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-        }
-
-        .form-group input::placeholder {
-            color: #aaa;
-            font-style: italic;
-        }
-
-        .submit-btn {
-            background-color: #006400;
-            color: #fff;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 16px;
-            font-weight: bold;
-        }
-
-        .submit-btn:hover {
-            background-color: #249C00;
-        }
-
-        .text {
-            margin-top: 20px;
-            margin-bottom: 40px;
-        }
-
-        .text a {
-            color: white;
-            text-decoration: none;
-            font-size: 14px;
-            position: relative;
-            left: 10px;
-            border: 2px solid #006400;
-            padding: 5px 10px;
-            border-radius: 20px;
-            background-color: #006400;
-        }
-
-        .text a:hover {
-            text-decoration: underline;
-            background-color: white;
-            color: #006400;
-        }
-    </style>
 </head>
-
 <body>
-    <!-- Top Navbar -->
-    <nav class="navbar navbar-expand-lg">
-        <div class="container-fluid d-flex justify-content-end">
-            @include('navbar')
-        </div>
-    </nav>
-
-    <div class="d-flex">
-        <!-- Sidebar -->
-        <div class="sidebar">
-            <a href="{{ route('dashboard') }}">Dashboard</a>
-            <a href="{{ route('project.index') }}">Project</a>
-            <a href="{{ route('requestpembelian.index') }}" class="active">Request Pembelian</a>
-            @if (Auth::user()->role == 'admin')
-                <a href="{{ route('sumberdana.index') }}">Sumber Dana</a>
-                <a href="{{ route('pencatatan_transaksi') }}">Pencatatan Transaksi</a>
-                <a href="{{ route('laporan_keuangan') }}">Laporan Keuangan</a>
-                <a href="{{ route('users.index') }}">Management User</a>
-            @endif
-        </div>
-
-        <!-- Main Content -->
-        <div class="main-content">
-            <h1>Tambah Request Pembelian</h1>
-            <div class="text mt-10">
-                <a href="{{ route('requestpembelian.index') }}" class="px-3"><span class="me-1"><- </span>Lihat
-                            Daftar
-                            Request</a>
-            </div>
-            <div class="form-container">
-                <div class="form-group">
-                    <label for="id_project">Tim Penelitian</label>
-                    <select class="form-select" id="id_project" name="id_project" disabled>
-                        <option value="" selected disabled> -> Pilih Tim Penelitian <- </option>
-                                @foreach ($project as $p)
-                        <option value="{{ $p->id }}"
-                            {{ $p->id == $request_pembelian->id_project ? 'selected' : '' }}>{{ $p->nama_project }}
-                        </option>
-                        @endforeach
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="tgl_request">Tanggal Request</label>
-                    <input type="date" id="tgl_request" name="tgl_request"
-                        value="{{ $request_pembelian->tgl_request }}" disabled>
-                </div>
-                @if (Auth::user()->role == 'admin')
-                    <div class="form-group">
-                        <form action="{{ route('requestpembelian.changestatus') }}" method="POST">
-                            @csrf
-                            <input type="hidden" name="id_request_pembelian_header"
-                                value="{{ $request_pembelian->id }}">
-                            <label for="status_request">Tim Penelitian</label>
-                            <select class="form-select" id="status_request" name="status_request"
-                                @if (count($detail) == 0) disabled @endif>
-                                <option value="approve_request"
-                                    {{ $request_pembelian->status_request == 'approve_request' ? 'selected' : '' }}>
-                                    Menyetujui Request</option>
-                                <option value="reject_request"
-                                    {{ $request_pembelian->status_request == 'reject_request' ? 'selected' : '' }}>
-                                    Menolak Request</option>
-                                <option value="done"
-                                    {{ $request_pembelian->status_request == 'approve_payment' || $request_pembelian->status_request == 'done' ? 'selected' : '' }}>
-                                    Menyetujui Bukti Pembayaran</option>
-                                <option value="reject_payment"
-                                    {{ $request_pembelian->status_request == 'reject_payment' ? 'selected' : '' }}>
-                                    Menolak Bukti Pembayaran</option>
-                            </select>
-                            <div style="display: none" id="keterangan_reject" class="mt-2">
-                                <label for="keterangan_reject">Keterangan Ditolak</label>
-                                <input type="text" id="keterangan_reject" name="keterangan_reject"
-                                    value="{{ $request_pembelian->keterangan_reject }}"
-                                    placeholder="Keterangan Reject">
-                            </div>
-                            <button class="submit-btn" style="margin-top: 12px">Submit</button>
-                        </form>
-                    </div>
-                @endif
-                @if (Auth::user()->role != 'admin')
-                    <div class="form-group">
-                        <label for="status_request">Tim Penelitian</label>
-                        <select class="form-select" id="status_request" name="status_request" disabled>
-                            <option value="approve_request"
-                                {{ $request_pembelian->status_request == 'approve_request' ? 'selected' : '' }}>
-                                Menyetujui Request</option>
-                            <option value="reject_request"
-                                {{ $request_pembelian->status_request == 'reject_request' ? 'selected' : '' }}>
-                                Menolak Request</option>
-                            <option value="done"
-                                {{ $request_pembelian->status_request == 'approve_payment' || $request_pembelian->status_request == 'done' ? 'selected' : '' }}>
-                                Menyetujui Bukti Pembayaran</option>
-                            <option value="reject_payment"
-                                {{ $request_pembelian->status_request == 'reject_payment' ? 'selected' : '' }}>
-                                Menolak Bukti Pembayaran</option>
-                        </select>
-                    </div>
-                    @if ($request_pembelian->status_request == 'reject_request' || $request_pembelian->status_request == 'reject_payment')
-                        <div class="form-group">
-                            <label for="keterangan_reject" class="mt-2">Keterangan Ditolak</label>
-                            <input type="text" id="keterangan_reject" name="keterangan_reject"
-                                value="{{ $request_pembelian->keterangan_reject }}" disabled>
-                        </div>
-                        <a href="{{ route('requestpembelian.pengajuanulang', $request_pembelian->id) }}"
-                            class="btn btn-success">Pengajuan
-                            Ulang</a>
-                    @endif
-                @endif
-            </div>
-            <div>
-            <form action="{{ route('requestpembelian.storedetail') }}" method="POST">
-                @csrf
-                <input type="hidden" name="id_request_pembelian_header" value="{{ $request_pembelian->id }}">
-
-                <table class="table">
-                    <thead>
-                        <tr>
-                            <th>Nama Barang</th>
-                            <th>Qty</th>
-                            <th>Harga</th>
-                            <th>Link Pembelian</th>
-                            <th>Aksi</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach ($detail as $d)
-                            <tr>
-                                <td>{{ $d->nama_barang }}</td>
-                                <td>{{ $d->kuantitas }}</td>
-                                <td>{{ number_format($d->harga, 0, ',', '.') }}</td>
-                                <td><a href="{{ $d->link_pembelian }}" target="_blank">Lihat Link</a></td>
-                                <td>
-                                    @if ($d->bukti_bayar)
-                                        <a href="{{ asset('bukti_bayar/' . $d->bukti_bayar) }}" class="btn btn-success btn-sm">Lihat Bukti</a>
-                                    @else
-                                        <a href="{{ route('requestpembelian.addbukti', $d->id) }}" class="btn btn-primary btn-sm">Tambah Bukti</a>
-                                    @endif
-                                    <a href="{{ route('requestpembelian.editdetail', $d->id) }}" class="btn btn-warning btn-sm">Edit</a>
-                                    <a href="{{ route('requestpembelian.destroydetail', $d->id) }}" class="btn btn-danger btn-sm"
-                                    onclick="return confirm('Yakin ingin menghapus item ini?')">Delete</a>
-                                </td>
-                            </tr>
-                        @endforeach
-
-                        @if (Auth::user()->role != 'admin')
-                            <tr>
-                                <td>
-                                    <input type="text" name="nama_barang" placeholder="Nama Barang" class="form-control" required>
-                                </td>
-                                <td>
-                                    <input type="number" name="kuantitas" placeholder="Qty" class="form-control" min="1" required>
-                                </td>
-                                <td>
-                                    <input type="text" id="harga" name="harga" placeholder="Harga" class="form-control" required>
-                                </td>
-                                <td>
-                                    <input type="url" name="link_pembelian" placeholder="Link Pembelian" class="form-control" required>
-                                </td>
-                                <td>
-                                    <button type="submit" class="btn btn-success btn-sm">Tambah</button>
-                                </td>
-                            </tr>
-                        @endif
-                    </tbody>
-                </table>
-            </form>
-            </div>
-        </div>
+  <!-- Topbar -->
+  <nav class="navbar topbar navbar-expand-lg">
+    <div class="container-fluid">
+      <button class="btn btn-light d-lg-none me-2" id="sidebarToggle" aria-label="Toggle sidebar">
+        <i class="bi bi-list"></i>
+      </button>
+      <div class="brand-title">STAS-RG • Request Pembelian</div>
+      <div class="ms-auto">
+        @include('navbar')
+      </div>
     </div>
+  </nav>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const statusRequest = document.getElementById('status_request');
-            const keteranganReject = document.getElementById('keterangan_reject');
+  <div class="app">
+    <!-- Sidebar -->
+    <aside class="sidebar" id="appSidebar">
+      <div class="menu-title">Menu</div>
+      <a class="nav-link-custom" href="{{ route('dashboard') }}"><i class="bi bi-speedometer2"></i> Dashboard</a>
+      <a class="nav-link-custom" href="{{ route('project.index') }}"><i class="bi bi-kanban"></i> Project</a>
+      <a class="nav-link-custom active" href="{{ route('requestpembelian.index') }}"><i class="bi bi-bag-check"></i> Request Pembelian</a>
 
-            function toggleKeteranganReject() {
-                if (statusRequest.value === 'reject_request' || statusRequest.value === 'reject_payment') {
-                    keteranganReject.style.display = 'block';
-                } else {
-                    keteranganReject.style.display = 'none';
-                }
-            }
+      @if (Auth::user()->role == 'admin')
+        <div class="menu-title mt-3">Administrasi</div>
+        <a class="nav-link-custom" href="{{ route('sumberdana.index') }}"><i class="bi bi-cash-coin"></i> Sumber Dana</a>
+        <a class="nav-link-custom" href="{{ route('pencatatan_keuangan') }}"><i class="bi bi-journal-text"></i> Pencatatan Keuangan</a>
+        <a class="nav-link-custom" href="{{ route('laporan_keuangan') }}"><i class="bi bi-graph-up"></i> Laporan Keuangan</a>
+        <a class="nav-link-custom" href="{{ route('users.index') }}"><i class="bi bi-people"></i> Management User</a>
+      @endif
+    </aside>
+    <div class="backdrop" id="backdrop"></div>
 
-            statusRequest.addEventListener('change', toggleKeteranganReject);
+    <!-- Main -->
+    <main class="content">
+      <div class="d-flex align-items-center justify-content-between mb-3">
+        <div>
+          <div class="page-title">Request Pembelian</div>
+          <div class="page-sub">Tambah / tinjau item serta ubah status request.</div>
+        </div>
+        <a href="{{ route('requestpembelian.index') }}" class="btn btn-outline-secondary">
+          <i class="bi bi-arrow-left-short me-1"></i> Kembali ke Daftar
+        </a>
+      </div>
 
-            // Trigger it on page load
-            toggleKeteranganReject();
-        });
-    </script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-        function formatRupiah(angka) {
-            const numberString = angka.replace(/[^,\d]/g, "").toString();
-            const split = numberString.split(",");
-            const sisa = split[0].length % 3;
-            let rupiah = split[0].substr(0, sisa);
-            const ribuan = split[0].substr(sisa).match(/\d{3}/gi);
+      <!-- Ringkasan -->
+      <div class="card card-soft mb-3">
+        <div class="card-body">
+          <div class="row g-3 align-items-center">
+            <div class="col-lg-8">
+              <label class="form-label mb-1">Tim Penelitian</label>
+              <select class="form-select" disabled>
+                @foreach ($project as $p)
+                  <option value="{{ $p->id }}" {{ $p->id == $request_pembelian->id_project ? 'selected' : '' }}>
+                    {{ $p->nama_project }}
+                  </option>
+                @endforeach
+              </select>
+            </div>
+            <div class="col-lg-4">
+              <label class="form-label mb-1">Tanggal Request</label>
+              <input type="date" class="form-control" value="{{ $request_pembelian->tgl_request }}" disabled>
+            </div>
+          </div>
+        </div>
+      </div>
 
-            if (ribuan) {
-                const separator = sisa ? "." : "";
-                rupiah += separator + ribuan.join(".");
-            }
+      <!-- Ubah Status (Admin) -->
+      @if (Auth::user()->role == 'admin')
+      <div class="card card-soft mb-3">
+        <div class="card-body">
+          <form action="{{ route('requestpembelian.changestatus') }}" method="POST" class="row g-2 align-items-end">
+            @csrf
+            <input type="hidden" name="id_request_pembelian_header" value="{{ $request_pembelian->id }}">
+            <div class="col-lg-6">
+              <label class="form-label mb-1">Ubah Status</label>
+              <select class="form-select" id="status_request" name="status_request" @if(count($detail)==0) disabled @endif>
+                <option value="approve_request" {{ $request_pembelian->status_request=='approve_request' ? 'selected' : '' }}>Menyetujui Request</option>
+                <option value="reject_request"  {{ $request_pembelian->status_request=='reject_request'  ? 'selected' : '' }}>Menolak Request</option>
+                <option value="done"            {{ in_array($request_pembelian->status_request,['approve_payment','done']) ? 'selected' : '' }}>Menyetujui Bukti Pembayaran</option>
+                <option value="reject_payment"  {{ $request_pembelian->status_request=='reject_payment'  ? 'selected' : '' }}>Menolak Bukti Pembayaran</option>
+              </select>
+            </div>
+            <div class="col-lg-4" id="keterangan_reject_wrap">
+              <label class="form-label mb-1">Keterangan (jika menolak)</label>
+              <input type="text" class="form-control" id="keterangan_reject" name="keterangan_reject"
+                     value="{{ $request_pembelian->keterangan_reject }}" placeholder="Masukkan alasan penolakan">
+            </div>
+            <div class="col-lg-2 text-lg-end">
+              <button class="btn btn-success w-100">
+                <i class="bi bi-check-circle me-1"></i> Submit
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+      @endif
 
-            rupiah = split[1] !== undefined ? rupiah + "," + split[1] : rupiah;
-            return "Rp. " + rupiah;
-        }
+      <!-- Tabel Detail -->
+      <div class="card card-soft">
+        <div class="card-body">
+          <table class="table align-middle">
+            <thead>
+              <tr>
+                <th>Nama Barang</th>
+                <th class="text-center">Qty</th>
+                <th>Harga</th>
+                <th>Link Pembelian</th>
+                <th>Subkategori</th>
+                <th class="text-center">Aksi</th>
+              </tr>
+            </thead>
+            <tbody>
+              @foreach ($detail as $d)
+              <tr>
+                <td>{{ $d->nama_barang }}</td>
+                <td class="text-center">{{ $d->kuantitas }}</td>
+                <td>Rp {{ number_format($d->harga,0,',','.') }}</td>
+                <td><a href="{{ $d->link_pembelian }}" target="_blank">Lihat Link</a></td>
+                <td>
+                  @if ($d->id_subkategori_sumberdana)
+                    @foreach ($subkategori as $sub)
+                      @if ($sub->id == $d->id_subkategori_sumberdana) {{ $sub->nama }} @endif
+                    @endforeach
+                  @else - @endif
+                </td>
+                <td class="actions text-center">
+                  @if ($d->bukti_bayar)
+                    <a href="{{ asset('bukti_bayar/'.$d->bukti_bayar) }}" class="btn btn-success btn-icon" title="Lihat Bukti">
+                      <i class="bi bi-receipt-cutoff"></i>
+                    </a>
+                  @else
+                    <a href="{{ route('requestpembelian.addbukti',$d->id) }}" class="btn btn-primary btn-icon" title="Tambah Bukti">
+                      <i class="bi bi-upload"></i>
+                    </a>
+                  @endif
+                  <a href="{{ route('requestpembelian.editdetail',$d->id) }}" class="btn btn-warning btn-icon" title="Edit">
+                    <i class="bi bi-pencil-square"></i>
+                  </a>
+                  <a href="{{ route('requestpembelian.destroydetail',$d->id) }}" class="btn btn-danger btn-icon"
+                     onclick="return confirm('Yakin ingin menghapus item ini?')" title="Hapus">
+                    <i class="bi bi-trash"></i>
+                  </a>
+                </td>
+              </tr>
+              @endforeach
 
-        document.addEventListener("DOMContentLoaded", function () {
-            const hargaInput = document.getElementById("harga");
+              @if (Auth::user()->role != 'admin')
+              <tr>
+                <form action="{{ route('requestpembelian.storedetail') }}" method="POST">
+                  @csrf
+                  <input type="hidden" name="id_request_pembelian_header" value="{{ $request_pembelian->id }}">
+                  <td><input type="text" name="nama_barang" placeholder="Nama Barang" class="form-control" required></td>
+                  <td><input type="number" name="kuantitas" class="form-control" min="1" required></td>
+                  <td><input type="text" id="harga" name="harga" placeholder="Harga" class="form-control" required></td>
+                  <td><input type="url" name="link_pembelian" placeholder="Link Pembelian" class="form-control" required></td>
+                  <td>
+                    <select name="id_subkategori_sumberdana" class="form-select">
+                      <option value="">-- Pilih Subkategori --</option>
+                      @foreach ($subkategori as $sub)
+                        <option value="{{ $sub->id }}">{{ $sub->nama }}</option>
+                      @endforeach
+                    </select>
+                  </td>
+                  <td><button type="submit" class="btn btn-success btn-sm">Tambah</button></td>
+                </form>
+              </tr>
+              @endif
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </main>
+  </div>
 
-            hargaInput.addEventListener("input", function () {
-                let value = this.value.replace(/[^,\d]/g, "");
-                this.value = formatRupiah(value);
-            });
+  <!-- Scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    // Sidebar toggle (mobile)
+    const sidebar=document.getElementById('appSidebar');
+    const toggleBtn=document.getElementById('sidebarToggle');
+    const backdrop=document.getElementById('backdrop');
+    const openSidebar=()=>{ sidebar.classList.add('open'); backdrop.classList.add('show'); }
+    const closeSidebar=()=>{ sidebar.classList.remove('open'); backdrop.classList.remove('show'); }
+    toggleBtn?.addEventListener('click',()=> sidebar.classList.contains('open')?closeSidebar():openSidebar());
+    backdrop?.addEventListener('click',closeSidebar);
 
-            // Bersihkan format sebelum submit
-            const form = hargaInput.closest("form");
-            form.addEventListener("submit", function () {
-                let rawValue = hargaInput.value.replace(/[^0-9]/g, ""); // hanya angka
-                hargaInput.value = rawValue;
-            });
-        });
-    </script>
+    // Alasan reject only when needed
+    (function(){
+      const sel=document.getElementById('status_request');
+      const wrap=document.getElementById('keterangan_reject_wrap');
+      function toggle(){ wrap.style.display=(sel && (sel.value==='reject_request'||sel.value==='reject_payment'))?'':'none'; }
+      sel?.addEventListener('change',toggle); toggle();
+    })();
+
+    // Format rupiah untuk input "harga" (baris tambah)
+    (function(){
+      const harga=document.getElementById('harga');
+      if(!harga) return;
+      harga.addEventListener('input',()=>{
+        let v=harga.value.replace(/[^0-9]/g,'');
+        harga.value=v?('Rp. '+new Intl.NumberFormat('id-ID').format(v)):'';
+      });
+      harga.closest('form')?.addEventListener('submit',()=>{ harga.value=harga.value.replace(/[^0-9]/g,''); });
+    })();
+  </script>
 </body>
-
 </html>

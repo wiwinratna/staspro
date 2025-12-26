@@ -6,7 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\Project;
 use App\Models\RequestpembelianHeader;
 use App\Models\RequestpembelianDetail;
-use App\Models\Transaksi;
+use App\Models\PencatatanKeuangan;
 use App\Models\User;
 
 class DashboardController extends Controller
@@ -16,17 +16,22 @@ class DashboardController extends Controller
         // Mengambil jumlah project
         $totalProjects = Project::count();
 
+
         // Mengambil jumlah request pembelian yang masih pending
         $pendingRequests = RequestpembelianHeader::where('status_request', 'pending')->count();
 
         // Mengambil total transaksi bulan ini
-        $totalTransactions = Transaksi::whereMonth('created_at', now()->month)->sum('jumlah_transaksi');
+        $totalTransactions = PencatatanKeuangan::whereMonth('created_at', now()->month)->sum('jumlah_transaksi');
 
         // Menghitung jumlah tim (asumsi user dengan role 'peneliti' adalah tim project)
         $totalTeams = User::where('role', 'peneliti')->count();
 
         // Menghitung total request pembelian
         $totalRequests = RequestpembelianHeader::count();
+
+        // Req Pembelian Baru
+        $totalRequests = RequestpembelianHeader::count();
+        $newRequests   = RequestpembelianHeader::where('status_request', 'submit_request')->count();
 
         // Ambil semua project
         $projects = Project::all();
@@ -35,11 +40,13 @@ class DashboardController extends Controller
 
         foreach ($projects as $project) {
             $namaProjects[] = $project->nama_project;
-            $totalPengeluaran = Transaksi::where('project_id', $project->id)->sum('jumlah_transaksi');
+            $totalPengeluaran = PencatatanKeuangan::where('project_id', $project->id)->sum('jumlah_transaksi');
             $pengeluaranPerProject[] = $totalPengeluaran;
         }
 
-        return view('admin.dashboard', compact(
+        return view('dashboard', compact(
+            'totalRequests',
+            'newRequests',
             'totalProjects',
             'pendingRequests',
             'totalTransactions',

@@ -2,6 +2,7 @@
 <html lang="en">
 
 <head>
+    @extends('layouts.app')
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sumber Dana</title>
@@ -154,7 +155,7 @@
     <a href="{{ route('requestpembelian.index') }}">Request Pembelian</a>
     @if (Auth::user()->role == 'admin')
         <a href="{{ route('sumberdana.index') }}" class="active">Sumber Dana</a>
-        <a href="{{ route('pencatatan_transaksi') }}">Pencatatan Transaksi</a>
+        <a href="{{ route('pencatatan_keuangan') }}">Pencatatan Keuangan</a>
         <a href="{{ route('laporan_keuangan') }}">Laporan Keuangan</a>
         <a href="{{ route('users.index') }}">Management User</a>
     @endif
@@ -186,43 +187,82 @@
                 </div>
             </div>
             <div>
-                <form action="{{ route('sumberdana.storedetail') }}" method="POST">
-                    @csrf
-                    <input type="hidden" name="id_sumberdana" value="{{ $sumberdana_header->id }}">
-                    <table class="table">
-                        <thead>
-                            <tr>
-                                <th>Nama Subkategori</th>
-                                <th></th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach ($detail as $d)
+                <h3 class="mt-4 mb-3">Subkategori Sumber Dana</h3>
+                
+                @if ($errors->any())
+                <div class="alert alert-danger mb-3">
+                    <ul class="mb-0">
+                        @foreach ($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+                @endif
+                
+                <div class="card mb-4">
+                    <div class="card-header bg-light">
+                        <h5 class="mb-0">Tambah Subkategori Baru</h5>
+                    </div>
+                    <div class="card-body">
+                        <form action="{{ route('sumberdana.storedetail') }}" method="POST" class="row g-3 align-items-end">
+                            @csrf
+                            <input type="hidden" name="id_sumberdana" value="{{ $sumberdana_header->id }}">
+                            <div class="col-md-8">
+                                <label for="nama" class="form-label">Nama Subkategori</label>
+                                <input type="text" name="nama" class="form-control @error('nama') is-invalid @enderror" 
+                                    placeholder="Contoh: Bahan, Peralatan Pendukung, Biaya Langsung" value="{{ old('nama') }}">
+                                <small class="text-muted">Nama subkategori akan digunakan untuk klasifikasi dana</small>
+                                @error('nama')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                            <div class="col-md-4">
+                                <button type="submit" class="submit-btn w-100">Tambah Subkategori</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <div class="card-header bg-light">
+                        <h5 class="mb-0">Daftar Subkategori</h5>
+                    </div>
+                    <div class="card-body">
+                        <table class="table table-hover">
+                            <thead>
                                 <tr>
-                                    <td>{{ $d->nama }}</td>
-                                    <td>
-                                        <a href="{{ route('sumberdana.destroydetail', $d->id) }}"
-                                            class="btn btn-danger">Delete</a>
-                                    </td>
+                                    <th width="80%">Nama Subkategori</th>
+                                    <th width="20%">Aksi</th>
                                 </tr>
-                            @endforeach
-                            <tr>
-                                <td>
-                                    <input type="text" name="nama" class="form-control"
-                                        placeholder="Nama Subkategori">
-                                </td>
-                                <td>
-                                    <button class="submit-btn">Tambah</button>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </form>
+                            </thead>
+                            <tbody>
+                                @if(count($detail) > 0)
+                                    @foreach ($detail as $d)
+                                        <tr>
+                                            <td>{{ $d->nama }}</td>
+                                            <td>
+                                                <a href="{{ route('sumberdana.destroydetail', $d->id) }}"
+                                                    class="btn btn-sm btn-danger" onclick="return confirm('Apakah Anda yakin ingin menghapus subkategori ini?')">
+                                                    <i class="fas fa-trash"></i> Hapus
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                @else
+                                    <tr>
+                                        <td colspan="2" class="text-center">Belum ada subkategori untuk sumber dana ini</td>
+                                    </tr>
+                                @endif
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://kit.fontawesome.com/your-fontawesome-kit.js" crossorigin="anonymous"></script>
 </body>
 
 </html>

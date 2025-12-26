@@ -2,6 +2,7 @@
 <html lang="en">
 
 <head>
+    @extends('layouts.app')
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Detail User</title>
@@ -123,7 +124,7 @@
             <a href="{{ route('requestpembelian.index') }}">Request Pembelian</a>
             @if (Auth::user()->role == 'admin')
                 <a href="{{ route('sumberdana.index') }}">Sumber Dana</a>
-                <a href="{{ route('pencatatan_transaksi') }}">Pencatatan Transaksi</a>
+                <a href="{{ route('pencatatan_keuangan') }}">Pencatatan Keuangan</a>
                 <a href="{{ route('laporan_keuangan') }}">Laporan Keuangan</a>
                 <a href="{{ route('users.index') }}" class="active">Management User</a>
             @endif

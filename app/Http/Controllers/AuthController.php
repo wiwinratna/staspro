@@ -12,7 +12,7 @@ class AuthController extends Controller
     // Tampilkan halaman login
     public function index()
     {
-        return view('login'); // Pastikan file ada di resources/views/auth/login.blade.php
+        return view('login');
     }
 
     // Proses login
@@ -29,7 +29,7 @@ class AuthController extends Controller
 
             // Redirect sesuai role
             return $user->role === 'admin'
-            ? redirect()->route('admin.dashboard')->with('success', 'Login berhasil sebagai Admin!')
+            ? redirect()->route('dashboard')->with('success', 'Login berhasil sebagai Admin!')
             : redirect()->route('peneliti.dashboard')->with('success', 'Login berhasil sebagai Peneliti!');
         }
 
@@ -39,7 +39,7 @@ class AuthController extends Controller
     // Tampilkan halaman register
     public function showRegisterForm()
     {
-        return view('auth.register'); // Pastikan file ada di resources/views/auth/register.blade.php
+        return view('auth.register'); 
     }
 
     // Proses registrasi

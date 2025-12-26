@@ -1,4 +1,5 @@
 <head>
+    @extends('layouts.app')
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -14,7 +15,7 @@
         </a>
 
         <!-- Profile Section di kanan -->
-        <div class="dropdown ms-auto"> <!-- ms-auto bikin elemen ini terdorong ke kanan -->
+        <div class="dropdown ms-auto">
             <a href="#" class="d-flex align-items-center text-white text-decoration-none dropdown-toggle"
                id="profileDropdown" data-bs-toggle="dropdown" aria-expanded="false">
                 <img src="{{ Auth::user()->profile_picture ? asset('images/' . Auth::user()->profile_picture) : asset('images/default-profile.png') }}"

@@ -2,33 +2,28 @@
 
 namespace App\Exports;
 
-// Import interface dari Maatwebsite Excel untuk ekspor data
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithStyles;
 use Maatwebsite\Excel\Concerns\WithColumnWidths;
 
-// Import style dari PhpSpreadsheet
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use PhpOffice\PhpSpreadsheet\Style\Border;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
 
-// Kelas untuk ekspor laporan keuangan ke Excel
 class LaporanExport implements FromCollection, WithHeadings, WithStyles, WithColumnWidths
 {
-    // Properti untuk menampung data dan filter
-    protected $transaksis;
+    protected $pencatatanKeuangans;
     protected $tanggalAwal;
     protected $tanggalAkhir;
     protected $metodePembayaran;
     protected $kategoriPendanaan;
     protected $timPeneliti;
 
-    // Konstruktor untuk inisialisasi properti
-    public function __construct($transaksis, $tanggalAwal, $tanggalAkhir, $metodePembayaran = null, $kategoriPendanaan = null, $timPeneliti = null)
+    public function __construct($pencatatanKeuangans, $tanggalAwal, $tanggalAkhir, $metodePembayaran = null, $kategoriPendanaan = null, $timPeneliti = null)
     {
-        $this->transaksis = $transaksis;
+        $this->pencatatanKeuangans = $pencatatanKeuangans;
         $this->tanggalAwal = $tanggalAwal;
         $this->tanggalAkhir = $tanggalAkhir;
         $this->metodePembayaran = $metodePembayaran;
@@ -36,19 +31,17 @@ class LaporanExport implements FromCollection, WithHeadings, WithStyles, WithCol
         $this->timPeneliti = $timPeneliti;
     }
 
-    // Method utama untuk mengatur data yang akan diekspor
     public function collection()
     {
         $saldo = 0;
         $totalDebit = 0;
         $totalKredit = 0;
-        $data = $this->transaksis->sortBy('created_at')->values(); // Urutkan berdasarkan waktu
+        $data = $this->pencatatanKeuangans->sortBy('created_at')->values();
         $result = collect([]);
 
-        // Proses data transaksi baris per baris
-        $rows = $data->map(function ($transaksi, $index) use (&$saldo, &$totalDebit, &$totalKredit) {
-            $debit = $transaksi->jenis_transaksi === 'pemasukan' ? $transaksi->jumlah_transaksi : 0;
-            $kredit = $transaksi->jenis_transaksi === 'pengeluaran' ? $transaksi->jumlah_transaksi : 0;
+        $rows = $data->map(function ($pencatatanKeuangan, $index) use (&$saldo, &$totalDebit, &$totalKredit) {
+            $debit = $pencatatanKeuangan->jenis_transaksi === 'pemasukan' ? $pencatatanKeuangan->jumlah_transaksi : 0;
+            $kredit = $pencatatanKeuangan->jenis_transaksi === 'pengeluaran' ? $pencatatanKeuangan->jumlah_transaksi : 0;
 
             $totalDebit += $debit;
             $totalKredit += $kredit;
@@ -56,18 +49,17 @@ class LaporanExport implements FromCollection, WithHeadings, WithStyles, WithCol
 
             return [
                 $index + 1,
-                $transaksi->created_at->format('d-m-Y H:i'),
-                $transaksi->project->nama_project ?? '-',
-                ucfirst($transaksi->deskripsi_transaksi),
-                ucfirst($transaksi->metode_pembayaran),
-                ucwords($transaksi->project->sumberDana->jenis_pendanaan ?? '-'),
+                $pencatatanKeuangan->created_at->format('d-m-Y H:i'),
+                $pencatatanKeuangan->project->nama_project ?? '-',
+                ucfirst($pencatatanKeuangan->deskripsi_transaksi),
+                ucfirst($pencatatanKeuangan->metode_pembayaran),
+                ucwords($pencatatanKeuangan->project->sumberDana->jenis_pendanaan ?? '-'),
                 $debit > 0 ? 'Rp ' . number_format($debit, 0, ',', '.') : '',
                 $kredit > 0 ? 'Rp ' . number_format($kredit, 0, ',', '.') : '',
                 'Rp ' . number_format($saldo, 0, ',', '.'),
             ];
         });
 
-        // Tambahkan baris total ke akhir tabel
         $rows->push([
             '', '', '', '', '', 'Total',
             'Rp ' . number_format($totalDebit, 0, ',', '.'),
@@ -78,39 +70,28 @@ class LaporanExport implements FromCollection, WithHeadings, WithStyles, WithCol
         return $result->merge($rows);
     }
 
-    // Menentukan heading untuk sheet
     public function headings(): array
     {
         $headings = [
-            ['LAPORAN KEUANGAN'], // Judul utama
-            $subJudul = [] // Kosong dulu, bisa diisi dinamis
+            ['LAPORAN KEUANGAN'],
         ];
 
-        // Tambahkan filter jika tersedia
-        if ($this->metodePembayaran) {
-            $headings[] = ['Metode Pembayaran: ' . ucfirst($this->metodePembayaran)];
+        // Menambahkan keterangan berdasarkan filter
+        if ($this->tanggalAwal && $this->tanggalAkhir) {
+            $headings[] = ['Periode: ' . $this->tanggalAwal . ' - ' . $this->tanggalAkhir];
         }
 
-        if ($this->kategoriPendanaan) {
-            $headings[] = ['Kategori Pendanaan: ' . ucfirst($this->kategoriPendanaan)];
-        }
+        // Baris ketiga kosong
+        $headings[] = [];
 
-        if ($this->timPeneliti) {
-            $headings[] = ['Tim Peneliti: ' . ucfirst($this->timPeneliti)];
-        }
-
-        $headings[] = []; // Baris kosong sebelum tabel utama
-
-        // Header tabel utama
-        $headings[] = ['No.', 'Tanggal', 'Tim Peneliti', 'Deskripsi Transaksi', 'Metode Pembayaran', 'Sumber Dana', 'Debit (Rp)', 'Kredit (Rp)', 'Saldo (Rp)'];
+        // Header kolom
+        $headings[] = ['No.', 'Tanggal', 'Tim Peneliti', 'Deskripsi Transaksi', 'Metode Pembayaran', 'Sumber Dana', 'Debit (Rp )', 'Kredit (Rp)', 'Saldo (Rp)'];
 
         return $headings;
     }
 
-    // Style untuk lembar Excel
     public function styles(Worksheet $sheet)
     {
-        // Merge dan style judul
         $sheet->mergeCells('A1:I1');
         $sheet->mergeCells('A2:I2');
 
@@ -124,25 +105,24 @@ class LaporanExport implements FromCollection, WithHeadings, WithStyles, WithCol
             'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER],
         ]);
 
-        // Style header kolom (baris ke-4)
+        // Baris ketiga kosong, tidak perlu styling
+
+        // Styling header tabel di baris 4
         $sheet->getStyle('A4:I4')->applyFromArray([
             'font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF']],
-            'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => '006400']], // hijau tua
+            'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => '006400']],
             'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER],
             'borders' => [
                 'allBorders' => ['borderStyle' => Border::BORDER_THIN]
             ],
         ]);
 
-        // Hitung baris terakhir untuk baris total
-        $jumlahBarisData = count($this->transaksis);
-        $barisTotal = $jumlahBarisData + 5; // baris data + header
+        $jumlahBarisData = count($this->pencatatanKeuangans);
+        $barisTotal = 4 + $jumlahBarisData + 1; // Baris 4 = header, data mulai baris 5, + jumlah data, + 1 untuk total
 
-        // Merge cell dan isi total
         $sheet->mergeCells("A{$barisTotal}:F{$barisTotal}");
         $sheet->setCellValue("A{$barisTotal}", 'Total');
 
-        // Style baris total
         $sheet->getStyle("A{$barisTotal}:I{$barisTotal}")->applyFromArray([
             'font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF']],
             'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => '006400']],
@@ -152,27 +132,31 @@ class LaporanExport implements FromCollection, WithHeadings, WithStyles, WithCol
             ],
         ]);
 
-        // Border untuk seluruh tabel
+        // Borders dan alignment data (dari baris 5 sampai baris total)
         $sheet->getStyle("A5:I{$barisTotal}")->applyFromArray([
             'borders' => [
                 'allBorders' => ['borderStyle' => Border::BORDER_THIN]
             ],
         ]);
+
+        // Rata kanan untuk kolom nilai nominal (G,H,I)
+        $sheet->getStyle("G5:I{$barisTotal}")
+            ->getAlignment()
+            ->setHorizontal(Alignment::HORIZONTAL_RIGHT);
     }
 
-    // Atur lebar kolom
     public function columnWidths(): array
     {
         return [
-            'A' => 5,   // No.
-            'B' => 18,  // Tanggal
-            'C' => 25,  // Tim Peneliti
-            'D' => 35,  // Deskripsi Transaksi
-            'E' => 20,  // Metode Pembayaran
-            'F' => 20,  // Sumber Dana
-            'G' => 15,  // Debit
-            'H' => 15,  // Kredit
-            'I' => 20,  // Saldo
+            'A' => 5,
+            'B' => 18,
+            'C' => 25,
+            'D' => 35,
+            'E' => 20,
+            'F' => 20,
+            'G' => 15,
+            'H' => 15,
+            'I' => 20,
         ];
     }
 }

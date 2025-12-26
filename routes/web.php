@@ -7,7 +7,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\RequestpembelianController;
 use App\Http\Controllers\SumberdanaController;
-use App\Http\Controllers\TransaksiController;
+use App\Http\Controllers\PencatatanKeuanganController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
@@ -43,6 +43,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/project/{id}/edit', [ProjectController::class, 'edit'])->name('project.edit');
     Route::put('/project/{id}', [ProjectController::class, 'update'])->name('project.update');
     Route::delete('/project/{id}', [ProjectController::class, 'destroy'])->name('project.destroy');
+    Route::get('/project/{project}/subcategories', [ProjectController::class, 'getProjectSubcategories']);
 
     Route::get('/requestpembelian', [RequestpembelianController::class, 'index'])->name('requestpembelian.index');
     Route::get('/requestpembelian/create', [RequestpembelianController::class, 'create'])->name('requestpembelian.create');
@@ -69,24 +70,25 @@ Route::middleware('auth')->group(function () {
     Route::get('sumberdana/detail/{id}', [SumberdanaController::class, 'detail'])->name('sumberdana.detail');
     Route::post('sumberdana/detail/store', [SumberdanaController::class, 'storedetail'])->name('sumberdana.storedetail');
     Route::get('sumberdana/detail/destroy/{id}', [SumberdanaController::class, 'destroydetail'])->name('sumberdana.destroydetail');
+    Route::post('sumberdana/detail/update/{id}', [SumberdanaController::class, 'updatesubkategori'])->name('sumberdana.updatesubkategori');
 
     Route::middleware(['auth'])->group(function () {
-        Route::get('/pencatatan-transaksi', [TransaksiController::class, 'index'])->name('pencatatan_transaksi');
-        Route::get('/form_input_transaksi', [TransaksiController::class, 'create'])->name('form_input_transaksi');
-        Route::post('/transaksi/store', [TransaksiController::class, 'store'])->name('transaksi.store');
-        Route::get('/transaksi/edit/{id}', [TransaksiController::class, 'edit'])->name('transaksi.edit');
-        Route::put('/transaksi/{id}', [TransaksiController::class, 'update'])->name('transaksi.update');
-        Route::delete('/transaksi/{id}', [TransaksiController::class, 'destroy'])->name('transaksi.destroy');
+        Route::get('/pencatatan-keuangan', [PencatatanKeuanganController::class, 'index'])->name('pencatatan_keuangan');
+        Route::get('/form_input_pencatatan_keuangan', [PencatatanKeuanganController::class, 'create'])->name('form_input_pencatatan_keuangan');
+        Route::post('/pencatatan-keuangan/store', [PencatatanKeuanganController::class, 'store'])->name('pencatatan_keuangan.store');
+        Route::get('/pencatatan-keuangan/edit/{id}', [PencatatanKeuanganController::class, 'edit'])->name('pencatatan_keuangan.edit');
+        Route::put('/pencatatan-keuangan/{id}', [PencatatanKeuanganController::class, 'update'])->name('pencatatan_keuangan.update');
+        Route::delete('/pencatatan_keuangan/{id}', [PencatatanKeuanganController::class, 'destroy'])->name('pencatatan_keuangan.destroy');
     });
 
-    Route::get('/get-subkategori', [TransaksiController::class, 'getSubkategori'])->name('getSubkategori');
+    Route::get('/get-subkategori', [PencatatanKeuanganController::class, 'getSubkategori'])->name('getSubkategori');
 
     // Filter Transaksi (jika diperlukan)
-    Route::get('/filter_transaksi', [TransaksiController::class, 'filterTransaksi'])->name('filter_transaksi');
+    Route::get('/filter-pencatatan-keuangan', [PencatatanKeuanganController::class, 'filterTransaksi'])->name('filter_pencatatan_keuangan');
 
     // Laporan Keuangan dengan filter berdasarkan Tim Penelitian dan Kategori Pendanaan
-    Route::get('/laporan_keuangan', [TransaksiController::class, 'laporanKeuangan'])->name('laporan_keuangan');
-    Route::get('/laporan/export/{format}', [TransaksiController::class, 'export'])->name('laporan.export');
+    Route::get('/laporan_keuangan', [PencatatanKeuanganController::class, 'laporanKeuangan'])->name('laporan_keuangan');
+    Route::get('/laporan/export/{format}', [PencatatanKeuanganController::class, 'export'])->name('laporan.export');
 
     Route::middleware(['auth'])->group(function () {
         // Menampilkan daftar user (GET /users)

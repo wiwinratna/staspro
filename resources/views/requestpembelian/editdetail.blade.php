@@ -1,179 +1,190 @@
 <!DOCTYPE html>
-<html lang="en">
-
+<html lang="id">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Request Pembelian</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-        body {
-            background-color: #f8f9fa;
-            font-family: Arial, sans-serif;
-        }
+  @extends('layouts.app')
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Edit Request Pembelian</title>
 
-        /* Navbar */
-        .navbar {
-            background-color: #006400;
-            color: white;
-        }
+  <!-- Fonts & CSS -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet" />
 
-        .navbar .profile {
-            display: flex;
-            align-items: center;
-        }
+  <style>
+    :root{
+      --brand:#16a34a; --brand-700:#15803d; --brand-50:#ecfdf5;
+      --ink:#0f172a; --ink-600:#475569; --line:#e2e8f0; --bg:#f6f7fb; --card:#fff;
+    }
+    body{ background:var(--bg); font-family:'Inter',system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif; color:var(--ink); }
 
-        .navbar .profile img {
-            border-radius: 50%;
-            width: 30px;
-            height: 30px;
-            margin-right: 10px;
-        }
+    /* Topbar */
+    .topbar{ background:linear-gradient(135deg,var(--brand-700),var(--brand)); color:#fff; }
+    .topbar .brand-title{ font-weight:700; letter-spacing:.2px; }
 
-        /* Sidebar */
-        .sidebar {
-            background-color: #d9d9d9;
-            padding: 20px;
-            min-height: 100vh;
-            width: 250px;
-        }
+    /* Shell */
+    .app{ display:flex; min-height:calc(100vh - 56px); }
+    .sidebar{ width:260px; background:var(--card); border-right:1px solid var(--line); padding:18px; position:sticky; top:0; height:calc(100vh - 56px); }
+    .menu-title{ font-size:.8rem; letter-spacing:.06em; color:var(--ink-600); text-transform:uppercase; margin:6px 0 10px; font-weight:600; }
+    .nav-link-custom{ display:flex; align-items:center; gap:10px; padding:10px 12px; color:var(--ink); border-radius:12px; text-decoration:none; transition:all .18s; font-weight:500; }
+    .nav-link-custom:hover{ background:var(--brand-50); color:var(--brand-700); }
+    .nav-link-custom.active{ background:var(--brand); color:#fff; box-shadow:0 6px 16px rgba(22,163,74,.18); }
 
-        .sidebar a {
-            display: block;
-            color: #333;
-            padding: 10px;
-            border-radius: 5px;
-            text-decoration: none;
-            margin-bottom: 10px;
-        }
+    .content{ flex:1; padding:24px; }
+    .page-title{ font-size:1.5rem; font-weight:700; } /* tebal */
+    .page-sub{ color:var(--ink-600); }
 
-        .sidebar a:hover,
-        .sidebar a.active {
-            background-color: #006400;
-            color: white;
-        }
+    /* Card form */
+    .card-soft{ background:var(--card); border:1px solid var(--line); border-radius:18px; box-shadow:0 8px 22px rgba(15,23,42,.06); }
+    .help-text{ color:var(--ink-600); font-size:.85rem; }
 
-        /* Main Content */
-        .main-content {
-            flex: 1;
-            padding: 20px;
-            background-color: #fff;
-        }
-
-        .main-content h1 {
-            font-size: 2rem;
-            margin-bottom: 20px;
-            color: #333;
-        }
-
-        .form-container {
-            background-color: #f9f9f9;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            width: 100%;
-        }
-
-        .form-group {
-            margin-bottom: 15px;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: bold;
-            color: #333;
-        }
-
-        .form-group input,
-        .form-group select {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-        }
-
-        .form-group input::placeholder {
-            color: #aaa;
-            font-style: italic;
-        }
-
-        .submit-btn {
-            background-color: #006400;
-            color: #fff;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 16px;
-            font-weight: bold;
-        }
-
-        .submit-btn:hover {
-            background-color: #249C00;
-        }
-    </style>
+    /* Mobile sidebar */
+    @media (max-width: 991.98px){
+      .sidebar{ position:fixed; left:-280px; z-index:1040; transition:left .2s; }
+      .sidebar.open{ left:0; }
+      .content{ padding:18px; }
+      .backdrop{ display:none; position:fixed; inset:0; background:rgba(15,23,42,.38); z-index:1035; }
+      .backdrop.show{ display:block; }
+    }
+  </style>
 </head>
-
 <body>
-    <!-- Top Navbar -->
-    <nav class="navbar navbar-expand-lg">
-        <div class="container-fluid d-flex justify-content-end">
-            @include('navbar')
-        </div>
-    </nav>
-
-    <div class="d-flex">
-        <!-- Sidebar -->
-        <div class="sidebar">
-            <a href="{{ route('dashboard') }}">Dashboard</a>
-            <a href="{{ route('project.index') }}">Project</a>
-            <a href="{{ route('requestpembelian.index') }}" class="active">Request Pembelian</a>
-            @if (Auth::user()->role == 'admin')
-                <a href="{{ route('sumberdana.index') }}">Sumber Dana</a>
-                <a href="{{ route('pencatatan_transaksi') }}">Pencatatan Transaksi</a>
-                <a href="{{ route('laporan_keuangan') }}">Laporan Keuangan</a>
-                <a href="{{ route('users.index') }}">Management User</a>
-            @endif
-        </div>
-
-        <!-- Main Content -->
-        <div class="main-content">
-            <h1 class="mb-4" style="font-weight: bold; font-size: 2rem;">Edit Request Pembelian</h1>
-            <div class="form-container">
-                <form action="{{ route('requestpembelian.updatedetail', $detail->id) }}" method="POST"
-                    enctype="multipart/form-data">
-                    @csrf
-                    <input type="hidden" name="id_request_pembelian_header"
-                        value="{{ $detail->id_request_pembelian_header }}">
-                    <div class="form-group">
-                        <label for="nama_barang">Nama Barang</label>
-                        <input type="text" id="nama_barang" name="nama_barang" value="{{ $detail->nama_barang }}">
-                    </div>
-                    <div class="form-group">
-                        <label for="kuantitas">Kuantitas</label>
-                        <input type="text" id="kuantitas" name="kuantitas" value="{{ $detail->kuantitas }}">
-                    </div>
-                    <div class="form-group">
-                        <label for="harga">Harga</label>
-                        <input type="text" id="harga" name="harga" value="{{ $detail->harga }}">
-                    </div>
-                    <div class="form-group">
-                        <label for="link_pembelian">Link Pembelian</label>
-                        <input type="text" id="link_pembelian" name="link_pembelian"
-                            value="{{ $detail->link_pembelian }}">
-                    </div>
-                    <div class="form-group">
-                        <label for="bukti_bayar">Bukti Bayar</label>
-                        <input type="file" id="bukti_bayar" name="bukti_bayar">
-                    </div>
-                    <button class="submit-btn mt-2">SUBMIT</button>
-                </form>
-            </div>
-        </div>
+  <!-- Topbar -->
+  <nav class="navbar topbar navbar-expand-lg">
+    <div class="container-fluid">
+      <button class="btn btn-light d-lg-none me-2" id="sidebarToggle" aria-label="Toggle sidebar">
+        <i class="bi bi-list"></i>
+      </button>
+      <div class="brand-title">STAS-RG • Edit Request Pembelian</div>
+      <div class="ms-auto">
+        @include('navbar')
+      </div>
     </div>
+  </nav>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <div class="app">
+    <!-- Sidebar -->
+    <aside class="sidebar" id="appSidebar">
+      <div class="menu-title">Menu</div>
+      <a class="nav-link-custom" href="{{ route('dashboard') }}"><i class="bi bi-speedometer2"></i> Dashboard</a>
+      <a class="nav-link-custom" href="{{ route('project.index') }}"><i class="bi bi-kanban"></i> Project</a>
+      <a class="nav-link-custom active" href="{{ route('requestpembelian.index') }}"><i class="bi bi-bag-check"></i> Request Pembelian</a>
+
+      @if (Auth::user()->role == 'admin')
+        <div class="menu-title mt-3">Administrasi</div>
+        <a class="nav-link-custom" href="{{ route('sumberdana.index') }}"><i class="bi bi-cash-coin"></i> Sumber Dana</a>
+        <a class="nav-link-custom" href="{{ route('pencatatan_keuangan') }}"><i class="bi bi-journal-text"></i> Pencatatan Keuangan</a>
+        <a class="nav-link-custom" href="{{ route('laporan_keuangan') }}"><i class="bi bi-graph-up"></i> Laporan Keuangan</a>
+        <a class="nav-link-custom" href="{{ route('users.index') }}"><i class="bi bi-people"></i> Management User</a>
+      @endif
+    </aside>
+    <div class="backdrop" id="backdrop"></div>
+
+    <!-- Main -->
+    <main class="content">
+      <div class="d-flex align-items-center justify-content-between mb-3">
+        <div>
+          <div class="page-title">Edit Request Pembelian</div>
+          <div class="page-sub">Perbarui detail item request pembelian.</div>
+        </div>
+        <a href="{{ route('requestpembelian.index') }}" class="btn btn-outline-secondary">
+          <i class="bi bi-arrow-left-short me-1"></i> Kembali ke Daftar
+        </a>
+      </div>
+
+      <div class="card card-soft">
+        <div class="card-body">
+          <form action="{{ route('requestpembelian.updatedetail', $detail->id) }}" method="POST" enctype="multipart/form-data" class="row g-3">
+            @csrf
+            <input type="hidden" name="id_request_pembelian_header" value="{{ $detail->id_request_pembelian_header }}">
+
+            <div class="col-md-6">
+              <label for="nama_barang" class="form-label">Nama Barang</label>
+              <input type="text" id="nama_barang" name="nama_barang" value="{{ $detail->nama_barang }}" class="form-control" required>
+            </div>
+
+            <div class="col-md-3">
+              <label for="kuantitas" class="form-label">Kuantitas</label>
+              <input type="number" id="kuantitas" name="kuantitas" value="{{ $detail->kuantitas }}" min="1" class="form-control" required>
+            </div>
+
+            <div class="col-md-3">
+              <label for="harga" class="form-label">Harga</label>
+              <input type="text" id="harga" name="harga" value="{{ number_format($detail->harga,0,',','.') }}" class="form-control" placeholder="Rp 0" required>
+              <div class="help-text">Otomatis diformat Rp saat mengetik.</div>
+            </div>
+
+            <div class="col-12">
+              <label for="link_pembelian" class="form-label">Link Pembelian</label>
+              <input type="url" id="link_pembelian" name="link_pembelian" value="{{ $detail->link_pembelian }}" class="form-control" placeholder="https://..." required>
+            </div>
+
+            <div class="col-md-6">
+              <label for="id_subkategori_sumberdana" class="form-label">Subkategori Sumber Dana</label>
+              <select class="form-select" id="id_subkategori_sumberdana" name="id_subkategori_sumberdana">
+                <option value="">-- Pilih Subkategori --</option>
+                @foreach ($subkategori as $sub)
+                  <option value="{{ $sub->id }}" {{ $detail->id_subkategori_sumberdana == $sub->id ? 'selected' : '' }}>
+                    {{ $sub->nama }}
+                  </option>
+                @endforeach
+              </select>
+            </div>
+
+            <div class="col-md-6">
+              <label for="bukti_bayar" class="form-label">Bukti Bayar</label>
+              <input type="file" id="bukti_bayar" name="bukti_bayar" class="form-control" accept="image/*,application/pdf">
+              @if(!empty($detail->bukti_bayar))
+                <div class="help-text mt-1">
+                  Bukti saat ini: 
+                  <a href="{{ asset('bukti_bayar/'.$detail->bukti_bayar) }}" target="_blank">Lihat</a>
+                </div>
+              @endif
+            </div>
+
+            <div class="col-12 d-flex gap-2 mt-2">
+              <button class="btn btn-success">
+                <i class="bi bi-check2-circle me-1"></i> Submit
+              </button>
+              <a href="{{ route('requestpembelian.index') }}" class="btn btn-outline-secondary">Batal</a>
+            </div>
+          </form>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    // Sidebar toggle (mobile)
+    const sidebar=document.getElementById('appSidebar');
+    const toggleBtn=document.getElementById('sidebarToggle');
+    const backdrop=document.querySelector('.backdrop');
+    const openSidebar=()=>{ sidebar.classList.add('open'); backdrop.classList.add('show'); }
+    const closeSidebar=()=>{ sidebar.classList.remove('open'); backdrop.classList.remove('show'); }
+    toggleBtn?.addEventListener('click',()=> sidebar.classList.contains('open')?closeSidebar():openSidebar());
+    backdrop?.addEventListener('click',closeSidebar);
+
+    // Format Rupiah untuk input harga (tanpa ubah nama field)
+    (function(){
+      const el=document.getElementById('harga');
+      if(!el) return;
+
+      // jika datang dalam format 50.000 -> tampilkan sebagai Rp 50.000
+      const raw = el.value.replace(/\D/g,'');
+      el.value = raw ? 'Rp ' + new Intl.NumberFormat('id-ID').format(Number(raw)) : '';
+
+      el.addEventListener('input', () => {
+        const digits = el.value.replace(/\D/g,'');
+        el.value = digits ? 'Rp ' + new Intl.NumberFormat('id-ID').format(Number(digits)) : '';
+      });
+
+      // sebelum submit, kembalikan murni angka (tanpa Rp/titik)
+      el.form?.addEventListener('submit', () => {
+        el.value = el.value.replace(/\D/g,'');
+      });
+    })();
+  </script>
 </body>
-
 </html>
