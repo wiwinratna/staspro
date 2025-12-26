@@ -5,13 +5,12 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="csrf-token" content="{{ csrf_token() }}">
-  <title>Edit Sumber Dana</title>
+  <title>Kas</title>
 
   <!-- Fonts & Icons -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet"/>
-  <link href="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/css/tom-select.css" rel="stylesheet"/>
 
   <style>
     :root{
@@ -28,6 +27,8 @@
 
       --shadow:0 10px 30px rgba(15,23,42,.08);
       --shadow2:0 18px 40px rgba(15,23,42,.10);
+
+      --danger:#ef4444;
     }
 
     *{ box-sizing:border-box }
@@ -108,7 +109,7 @@
 
     .content{ flex:1; padding:18px 18px 22px; }
 
-    /* HERO */
+    /* HERO ala dashboard */
     .hero{
       border-radius:22px;
       padding:18px;
@@ -153,13 +154,19 @@
       gap:12px;
       flex-wrap:wrap;
     }
-    .tools-left, .tools-right{
+    .tools-left{
       display:flex;
       align-items:center;
       gap:10px;
       flex-wrap:wrap;
     }
-    .tools-right{ margin-left:auto; }
+    .tools-right{
+      margin-left:auto;
+      display:flex;
+      align-items:center;
+      gap:10px;
+      flex-wrap:wrap;
+    }
 
     .btn-brand{
       height:38px;
@@ -177,6 +184,7 @@
       text-decoration:none;
     }
     .btn-brand:hover{ filter:brightness(.98); transform:translateY(-1px); color:#fff; }
+    .btn-brand i{ line-height:1; }
 
     .btn-soft{
       height:38px;
@@ -200,56 +208,84 @@
       border-color:rgba(226,232,240,.95);
     }
 
-    /* Card */
-    .card-soft{
+    /* Summary cards */
+    .stats-grid{
+      display:grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap:14px;
+      margin-top:12px;
+    }
+    .stat-card{
       background:var(--card);
       border:1px solid rgba(226,232,240,.95);
       border-radius:22px;
+      padding:14px;
       box-shadow:var(--shadow);
-      overflow:visible; /* IMPORTANT: biar dropdown tomselect gak kepotong */
     }
-    .card-soft .card-header{
-      background:#f8fafc;
-      border-bottom:1px solid rgba(226,232,240,.95);
-      font-weight:900;
-      padding:14px 16px;
-    }
-    .card-soft .card-body{ padding:16px; overflow:visible; }
-
-    .section-title{
+    .stat-label{
+      font-size:.72rem;
+      letter-spacing:.08em;
+      text-transform:uppercase;
       font-weight:900;
       color:var(--ink-600);
-      text-transform:uppercase;
-      letter-spacing:.06em;
-      font-size:.82rem;
-      margin-bottom:6px;
     }
+    .stat-value{
+      margin-top:6px;
+      font-weight:900;
+      font-size:1.35rem;
+    }
+    .tnum{ font-variant-numeric: tabular-nums; }
 
-    /* TomSelect tweak */
-    .ts-control{
-      border-radius:14px !important;
-      border-color:rgba(226,232,240,.95) !important;
-      padding:10px 12px !important;
-      box-shadow:none !important;
-      min-height:44px !important;
+    /* Table */
+    .table-wrap{
+      background:var(--card);
+      border:1px solid rgba(226,232,240,.95);
+      border-radius:22px;
+      overflow:hidden;
+      margin-top:14px;
+      box-shadow:var(--shadow);
     }
-    .ts-wrapper.multi .ts-control>div{
-      border-radius:999px !important;
-      padding:3px 10px !important;
-      font-weight:800 !important;
-      background:var(--brand-50) !important;
-      border:1px solid rgba(22,163,74,.18) !important;
-      color:var(--brand-700) !important;
+    .table-responsive{ max-height:68vh; overflow-y:auto; }
+
+    .table-modern{ margin:0; font-size:.92rem; border-collapse:separate; border-spacing:0; }
+    .table-modern thead th{
+      background:#f8fafc;
+      color:var(--ink-600);
+      font-weight:900;
+      text-transform:uppercase;
+      font-size:.72rem;
+      letter-spacing:.08em;
+      padding:14px 12px;
+      border-bottom:1px solid rgba(226,232,240,.95);
+      position:sticky;
+      top:0;
+      z-index:5;
     }
-    .ts-dropdown{
-      z-index:2000 !important;
-      border-radius:16px !important;
-      overflow:hidden !important;
-      box-shadow:0 18px 40px rgba(15,23,42,.12) !important;
+    .table-modern tbody td{
+      padding:14px 12px;
+      vertical-align:middle;
+      border-top:1px solid #eef2f7;
+      font-weight:500;
     }
-    .ts-dropdown .ts-dropdown-content{
-      max-height:260px !important;
+    .table-striped > tbody > tr:nth-of-type(odd){ background:#fcfcfd; }
+    .table-modern tbody tr:hover{ background:var(--brand-50); transition:.12s; }
+
+    /* Pill tipe */
+    .pill{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding:.42rem .72rem;
+      border-radius:999px;
+      font-weight:900;
+      font-size:.74rem;
+      border:1px solid transparent;
+      white-space:nowrap;
+      text-transform:uppercase;
+      letter-spacing:.02em;
     }
+    .pill-in{ background:#ecfdf5; color:#166534; border-color:#bbf7d0; }
+    .pill-out{ background:#fef2f2; color:#991b1b; border-color:#fecaca; }
 
     /* Mobile */
     .backdrop{
@@ -272,6 +308,7 @@
       }
       .sidebar.open{ left:0; }
       .content{ padding:14px; }
+      .stats-grid{ grid-template-columns: 1fr; }
     }
   </style>
 </head>
@@ -346,14 +383,14 @@
     <section class="hero">
       <div class="hero-inner">
         <div class="hero-left">
-          <h1 class="title">Edit Sumber Dana</h1>
-          <p class="sub">Perbarui data sumber dana dan subkategori terkait.</p>
+          <h1 class="title">Kas</h1>
+          <p class="sub">Ringkasan transaksi kas (masuk/keluar) dan saldo terkini.</p>
         </div>
 
         <div class="tools-row">
           <div class="tools-left">
-            <a href="{{ route('sumberdana.index') }}" class="btn btn-soft">
-              <i class="bi bi-arrow-left-short"></i> Kembali ke Daftar
+            <a href="{{ route('kas.create') }}" class="btn btn-brand">
+              <i class="bi bi-plus-lg"></i> Tambah Kas
             </a>
           </div>
 
@@ -372,98 +409,73 @@
       </div>
     </section>
 
-    @if ($errors->any())
-      <div class="alert alert-danger mt-3">
-        <strong>Terjadi kesalahan:</strong>
-        <ul class="mb-0">
-          @foreach ($errors->all() as $error)
-            <li>{{ $error }}</li>
-          @endforeach
-        </ul>
-      </div>
+    @if(session('success'))
+      <div class="alert alert-success mt-3">{{ session('success') }}</div>
+    @endif
+    @if(session('error'))
+      <div class="alert alert-danger mt-3">{{ session('error') }}</div>
     @endif
 
-    <!-- FORM -->
-    <div class="card card-soft">
-      <div class="card-header">Form Edit Sumber Dana</div>
-      <div class="card-body">
+    <!-- SUMMARY -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-label">Total Masuk</div>
+        <div class="stat-value tnum">Rp {{ number_format($totalMasuk ?? 0, 0, ',', '.') }}</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Total Keluar</div>
+        <div class="stat-value tnum">Rp {{ number_format($totalKeluar ?? 0, 0, ',', '.') }}</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Saldo</div>
+        <div class="stat-value tnum">Rp {{ number_format($saldo ?? 0, 0, ',', '.') }}</div>
+      </div>
+    </div>
 
-        <!-- IMPORTANT: route kamu hanya support POST -->
-        <form action="{{ route('sumberdana.update', $sumberdana->id) }}" method="POST">
-          @csrf
+    <!-- TABLE -->
+    <div class="table-wrap">
+      <div class="table-responsive">
+        <table class="table table-modern table-striped align-middle">
+          <thead>
+            <tr>
+              <th class="text-center" style="min-width:140px">Tanggal</th>
+              <th class="text-center" style="min-width:140px">Tipe</th>
+              <th class="text-center" style="min-width:180px">Kategori</th>
+              <th class="text-end" style="min-width:160px">Nominal</th>
+              <th class="text-start" style="min-width:320px">Deskripsi</th>
+            </tr>
+          </thead>
 
+          <tbody>
+            @forelse($rows as $r)
+              <tr>
+                <td class="text-center">{{ $r->tanggal }}</td>
+                <td class="text-center">
+                  @php $tipe = strtolower($r->tipe ?? ''); @endphp
+                  <span class="pill {{ $tipe === 'masuk' ? 'pill-in' : 'pill-out' }}">
+                    {{ $r->tipe }}
+                  </span>
+                </td>
+                <td class="text-center">{{ $r->kategori }}</td>
+                <td class="text-end tnum">Rp {{ number_format($r->nominal ?? 0, 0, ',', '.') }}</td>
+                <td class="text-start">{{ $r->deskripsi ?? '-' }}</td>
+              </tr>
+            @empty
+              <tr>
+                <td colspan="5" class="text-center text-secondary py-4">Belum ada transaksi kas.</td>
+              </tr>
+            @endforelse
+          </tbody>
 
-          <div class="row g-3">
-            <div class="col-md-6">
-              <label for="nama_sumber_dana" class="form-label fw-semibold">Nama Sumber Dana</label>
-              <input
-                type="text"
-                id="nama_sumber_dana"
-                name="nama_sumber_dana"
-                class="form-control"
-                value="{{ old('nama_sumber_dana', $sumberdana->nama_sumber_dana) }}"
-              >
-            </div>
-
-            <div class="col-md-6">
-              <label for="jenis_pendanaan" class="form-label fw-semibold">Jenis Pendanaan</label>
-              <select id="jenis_pendanaan" name="jenis_pendanaan" class="form-select">
-                <option value="internal"  {{ old('jenis_pendanaan', $sumberdana->jenis_pendanaan) == 'internal' ? 'selected' : '' }}>Internal</option>
-                <option value="eksternal" {{ old('jenis_pendanaan', $sumberdana->jenis_pendanaan) == 'eksternal' ? 'selected' : '' }}>Eksternal</option>
-              </select>
-            </div>
-          </div>
-
-          <div class="my-4" style="height:1px;background:var(--line);"></div>
-
-          <div class="section-title">Subkategori</div>
-          <div class="text-muted mb-2" style="font-size:.92rem;">
-            Ketik untuk mencari/menambah subkategori. Bisa pilih lebih dari satu.
-          </div>
-
-          <select id="subkategori" name="subkategori[]" multiple>
-            @php
-              $oldSubs = collect(old('subkategori', $subkategori->pluck('nama')->toArray()));
-            @endphp
-
-            @if(!empty($listSubkategori))
-              @foreach($listSubkategori as $item)
-                @php
-                  $nama = is_string($item)
-                    ? $item
-                    : (is_array($item) ? ($item['nama'] ?? '') : ($item->nama ?? ''));
-
-                  $nama = trim((string) $nama);
-                @endphp
-
-                @if($nama !== '')
-                  <option value="{{ $nama }}" @selected($oldSubs->contains($nama))>
-                    {{ $nama }}
-                  </option>
-                @endif
-              @endforeach
-            @endif
-          </select>
-
-          <div class="mt-4 d-flex gap-2 flex-wrap">
-            <button type="submit" class="btn btn-brand">
-              <i class="bi bi-check2-circle"></i> Simpan Perubahan
-            </button>
-            <a href="{{ route('sumberdana.index') }}" class="btn btn-soft">Batal</a>
-          </div>
-
-        </form>
-
+        </table>
       </div>
     </div>
 
   </main>
 </div>
 
-<!-- Scripts -->
+<!-- SCRIPT -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/js/tom-select.complete.min.js"></script>
-
 <script>
   // sidebar mobile toggle
   const sidebar = document.getElementById('appSidebar');
@@ -475,16 +487,7 @@
 
   toggleBtn?.addEventListener('click', ()=> sidebar.classList.contains('open') ? closeSidebar() : openSidebar());
   backdrop?.addEventListener('click', closeSidebar);
-
-  // TomSelect subkategori
-  new TomSelect('#subkategori',{
-    create:true,
-    persist:false,
-    plugins:['remove_button'],
-    placeholder:'Cari / tambah subkategori…',
-    maxItems:null,
-    sortField:{ field:'text', direction:'asc' }
-  });
 </script>
+
 </body>
 </html>

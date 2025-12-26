@@ -1,89 +1,463 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  @extends('layouts.app')
   <meta charset="UTF-8" />
   <title>Dashboard</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <!-- Fonts & CSS -->
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet" />
-
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet"/>
 
   <style>
     :root{
-      --brand:#16a34a; --brand-700:#15803d; --brand-50:#ecfdf5;
-      --ink:#0f172a; --ink-600:#475569; --line:#e2e8f0; --bg:#f6f7fb; --card:#fff;
+      --brand:#16a34a;
+      --brand-700:#15803d;
+      --brand-50:#ecfdf5;
+
+      --ink:#0f172a;
+      --ink-600:#475569;
+      --line:#e2e8f0;
+
+      --bg:#f6f7fb;
+      --card:#ffffff;
+
+      --danger:#ef4444;
+      --warn:#f59e0b;
+      --info:#3b82f6;
+
+      --shadow:0 10px 30px rgba(15,23,42,.08);
+      --shadow2:0 18px 40px rgba(15,23,42,.10);
     }
+
     *{box-sizing:border-box}
-    body{ background:var(--bg); font-family:'Inter',system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif; color:var(--ink); }
+    body{
+      margin:0;
+      background:var(--bg);
+      font-family:'Inter',system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+      color:var(--ink);
+      font-weight:500;
+    }
 
     /* Topbar */
-    .topbar{ background:linear-gradient(135deg,var(--brand-700),var(--brand)); color:#fff; }
-    .topbar .brand-title{ font-weight:700; letter-spacing:.2px; }
+    .topbar{
+      position:sticky; top:0; z-index:1030;
+      background:linear-gradient(135deg,var(--brand-700),var(--brand));
+      color:#fff;
+      border-bottom:1px solid rgba(255,255,255,.18);
+    }
+    .brand{
+      display:flex;align-items:center;gap:10px;
+      font-weight:800; letter-spacing:.2px;
+    }
+    .brand-badge{
+      font-size:.72rem; font-weight:700;
+      padding:.22rem .55rem; border-radius:999px;
+      background:rgba(255,255,255,.16);
+      border:1px solid rgba(255,255,255,.22);
+      white-space:nowrap;
+    }
 
-    /* Shell */
+    /* Layout */
     .app{ display:flex; min-height:calc(100vh - 56px); }
-    .sidebar{ width:260px; background:var(--card); border-right:1px solid var(--line); padding:18px; position:sticky; top:0; height:calc(100vh - 56px); }
-    .menu-title{ font-size:.8rem; letter-spacing:.06em; color:var(--ink-600); text-transform:uppercase; margin:6px 0 10px; font-weight:600; }
-    .nav-link-custom{ display:flex; align-items:center; gap:10px; padding:10px 12px; color:var(--ink); border-radius:12px; text-decoration:none; transition:all .18s; font-weight:500; }
-    .nav-link-custom:hover{ background:var(--brand-50); color:var(--brand-700); }
-    .nav-link-custom.active{ background:var(--brand); color:#fff; box-shadow:0 6px 16px rgba(22,163,74,.18); }
 
-    .content{ flex:1; padding:24px; }
-    .page-title{ font-size:1.5rem; font-weight:700; margin-bottom:4px; }
-    .page-sub{ color:var(--ink-600); margin-bottom:18px; }
-
-    /* KPI cards */
-    .kpi-card{
-      background:linear-gradient(160deg,var(--brand),var(--brand-700));
-      color:#fff; border:0; border-radius:18px; padding:20px;
-      box-shadow:0 10px 24px rgba(22,163,74,.18);
-      transition:transform .18s ease, box-shadow .18s ease;
-    }
-    .kpi-card:hover{ transform:translateY(-2px); box-shadow:0 16px 34px rgba(22,163,74,.28); }
-    .kpi-label{ font-weight:600; opacity:.95; }
-    .kpi-value{ font-size:1.65rem; font-weight:800; line-height:1.15; margin-top:4px; }
-
-    /* badge chip */
-    .kpi-chip {
-      display:inline-block; padding:.18rem .5rem; font-size:.8rem; font-weight:700;
-      border-radius:999px; background:#ef4444; color:#fff;
-    }
-    .kpi-chip-dot {
-      display:inline-block; width:.45rem; height:.45rem; border-radius:999px;
-      background:#fff; opacity:.9; margin-right:.35rem;
+    .sidebar{
+      width:260px;
+      background:var(--card);
+      border-right:1px solid var(--line);
+      padding:14px;
+      position:sticky; top:56px;
+      height:calc(100vh - 56px);
+      overflow:auto;
     }
 
-    /* Chart card */
+    .menu-title{
+      font-size:.72rem;
+      letter-spacing:.08em;
+      color:var(--ink-600);
+      text-transform:uppercase;
+      margin:8px 0;
+      font-weight:700;
+    }
+
+    .nav-link-custom{
+      display:flex; align-items:center; gap:10px;
+      padding:9px 10px;
+      border-radius:14px;
+      text-decoration:none;
+      color:var(--ink);
+      font-weight:600;
+      font-size:.92rem;
+      line-height:1;
+      transition:.18s;
+      white-space:nowrap;
+    }
+    .nav-link-custom i{ font-size:1.05rem; }
+
+    .nav-link-custom:hover{
+      background:var(--brand-50);
+      color:var(--brand-700);
+      transform:translateX(2px);
+    }
+    .nav-link-custom.active{
+      background:linear-gradient(135deg,var(--brand-700),var(--brand));
+      color:#fff;
+      box-shadow:0 16px 28px rgba(2,6,23,.12);
+    }
+
+    .nav-badge{
+      margin-left:auto;
+      min-width:20px; height:20px;
+      padding:0 6px;
+      border-radius:999px;
+      display:inline-flex; align-items:center; justify-content:center;
+      font-size:.72rem; font-weight:700;
+      background:var(--danger);
+      color:#fff;
+      box-shadow:0 10px 18px rgba(239,68,68,.22);
+    }
+
+    .content{ flex:1; padding:18px 18px 22px; }
+
+    /* Hero */
+    .hero{
+      border-radius:22px;
+      padding:18px;
+      background:
+        radial-gradient(900px 240px at 18% 0%, rgba(22,163,74,.22), transparent 60%),
+        radial-gradient(700px 220px at 85% 10%, rgba(22,163,74,.14), transparent 55%),
+        linear-gradient(135deg, rgba(255,255,255,.92), rgba(255,255,255,.76));
+      border:1px solid rgba(226,232,240,.95);
+      box-shadow:var(--shadow);
+      position:relative;
+      overflow:hidden;
+    }
+    .hero::after{
+      content:"";
+      position:absolute; inset:-1px;
+      background:
+        radial-gradient(600px 160px at 12% 0%, rgba(22,163,74,.18), transparent 55%),
+        radial-gradient(500px 160px at 95% 0%, rgba(22,163,74,.10), transparent 55%);
+      pointer-events:none;
+      opacity:.65;
+    }
+
+    .hero-row{
+      position:relative;
+      z-index:2;
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:14px;
+      flex-wrap:wrap;
+    }
+
+    .hero-left{ min-width:260px; flex:1 1 520px; }
+    .hero-left .title{
+      font-size:1.65rem;
+      font-weight:800;
+      margin:0;
+      letter-spacing:-.2px;
+    }
+    .hero-left .sub{
+      margin:6px 0 0;
+      color:var(--ink-600);
+      font-weight:500;
+    }
+
+    /* ✅ Manual Book (KANAN, sejajar hero) */
+    .hero-actions{
+      flex:0 0 auto;
+      display:flex;
+      align-items:flex-start;
+      justify-content:flex-end;
+    }
+    .btn-manual{
+      height:36px;
+      display:inline-flex; align-items:center; gap:8px;
+      padding:0 14px;
+      border-radius:999px;
+      font-weight:800;
+      background:#fff;
+      color:var(--ink);
+      border:1px solid rgba(226,232,240,.95);
+      text-decoration:none;
+      box-shadow:0 12px 24px rgba(15,23,42,.06);
+      white-space:nowrap;
+      transition:.15s;
+    }
+    .btn-manual:hover{
+      background:var(--brand-50);
+      color:var(--brand-700);
+      transform:translateY(-1px);
+    }
+
+    /* ✅ Filter (DIBAWAH paragraf sub, rata kiri) */
+    .filter-block{
+      margin-top:12px;
+      display:flex;
+      align-items:flex-end;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+    .filter-label{
+      font-size:.78rem;
+      font-weight:700;
+      color:rgba(15,23,42,.75);
+      margin-bottom:4px;
+    }
+    .filter-input{
+      min-width:190px;
+      border-radius:14px !important;
+      font-weight:600;
+      border:1px solid rgba(226,232,240,.95);
+    }
+    .btn-apply{
+      height:36px;
+      border-radius:999px;
+      font-weight:800;
+      padding:0 14px;
+      background:linear-gradient(135deg,var(--brand-700),var(--brand));
+      border:0;
+      box-shadow:0 16px 28px rgba(22,163,74,.18);
+    }
+    .btn-apply:hover{ filter:brightness(.98); transform:translateY(-1px); }
+    .range-pill{
+      height:36px;
+      display:inline-flex; align-items:center; gap:8px;
+      padding:0 12px;
+      border-radius:999px;
+      background:var(--brand-50);
+      color:var(--brand-700);
+      border:1px solid rgba(2,6,23,.06);
+      font-weight:800;
+      white-space:nowrap;
+    }
+
+    /* Chips (sebaris, manual book tetap di kanan) */
+    .hero-bottom{
+      margin-top:12px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      position:relative;
+      z-index:2;
+      flex-wrap:wrap;
+    }
+    .chips{
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      margin:0;
+    }
+    .chip{
+      display:inline-flex; align-items:center; gap:6px;
+      padding:.34rem .72rem;
+      border-radius:999px;
+      font-weight:700;
+      font-size:.82rem;
+      border:1px solid rgba(2,6,23,.06);
+      white-space:nowrap;
+    }
+    .chip.green{ background:var(--brand-50); color:var(--brand-700); }
+    .chip.blue{ background:rgba(59,130,246,.12); color:#1d4ed8; }
+    .chip.orange{ background:rgba(245,158,11,.14); color:#b45309; }
+    .chip.red{ background:rgba(239,68,68,.12); color:#b91c1c; }
+
+    /* KPI */
+    .kpi{
+      background:var(--card);
+      border:1px solid rgba(226,232,240,.95);
+      border-radius:20px;
+      padding:16px;
+      box-shadow:0 10px 26px rgba(15,23,42,.06);
+      position:relative;
+      overflow:hidden;
+      height:100%;
+      transition:.18s;
+    }
+    .kpi:hover{ transform:translateY(-2px); box-shadow:var(--shadow2); }
+    .kpi::before{
+      content:"";
+      position:absolute; inset:0;
+      background:radial-gradient(720px 150px at 0% 0%, rgba(22,163,74,.14), transparent 60%);
+      pointer-events:none;
+    }
+    .kpi .top{ display:flex; justify-content:space-between; gap:12px; position:relative; z-index:2; }
+    .kpi .label{ color:var(--ink-600); font-weight:600; font-size:.9rem; }
+    .kpi .value{ font-weight:800; font-size:1.65rem; margin-top:6px; letter-spacing:-.2px; }
+    .kpi .hint{ color:var(--ink-600); font-weight:500; font-size:.86rem; margin-top:6px; }
+    .kpi-ico{
+      width:44px;height:44px;border-radius:14px;
+      display:flex; align-items:center; justify-content:center;
+      background:var(--brand-50);
+      color:var(--brand-700);
+      border:1px solid rgba(2,6,23,.06);
+      flex:0 0 auto;
+    }
+
+    /* notif badge in card */
+    .notif-badge{
+      position:absolute; top:12px; right:12px;
+      min-width:26px; height:26px; padding:0 8px;
+      border-radius:999px;
+      display:inline-flex; align-items:center; justify-content:center;
+      font-size:.8rem; font-weight:800;
+      background:var(--danger); color:#fff;
+      box-shadow:0 14px 22px rgba(239,68,68,.28);
+      z-index:3;
+    }
+    .ring{
+      position:absolute; inset:-8px; border-radius:24px;
+      border:2px solid rgba(239,68,68,.22);
+      pointer-events:none; z-index:2;
+    }
+
+    .mini-badges{ display:flex; flex-wrap:wrap; gap:8px; margin-top:10px; position:relative; z-index:2; }
+    .mini{
+      display:inline-flex; align-items:center; gap:6px;
+      padding:.25rem .6rem;
+      border-radius:999px;
+      font-weight:700;
+      font-size:.78rem;
+      border:1px solid rgba(2,6,23,.06);
+      white-space:nowrap;
+    }
+    .mini.green{ background:rgba(22,163,74,.10); color:var(--brand-700); }
+    .mini.red{ background:rgba(239,68,68,.10); color:#b91c1c; }
+    .mini.blue{ background:rgba(59,130,246,.10); color:#1d4ed8; }
+    .mini.orange{ background:rgba(245,158,11,.12); color:#b45309; }
+
+    /* List cards */
+    .list-card{
+      margin-top:14px;
+      background:var(--card);
+      border:1px solid rgba(226,232,240,.95);
+      border-radius:22px;
+      box-shadow:var(--shadow);
+      overflow:hidden;
+    }
+    .list-head{
+      padding:14px 16px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      background:
+        radial-gradient(700px 140px at 0% 0%, rgba(22,163,74,.10), transparent 60%),
+        linear-gradient(135deg, rgba(255,255,255,.92), rgba(255,255,255,.78));
+      border-bottom:1px solid rgba(226,232,240,.95);
+    }
+    .list-title{
+      margin:0;
+      font-weight:800;
+      font-size:1.02rem;
+      display:flex; align-items:center; gap:8px;
+    }
+    .list-body{ padding:6px 16px 14px; }
+    .row-item{
+      padding:12px 0;
+      border-bottom:1px dashed rgba(226,232,240,.95);
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:12px;
+    }
+    .row-item:last-child{ border-bottom:0; }
+    .row-main{ min-width:0; }
+    .row-main .name{
+      font-weight:700;
+      margin:0;
+      font-size:.96rem;
+      line-height:1.2;
+    }
+    .row-main .meta{
+      margin:4px 0 0;
+      font-weight:500;
+      color:var(--ink-600);
+      font-size:.84rem;
+    }
+    .tag{
+      flex:0 0 auto;
+      padding:.25rem .65rem;
+      border-radius:999px;
+      font-weight:700;
+      font-size:.78rem;
+      border:1px solid rgba(2,6,23,.06);
+      white-space:nowrap;
+    }
+    .tag.green{ background:rgba(22,163,74,.10); color:var(--brand-700); }
+    .tag.orange{ background:rgba(245,158,11,.12); color:#b45309; }
+    .tag.blue{ background:rgba(59,130,246,.10); color:#1d4ed8; }
+    .tag.red{ background:rgba(239,68,68,.10); color:#b91c1c; }
+
+    /* Chart */
     .chart-card{
-      background:var(--card); border:1px solid var(--line); border-radius:18px; padding:18px;
-      box-shadow:0 6px 16px rgba(15,23,42,.06);
-      height: 420px; display:flex; flex-direction:column;
+      margin-top:14px;
+      background:var(--card);
+      border:1px solid rgba(226,232,240,.95);
+      border-radius:22px;
+      padding:16px;
+      box-shadow:var(--shadow);
+      height:420px;
+      display:flex;
+      flex-direction:column;
+      overflow:hidden;
     }
-    .chart-head{ display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; }
+    .chart-head{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      margin-bottom:8px;
+    }
+    .chart-title{ margin:0; font-weight:800; }
     .chart-body{ flex:1; min-height:0; }
     .chart-body canvas{ width:100% !important; height:100% !important; }
 
-    @media (max-width:991.98px){
-      .sidebar{ position:fixed; left:-280px; z-index:1040; transition:left .2s; }
+    /* Mobile sidebar + hero */
+    @media(max-width:991.98px){
+      .sidebar{
+        position:fixed;
+        left:-290px;
+        top:56px;
+        height:calc(100vh - 56px);
+        z-index:1040;
+        transition:left .2s;
+      }
       .sidebar.open{ left:0; }
-      .content{ padding:18px; }
-      .backdrop{ display:none; position:fixed; inset:0; background:rgba(15,23,42,.38); z-index:1035; }
+      .content{ padding:14px; }
+
+      .backdrop{
+        display:none;
+        position:fixed;
+        inset:0;
+        background:rgba(15,23,42,.38);
+        z-index:1035;
+      }
       .backdrop.show{ display:block; }
+
+      .filter-input{ min-width:160px; }
+      .hero-bottom{ justify-content:flex-start; }
     }
   </style>
 </head>
+
 <body>
-  <!-- Topbar -->
-  <nav class="navbar topbar navbar-expand-lg">
+  <!-- TOPBAR -->
+  <nav class="navbar topbar">
     <div class="container-fluid">
-      <button class="btn btn-light d-lg-none me-2" id="sidebarToggle" aria-label="Toggle sidebar">
+      <button class="btn btn-outline-light d-lg-none me-2" id="sidebarToggle" aria-label="Toggle sidebar">
         <i class="bi bi-list"></i>
       </button>
-      <div class="brand-title">STAS-RG • Dashboard</div>
+
+      <div class="brand">
+        <span>STAS-RG</span>
+        <span class="brand-badge">{{ Auth::user()->role === 'admin' ? 'ADMIN' : 'PENELITI' }}</span>
+      </div>
+
       <div class="ms-auto">
         @include('navbar')
       </div>
@@ -91,143 +465,457 @@
   </nav>
 
   <div class="app">
-    <!-- Sidebar -->
+    <!-- SIDEBAR -->
     <aside class="sidebar" id="appSidebar">
       <div class="menu-title">Menu</div>
-      <a class="nav-link-custom active" href="{{ route('dashboard') }}"><i class="bi bi-speedometer2"></i> Dashboard</a>
-      <a class="nav-link-custom" href="{{ route('project.index') }}"><i class="bi bi-kanban"></i> Project</a>
-      <a class="nav-link-custom" href="{{ route('requestpembelian.index') }}"><i class="bi bi-bag-check"></i> Request Pembelian</a>
-      @if (Auth::user()->role == 'admin')
+
+      <a class="nav-link-custom {{ request()->routeIs('dashboard') ? 'active' : '' }}" href="{{ route('dashboard') }}">
+        <i class="bi bi-speedometer2"></i> Dashboard
+      </a>
+
+      <a class="nav-link-custom {{ request()->routeIs('project.*') ? 'active' : '' }}" href="{{ route('project.index') }}">
+        <i class="bi bi-kanban"></i> Project
+      </a>
+
+      <a class="nav-link-custom {{ request()->routeIs('requestpembelian.*') ? 'active' : '' }}" href="{{ route('requestpembelian.index') }}">
+        <i class="bi bi-bag-check"></i> Request Pembelian
+        @if(Auth::user()->role === 'admin' && ($newRequests ?? 0) > 0)
+          <span class="nav-badge">{{ $newRequests }}</span>
+        @endif
+      </a>
+
+      @if(Auth::user()->role === 'admin')
         <div class="menu-title mt-3">Administrasi</div>
-        <a class="nav-link-custom" href="{{ route('sumberdana.index') }}"><i class="bi bi-cash-coin"></i> Sumber Dana</a>
-        <a class="nav-link-custom" href="{{ route('pencatatan_keuangan') }}"><i class="bi bi-journal-text"></i> Pencatatan Keuangan</a>
-        <a class="nav-link-custom" href="{{ route('laporan_keuangan') }}"><i class="bi bi-graph-up"></i> Laporan Keuangan</a>
-        <a class="nav-link-custom" href="{{ route('users.index') }}"><i class="bi bi-people"></i> Management User</a>
+
+        <a class="nav-link-custom {{ request()->routeIs('sumberdana.*') ? 'active' : '' }}" href="{{ route('sumberdana.index') }}">
+          <i class="bi bi-cash-coin"></i> Sumber Dana
+        </a>
+
+        <a class="nav-link-custom {{ request()->routeIs('kas.*') ? 'active' : '' }}" href="{{ route('kas.index') }}">
+          <i class="bi bi-wallet2"></i> Kas
+        </a>
+
+        <a class="nav-link-custom {{ request()->routeIs('pencatatan_keuangan') ? 'active' : '' }}" href="{{ route('pencatatan_keuangan') }}">
+          <i class="bi bi-journal-text"></i> Pencatatan Keuangan
+        </a>
+
+        <a class="nav-link-custom {{ request()->routeIs('laporan_keuangan') ? 'active' : '' }}" href="{{ route('laporan_keuangan') }}">
+          <i class="bi bi-graph-up"></i> Laporan Keuangan
+        </a>
+
+        <a class="nav-link-custom {{ request()->routeIs('users.*') ? 'active' : '' }}" href="{{ route('users.index') }}">
+          <i class="bi bi-people"></i> Management User
+        </a>
       @endif
     </aside>
+
     <div class="backdrop" id="backdrop"></div>
 
-    <!-- Main -->
+    <!-- CONTENT -->
     <main class="content">
-      <div class="d-flex align-items-end justify-content-between flex-wrap gap-2">
-        <div>
-          <div class="page-title">Dashboard</div>
-          <div class="page-sub">Ringkasan metrik dan grafik per proyek.</div>
-        </div>
-      </div>
 
-      <!-- KPI Row -->
-      <div class="row g-3">
-        @if (Auth::user()->role == 'admin')
-        <div class="col-12 col-md-6 col-lg-4">
-          <a href="{{ route('pencatatan_keuangan') }}" class="text-decoration-none">
-            <div class="kpi-card h-100">
-              <div class="kpi-label">Total Pencatatan Keuangan Bulan Ini</div>
-              <div class="kpi-value">Rp {{ number_format($totalTransactions, 0, ',', '.') }}</div>
-            </div>
-          </a>
-        </div>
-        @endif
+      <!-- HERO -->
+      <section class="hero">
 
-        <div class="col-12 col-md-6 col-lg-4">
-          <a href="{{ route('project.index') }}" class="text-decoration-none">
-            <div class="kpi-card h-100">
-              <div class="kpi-label">Jumlah Project</div>
-              <div class="kpi-value">{{ $totalProjects }}</div>
-            </div>
-          </a>
+        <!-- Top row: kiri (title+sub+filter), kanan (manual book) -->
+        <div class="hero-row">
+          <div class="hero-left">
+            <h1 class="title">
+              {{ Auth::user()->role === 'admin' ? 'Control Dashboard' : 'Dashboard Peneliti' }}
+            </h1>
+
+            <p class="sub">
+              @if(Auth::user()->role === 'admin')
+                Pantau ringkasan project, request pembelian, kas, dan pencatatan keuangan berdasarkan rentang tanggal.
+              @else
+                Lihat ringkasan project yang dapat Anda akses dan aktivitas request pembelian milik Anda.
+              @endif
+            </p>
+
+            @if(Auth::user()->role === 'admin')
+              <!-- ✅ FILTER PINDAH KE SINI (DIBAWAH PARAGRAF) -->
+              <form method="GET" action="{{ route('dashboard') }}" class="filter-block">
+                <div>
+                  <div class="filter-label">Dari</div>
+                  <input type="date" name="start_date"
+                         class="form-control form-control-sm filter-input"
+                         value="{{ $startDate ?? '' }}">
+                </div>
+
+                <div>
+                  <div class="filter-label">Sampai</div>
+                  <input type="date" name="end_date"
+                         class="form-control form-control-sm filter-input"
+                         value="{{ $endDate ?? '' }}">
+                </div>
+
+                <button type="submit" class="btn btn-sm btn-apply text-white">
+                  <i class="bi bi-funnel"></i> Terapkan
+                </button>
+
+                <span class="range-pill">
+                  <i class="bi bi-calendar3"></i>
+                  {{ $startDate ?? '-' }} — {{ $endDate ?? '-' }}
+                </span>
+              </form>
+            @endif
+          </div>
+
+          <div class="hero-actions">
+            <a class="btn-manual"
+               href="https://drive.google.com/file/d/1NicpoYzDkSk64F3HfVEDWt1tpk0WvrlI/view?usp=sharing"
+               target="_blank" rel="noopener">
+              <i class="bi bi-book"></i> Manual Book
+            </a>
+          </div>
         </div>
 
+        <!-- Chips ringkas -->
+        <div class="hero-bottom">
+          <div class="chips">
+            <span class="chip green"><i class="bi bi-kanban"></i> {{ $totalProjects ?? 0 }} Project</span>
+            <span class="chip green"><i class="bi bi-lightning-charge"></i> {{ $activeProjects ?? ($aktifProjects ?? 0) }} Aktif</span>
+            <span class="chip orange"><i class="bi bi-lock"></i> {{ $closedProjects ?? ($ditutupProjects ?? 0) }} Ditutup</span>
+
+            @if(Auth::user()->role === 'admin')
+              <span class="chip blue"><i class="bi bi-bag-check"></i> {{ $totalRequestsPeriod ?? 0 }} Request (Periode)</span>
+              <span class="chip red"><i class="bi bi-bell"></i> {{ $newRequests ?? 0 }} Request Baru</span>
+            @else
+              <span class="chip blue"><i class="bi bi-bag-check"></i> {{ $myRequestsPeriod ?? 0 }} Request Anda (Periode)</span>
+            @endif
+          </div>
+          <!-- kanan kosong biar space rapi (manual book udah di atas) -->
+          <div style="min-width:1px;"></div>
+        </div>
+
+      </section>
+
+      <!-- KPI ROW -->
+      <section class="row g-3 mt-2">
+
+        <!-- Project -->
         <div class="col-12 col-md-6 col-lg-4">
-          <a href="{{ route('requestpembelian.index') }}" class="text-decoration-none">
-            <div class="kpi-card h-100">
-              <div class="d-flex justify-content-between align-items-start">
-                <div class="kpi-label">Total Request Pembelian</div>
-                @if(($newRequests ?? 0) > 0)
-                  <span class="kpi-chip">
-                    <span class="kpi-chip-dot"></span>{{ $newRequests }} baru
-                  </span>
-                @endif
+          <a href="{{ route('project.index') }}" class="text-decoration-none text-reset">
+            <div class="kpi">
+              <div class="top">
+                <div>
+                  <div class="label">Project</div>
+                  <div class="value">{{ $totalProjects ?? 0 }}</div>
+                  <div class="hint">{{ $activeProjects ?? 0 }} aktif • {{ $closedProjects ?? 0 }} ditutup</div>
+
+                  <div class="mini-badges">
+                    <span class="mini green"><i class="bi bi-check2-circle"></i> Aktif</span>
+                    <span class="mini orange"><i class="bi bi-lock"></i> Ditutup</span>
+                  </div>
+                </div>
+                <div class="kpi-ico"><i class="bi bi-kanban fs-5"></i></div>
               </div>
-              <div class="kpi-value mt-1">{{ $totalRequests }}</div>
             </div>
           </a>
         </div>
-      </div>
 
-      <!-- Chart -->
-      <div class="row mt-4">
-        <div class="col-12">
-          <div class="chart-card">
-            <div class="chart-head">
-              <h5 class="m-0">Grafik Pencatatan Keuangan per Proyek</h5>
+        <!-- Request Pembelian -->
+        <div class="col-12 col-md-6 col-lg-4">
+          <a href="{{ route('requestpembelian.index') }}" class="text-decoration-none text-reset">
+            <div class="kpi">
+              @if(Auth::user()->role === 'admin' && ($newRequests ?? 0) > 0)
+                <span class="notif-badge">{{ $newRequests }}</span>
+                <span class="ring"></span>
+              @endif
+
+              <div class="top">
+                <div>
+                  <div class="label">
+                    {{ Auth::user()->role === 'admin' ? 'Request Pembelian (Periode)' : 'Request Pembelian Anda (Periode)' }}
+                  </div>
+
+                  <div class="value">
+                    {{ Auth::user()->role === 'admin' ? ($totalRequestsPeriod ?? 0) : ($myRequestsPeriod ?? 0) }}
+                  </div>
+
+                  <div class="hint">
+                    @if(Auth::user()->role === 'admin')
+                      submit: {{ $submitRequestsPeriod ?? 0 }} • approve: {{ $approvedRequestsPeriod ?? 0 }} • reject: {{ $rejectedRequestsPeriod ?? 0 }} • done: {{ $doneRequestsPeriod ?? 0 }}
+                    @else
+                      submit: {{ $mySubmitRequestsPeriod ?? 0 }} • approve: {{ $myApprovedRequestsPeriod ?? 0 }} • reject: {{ $myRejectedRequestsPeriod ?? 0 }} • done: {{ $myDoneRequestsPeriod ?? 0 }}
+                    @endif
+                  </div>
+
+                  <div class="mini-badges">
+                    <span class="mini red"><i class="bi bi-send"></i> submit</span>
+                    <span class="mini green"><i class="bi bi-check2"></i> approve</span>
+                    <span class="mini orange"><i class="bi bi-x-circle"></i> reject</span>
+                    <span class="mini blue"><i class="bi bi-check2-circle"></i> done</span>
+                  </div>
+
+                  @if(Auth::user()->role === 'admin' && ($newRequests ?? 0) > 0)
+                    <div class="mt-2" style="font-weight:700;color:#b91c1c;font-size:.88rem;">
+                      <i class="bi bi-bell-fill"></i> {{ $newRequests }} request baru (submit_request)
+                    </div>
+                  @endif
+                </div>
+                <div class="kpi-ico"><i class="bi bi-bag-check fs-5"></i></div>
+              </div>
             </div>
-            <div class="chart-body">
-              <canvas id="grafikPengeluaranProject"></canvas>
+          </a>
+        </div>
+
+        <!-- Admin: Pencatatan Keuangan (Periode) | Peneliti: ringkas -->
+        <div class="col-12 col-md-6 col-lg-4">
+          @if(Auth::user()->role === 'admin')
+            <a href="{{ route('pencatatan_keuangan') }}" class="text-decoration-none text-reset">
+              <div class="kpi">
+                <div class="top">
+                  <div>
+                    <div class="label">Pencatatan Keuangan (Periode)</div>
+
+                    @php
+                      $masuk = $pencatatanMasukPeriod ?? 0;
+                      $keluar = $pencatatanKeluarPeriod ?? 0;
+                      $net = $masuk - $keluar;
+                    @endphp
+
+                    <div class="value">Rp {{ number_format($keluar, 0, ',', '.') }}</div>
+                    <div class="hint">Total pengeluaran pada rentang tanggal</div>
+
+                    <div class="mini-badges">
+                      <span class="mini green"><i class="bi bi-arrow-down-circle"></i> Masuk: Rp {{ number_format($masuk, 0, ',', '.') }}</span>
+                      <span class="mini red"><i class="bi bi-arrow-up-circle"></i> Keluar: Rp {{ number_format($keluar, 0, ',', '.') }}</span>
+                      <span class="mini blue"><i class="bi bi-calculator"></i> Selisih: Rp {{ number_format($net, 0, ',', '.') }}</span>
+                    </div>
+
+                    <div class="mt-2" style="font-weight:600;color:var(--ink-600);font-size:.86rem;">
+                      {{ $pencatatanCountPeriod ?? 0 }} transaksi pada periode
+                    </div>
+                  </div>
+                  <div class="kpi-ico"><i class="bi bi-journal-text fs-5"></i></div>
+                </div>
+              </div>
+            </a>
+          @else
+            <div class="kpi">
+              <div class="top">
+                <div>
+                  <div class="label">Ringkasan Anda</div>
+                  <div class="value">{{ $myProjectsCount ?? ($totalProjects ?? 0) }}</div>
+                  <div class="hint">Jumlah project yang Anda akses / miliki</div>
+
+                  <div class="mini-badges">
+                    <span class="mini green"><i class="bi bi-kanban"></i> Project</span>
+                    <span class="mini blue"><i class="bi bi-bag-check"></i> Request</span>
+                  </div>
+                </div>
+                <div class="kpi-ico"><i class="bi bi-person-workspace fs-5"></i></div>
+              </div>
+            </div>
+          @endif
+        </div>
+
+        <!-- Admin extras -->
+        @if(Auth::user()->role === 'admin')
+          <div class="col-12 col-md-6 col-lg-8">
+            <a href="{{ route('kas.index') }}" class="text-decoration-none text-reset">
+              <div class="kpi">
+                <div class="top">
+                  <div>
+                    <div class="label">Kas (Periode)</div>
+
+                    @php
+                      $kasMasuk = $kasMasukPeriod ?? 0;
+                      $kasKeluar = $kasKeluarPeriod ?? 0;
+                      $kasSaldo = $kasMasuk - $kasKeluar;
+                    @endphp
+
+                    <div class="value">Rp {{ number_format($kasSaldo, 0, ',', '.') }}</div>
+                    <div class="hint">Saldo kas pada rentang tanggal</div>
+
+                    <div class="mini-badges">
+                      <span class="mini green"><i class="bi bi-arrow-down-circle"></i> Masuk: Rp {{ number_format($kasMasuk, 0, ',', '.') }}</span>
+                      <span class="mini red"><i class="bi bi-arrow-up-circle"></i> Keluar: Rp {{ number_format($kasKeluar, 0, ',', '.') }}</span>
+                    </div>
+
+                    <div class="mt-2" style="font-weight:600;color:var(--ink-600);font-size:.86rem;">
+                      {{ $kasCountPeriod ?? 0 }} transaksi kas pada periode
+                    </div>
+                  </div>
+                  <div class="kpi-ico"><i class="bi bi-wallet2 fs-5"></i></div>
+                </div>
+              </div>
+            </a>
+          </div>
+
+          <div class="col-12 col-md-6 col-lg-4">
+            <a href="{{ route('users.index') }}" class="text-decoration-none text-reset">
+              <div class="kpi">
+                <div class="top">
+                  <div>
+                    <div class="label">Jumlah Peneliti (Tim)</div>
+                    <div class="value">{{ $totalTeams ?? 0 }}</div>
+                    <div class="hint">Total user dengan role peneliti</div>
+                  </div>
+                  <div class="kpi-ico"><i class="bi bi-people fs-5"></i></div>
+                </div>
+              </div>
+            </a>
+          </div>
+        @endif
+      </section>
+
+      <!-- LISTS -->
+      <section class="row g-3">
+        <div class="col-12 col-lg-6">
+          <div class="list-card">
+            <div class="list-head">
+              <h3 class="list-title"><i class="bi bi-kanban"></i> Project Terbaru</h3>
+              <span class="chip green"><i class="bi bi-stars"></i> Top 3</span>
+            </div>
+            <div class="list-body">
+              @php $items = $latestProjects ?? collect(); @endphp
+
+              @forelse($items->take(3) as $p)
+                <div class="row-item">
+                  <div class="row-main">
+                    <p class="name">{{ $p->nama_project ?? '-' }}</p>
+                    <p class="meta">
+                      Tahun {{ $p->tahun ?? '-' }} • Durasi {{ $p->durasi ?? '-' }}
+                    </p>
+                  </div>
+
+                  @php
+                    $st = strtolower($p->status ?? '');
+                    $isAktif = ($st === 'aktif' || $st === 'active');
+                  @endphp
+
+                  <span class="tag {{ $isAktif ? 'green' : 'orange' }}">
+                    <i class="bi {{ $isAktif ? 'bi-lightning-charge' : 'bi-lock' }}"></i>
+                    {{ $isAktif ? 'aktif' : 'ditutup' }}
+                  </span>
+                </div>
+              @empty
+                <div class="py-3" style="color:var(--ink-600);font-weight:600;">
+                  Belum ada data project.
+                </div>
+              @endforelse
             </div>
           </div>
         </div>
-      </div>
+
+        <div class="col-12 col-lg-6">
+          <div class="list-card">
+            <div class="list-head">
+              <h3 class="list-title"><i class="bi bi-bag-check"></i> Request Terbaru</h3>
+              <span class="chip green"><i class="bi bi-stars"></i> Top 3</span>
+            </div>
+            <div class="list-body">
+              @php $reqs = $latestRequests ?? collect(); @endphp
+
+              @forelse($reqs->take(3) as $r)
+                @php
+                  $status = strtolower($r->status_request ?? '');
+                  $tagClass = 'blue';
+                  $label = $status ?: 'status';
+                  if(str_contains($status,'submit')) { $tagClass='red'; $label='submit'; }
+                  elseif(str_contains($status,'approve')) { $tagClass='green'; $label='approve'; }
+                  elseif(str_contains($status,'reject')) { $tagClass='orange'; $label='reject'; }
+                  elseif(str_contains($status,'done')) { $tagClass='blue'; $label='done'; }
+                @endphp
+
+                <div class="row-item">
+                  <div class="row-main">
+                    <p class="name">No. {{ $r->no_request ?? '-' }}</p>
+                    <p class="meta">Tgl: {{ $r->tgl_request ?? '-' }}</p>
+                  </div>
+                  <span class="tag {{ $tagClass }}">
+                    <i class="bi bi-dot"></i> {{ $label }}
+                  </span>
+                </div>
+              @empty
+                <div class="py-3" style="color:var(--ink-600);font-weight:600;">
+                  Belum ada data request.
+                </div>
+              @endforelse
+
+              <div class="pt-2">
+                <a href="{{ route('requestpembelian.index') }}" class="text-decoration-none" style="font-weight:700;color:var(--brand-700);">
+                  Lihat semua request <i class="bi bi-arrow-right"></i>
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- CHART -->
+      @if(Auth::user()->role === 'admin')
+        <section class="chart-card">
+          <div class="chart-head">
+            <h5 class="chart-title">Grafik Pengeluaran per Proyek (Periode)</h5>
+            <span class="chip green"><i class="bi bi-bar-chart"></i> Monitoring</span>
+          </div>
+          <div class="chart-body">
+            <canvas id="chartProject"></canvas>
+          </div>
+        </section>
+      @endif
+
     </main>
   </div>
 
   <!-- Scripts -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
   <script>
     // Sidebar toggle
-    const sidebar = document.getElementById('appSidebar');
+    const sidebar  = document.getElementById('appSidebar');
     const toggleBtn = document.getElementById('sidebarToggle');
-    const backdrop = document.querySelector('.backdrop');
+    const backdrop = document.getElementById('backdrop');
+
     const openSidebar = ()=>{ sidebar.classList.add('open'); backdrop.classList.add('show'); }
     const closeSidebar = ()=>{ sidebar.classList.remove('open'); backdrop.classList.remove('show'); }
+
     toggleBtn?.addEventListener('click', ()=> sidebar.classList.contains('open') ? closeSidebar() : openSidebar());
     backdrop?.addEventListener('click', closeSidebar);
 
-    // Chart.js
-    const ctx = document.getElementById('grafikPengeluaranProject').getContext('2d');
-    const labels = {!! json_encode($namaProjects) !!};
-    const dataVal = {!! json_encode($pengeluaranPerProject) !!};
+    // Chart (admin only)
+    @if(Auth::user()->role === 'admin')
+      const el = document.getElementById('chartProject');
+      if(el){
+        const ctx = el.getContext('2d');
+        const labels = {!! json_encode($namaProjects ?? []) !!};
+        const dataVal = {!! json_encode($pengeluaranPerProject ?? []) !!};
 
-    new Chart(ctx, {
-      type: 'bar',
-      data: {
-        labels,
-        datasets: [{
-          label: 'Total Pencatatan Keuangan (Rp)',
-          data: dataVal,
-          backgroundColor: 'rgba(22,163,74,0.25)',
-          borderColor: 'rgba(22,163,74,1)',
-          borderWidth: 2,
-          borderRadius: 8
-        }]
-      },
-      options: {
-        maintainAspectRatio: false,
-        plugins: {
-          legend: { labels: { color: '#0f172a' } },
-          tooltip: {
-            callbacks: {
-              label: (ctx) => ' Rp ' + new Intl.NumberFormat('id-ID').format(ctx.parsed.y || 0)
+        new Chart(ctx, {
+          type: 'bar',
+          data: {
+            labels: labels,
+            datasets: [{
+              label: 'Pengeluaran (Rp)',
+              data: dataVal,
+              backgroundColor: 'rgba(22,163,74,0.22)',
+              borderColor: 'rgba(22,163,74,1)',
+              borderWidth: 2,
+              borderRadius: 10
+            }]
+          },
+          options: {
+            maintainAspectRatio: false,
+            plugins: {
+              legend: { display: false },
+              tooltip: {
+                callbacks: {
+                  label: (c) => ' Rp ' + new Intl.NumberFormat('id-ID').format(c.parsed.y || 0)
+                }
+              }
+            },
+            scales: {
+              x: { ticks:{ color:'#475569' }, grid:{ color:'rgba(2,6,23,.06)' } },
+              y: { beginAtZero:true, ticks:{ color:'#475569' }, grid:{ color:'rgba(2,6,23,.06)' } }
             }
           }
-        },
-        scales: {
-          x: {
-            ticks: { color: '#475569' },
-            grid: { color: 'rgba(2,6,23,.06)' }
-          },
-          y: {
-            beginAtZero: true,
-            ticks: {
-              color: '#475569',
-              callback: (v)=> new Intl.NumberFormat('id-ID',{notation:'compact'}).format(v)
-            },
-            grid: { color: 'rgba(2,6,23,.06)' }
-          }
-        }
+        });
       }
-    });
+    @endif
   </script>
 </body>
 </html>

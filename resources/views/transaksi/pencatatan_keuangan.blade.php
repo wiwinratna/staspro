@@ -3,579 +3,833 @@
 <head>
   @extends('layouts.app')
   <meta charset="UTF-8" />
-  <title>Pencatatan Keuangan</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="csrf-token" content="{{ csrf_token() }}">
+  <title>Pencatatan Keuangan</title>
 
-  <!-- Fonts -->
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-
-  <!-- Bootstrap 5 -->
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet" />
+  <!-- Fonts & Icons -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet"/>
 
   <style>
     :root{
-      --brand:#16a34a;         /* emerald-600 */
-      --brand-700:#15803d;     /* emerald-700 */
-      --brand-50:#ecfdf5;      /* emerald-50  */
-      --ink:#0f172a;           /* slate-900   */
-      --ink-600:#475569;       /* slate-600   */
-      --line:#e2e8f0;          /* slate-200   */
-      --bg:#f6f7fb;            /* soft background */
+      --brand:#16a34a;
+      --brand-700:#15803d;
+      --brand-50:#ecfdf5;
+
+      --ink:#0f172a;
+      --ink-600:#475569;
+      --line:#e2e8f0;
+
+      --bg:#f6f7fb;
       --card:#ffffff;
-      --danger:#dc3545;
+
+      --shadow:0 10px 30px rgba(15,23,42,.08);
+      --shadow2:0 18px 40px rgba(15,23,42,.10);
+
+      --danger:#ef4444;
+      --warning:#f59e0b;
     }
 
-    *{ box-sizing: border-box; }
-    html,body{ height:100%; }
+    *{ box-sizing:border-box }
     body{
-      background: var(--bg);
-      font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-      color: var(--ink);
+      margin:0;
+      background:var(--bg);
+      font-family:'Inter',system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+      color:var(--ink);
     }
 
     /* Topbar */
     .topbar{
-      background: linear-gradient(135deg, var(--brand-700), var(--brand));
+      position:sticky; top:0; z-index:1030;
+      background:linear-gradient(135deg,var(--brand-700),var(--brand));
       color:#fff;
+      border-bottom:1px solid rgba(255,255,255,.18);
+      height:56px;
     }
-    .topbar .brand-title{
-      font-weight: 700;
+    .brand{
+      display:flex;align-items:center;gap:10px;
+      font-weight:800;
       letter-spacing:.2px;
     }
-
-    /* Shell */
-    .app{
-      display:flex;
-      min-height: calc(100vh - 56px);
-      gap:0;
+    .brand-badge{
+      font-size:.72rem; font-weight:800;
+      padding:.22rem .55rem; border-radius:999px;
+      background:rgba(255,255,255,.16);
+      border:1px solid rgba(255,255,255,.22);
+      white-space:nowrap;
     }
 
-    /* Sidebar */
+    /* Layout */
+    .app{ display:flex; min-height:calc(100vh - 56px); }
     .sidebar{
       width:260px;
-      background: var(--card);
+      background:var(--card);
       border-right:1px solid var(--line);
-      padding:18px;
-      position:sticky;
-      top:0;
-      height: calc(100vh - 56px);
+      padding:14px;
+      position:sticky; top:56px;
+      height:calc(100vh - 56px);
+      overflow:auto;
     }
-    .sidebar .menu-title{
-      font-size:.8rem;
-      letter-spacing:.06em;
-      color: var(--ink-600);
-      text-transform: uppercase;
-      margin: 6px 0 10px;
-      font-weight:600;
+
+    .menu-title{
+      font-size:.72rem;
+      letter-spacing:.08em;
+      color:var(--ink-600);
+      text-transform:uppercase;
+      margin:8px 0;
+      font-weight:700;
     }
+
     .nav-link-custom{
       display:flex; align-items:center; gap:10px;
-      padding:10px 12px;
-      color: var(--ink);
-      border-radius:12px;
+      padding:9px 10px;
+      border-radius:14px;
       text-decoration:none;
-      transition: all .18s ease;
-      font-weight:500;
+      color:var(--ink);
+      font-weight:600;
+      font-size:.92rem;
+      line-height:1;
+      transition:.18s;
+      white-space:nowrap;
     }
+    .nav-link-custom i{ font-size:1.05rem; }
+
     .nav-link-custom:hover{
-      background: var(--brand-50);
-      color: var(--brand-700);
+      background:var(--brand-50);
+      color:var(--brand-700);
+      transform:translateX(2px);
     }
     .nav-link-custom.active{
-      background: var(--brand);
+      background:linear-gradient(135deg,var(--brand-700),var(--brand));
       color:#fff;
-      box-shadow: 0 6px 16px rgba(22,163,74,.18);
-    }
-
-    /* Content */
-    .content{
-      flex:1;
-      padding:24px;
-    }
-
-    /* Section header */
-    .page-title{
-      font-size:1.5rem;
+      box-shadow:0 16px 28px rgba(2,6,23,.12);
       font-weight:700;
-      margin-bottom:4px;
-    }
-    .page-sub{
-      color: var(--ink-600);
-      margin-bottom:18px;
     }
 
-    /* Stat cards */
-    .stat-card{
-      background: linear-gradient(180deg, var(--brand), var(--brand-700));
-      color:#fff;
-      border:0;
-      border-radius:18px;
-      box-shadow: 0 10px 24px rgba(22,163,74,.18);
+    .content{ flex:1; padding:18px 18px 22px; }
+
+    /* HERO ala Kas */
+    .hero{
+      border-radius:22px;
+      padding:18px;
+      background:
+        radial-gradient(900px 240px at 18% 0%, rgba(22,163,74,.22), transparent 60%),
+        radial-gradient(700px 220px at 85% 10%, rgba(22,163,74,.14), transparent 55%),
+        linear-gradient(135deg, rgba(255,255,255,.92), rgba(255,255,255,.76));
+      border:1px solid rgba(226,232,240,.95);
+      box-shadow:var(--shadow);
+      position:relative;
+      overflow:hidden;
+      margin-bottom:14px;
     }
-    .stat-card .label{
-      font-weight:600;
-      opacity:.9;
+    .hero::after{
+      content:"";
+      position:absolute; inset:-1px;
+      background:
+        radial-gradient(600px 160px at 12% 0%, rgba(22,163,74,.18), transparent 55%),
+        radial-gradient(500px 160px at 95% 0%, rgba(22,163,74,.10), transparent 55%);
+      pointer-events:none;
+      opacity:.65;
     }
-    .stat-card .value{
-      font-size:1.6rem;
+    .hero-inner{ position:relative; z-index:2; width:100%; }
+
+    .hero-left .title{
+      font-size:1.65rem;
       font-weight:800;
-      line-height:1.2;
+      margin:0;
+      letter-spacing:-.2px;
+    }
+    .hero-left .sub{
+      margin:6px 0 0;
+      color:var(--ink-600);
+      font-weight:500;
     }
 
-    /* Action card */
-    .action-card{
-      background: var(--card);
-      border:1px solid var(--line);
-      border-radius:18px;
-    }
-
-    /* Filters row */
-    .filters{
+    .tools-row{
+      margin-top:14px;
       display:flex;
-      flex-wrap:wrap;
-      gap:10px;
       align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      flex-wrap:wrap;
     }
+    .tools-left{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+    .tools-right{
+      margin-left:auto;
+      display:flex;
+      align-items:center;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+
+    .btn-brand{
+      height:38px;
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      border-radius:999px;
+      font-weight:800;
+      padding:0 14px;
+      background:linear-gradient(135deg,var(--brand-700),var(--brand));
+      border:0;
+      box-shadow:0 16px 28px rgba(22,163,74,.18);
+      color:#fff;
+      white-space:nowrap;
+      text-decoration:none;
+    }
+    .btn-brand:hover{ filter:brightness(.98); transform:translateY(-1px); color:#fff; }
+    .btn-brand i{ line-height:1; }
+
+    .btn-soft{
+      height:38px;
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      border-radius:999px;
+      font-weight:800;
+      padding:0 14px;
+      background:#fff;
+      color:var(--ink);
+      border:1px solid rgba(226,232,240,.95);
+      box-shadow:0 10px 26px rgba(15,23,42,.05);
+      white-space:nowrap;
+      text-decoration:none;
+    }
+    .btn-soft:hover{
+      background:var(--brand-50);
+      transform:translateY(-1px);
+      color:var(--brand-700);
+      border-color:rgba(226,232,240,.95);
+    }
+
+    /* Summary cards (ikut Kas) */
+    .stats-grid{
+      display:grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap:14px;
+      margin-top:12px;
+    }
+    .stat-card{
+      background:var(--card);
+      border:1px solid rgba(226,232,240,.95);
+      border-radius:22px;
+      padding:14px;
+      box-shadow:var(--shadow);
+    }
+    .stat-label{
+      font-size:.72rem;
+      letter-spacing:.08em;
+      text-transform:uppercase;
+      font-weight:900;
+      color:var(--ink-600);
+    }
+    .stat-value{
+      margin-top:6px;
+      font-weight:900;
+      font-size:1.35rem;
+    }
+    .tnum{ font-variant-numeric: tabular-nums; }
+
+    /* Filter row card */
+    .filter-card{
+      background:var(--card);
+      border:1px solid rgba(226,232,240,.95);
+      border-radius:22px;
+      padding:12px 14px;
+      box-shadow:var(--shadow);
+      margin-top:14px;
+    }
+    .filter-row{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+    .form-date{
+      height:38px;
+      border-radius:999px;
+      border:1px solid rgba(226,232,240,.95);
+      padding:0 12px;
+      font-weight:700;
+      background:#fff;
+    }
+    .icon-btn{
+      height:38px; width:38px;
+      border-radius:999px;
+      border:1px solid rgba(226,232,240,.95);
+      background:#fff;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      box-shadow:0 10px 26px rgba(15,23,42,.05);
+      text-decoration:none;
+      color:var(--ink);
+    }
+    .icon-btn:hover{ background:var(--brand-50); color:var(--brand-700); transform:translateY(-1px); }
+
+    /* Tabs pill */
+    .tabs-wrap{
+      margin-top:12px;
+      display:flex;
+      justify-content:center;
+    }
+    .tabs{
+      display:inline-flex;
+      gap:8px;
+      background:#fff;
+      border:1px solid rgba(226,232,240,.95);
+      border-radius:999px;
+      padding:6px;
+      box-shadow:0 10px 26px rgba(15,23,42,.05);
+    }
+    .tab-pill{
+      height:32px;
+      display:inline-flex;
+      align-items:center;
+      padding:0 12px;
+      border-radius:999px;
+      font-weight:900;
+      font-size:.78rem;
+      text-transform:uppercase;
+      letter-spacing:.06em;
+      color:var(--ink-600);
+      text-decoration:none;
+      border:1px solid transparent;
+      white-space:nowrap;
+    }
+    .tab-pill.active{
+      background:linear-gradient(135deg,var(--brand-700),var(--brand));
+      color:#fff;
+      box-shadow:0 16px 28px rgba(22,163,74,.18);
+    }
+    .tab-pill:hover{ background:var(--brand-50); color:var(--brand-700); }
 
     /* Table */
     .table-wrap{
-      background: var(--card);
-      border:1px solid var(--line);
-      border-radius:18px;
+      background:var(--card);
+      border:1px solid rgba(226,232,240,.95);
+      border-radius:22px;
       overflow:hidden;
+      margin-top:14px;
+      box-shadow:var(--shadow);
     }
+    .table-responsive{ max-height:68vh; overflow-y:auto; }
+
     .table-modern{
       margin:0;
-      vertical-align: middle;
+      font-size:.92rem;
+      border-collapse:separate;
+      border-spacing:0;
+      table-layout:fixed;     /* <<< KUNCI: header & isi lurus */
+      width:100%;
     }
     .table-modern thead th{
-      background:#f9fafb;
-      color: var(--ink-600);
-      font-weight:700;
-      border-bottom:1px solid var(--line);
-      position: sticky;
+      background:#f8fafc;
+      color:var(--ink-600);
+      font-weight:900;
+      text-transform:uppercase;
+      font-size:.72rem;
+      letter-spacing:.08em;
+      padding:14px 12px;
+      border-bottom:1px solid rgba(226,232,240,.95);
+      position:sticky;
       top:0;
-      z-index:1;
+      z-index:5;
+      white-space:nowrap;
     }
-    .table-modern tbody tr:hover{
-      background: #fafafa;
+    .table-modern tbody td{
+      padding:14px 12px;
+      vertical-align:middle;
+      border-top:1px solid #eef2f7;
+      font-weight:500;
+      overflow:hidden; /* biar clamp rapi */
     }
-    .table-modern td, .table-modern th{
-      padding:.9rem .9rem;
-    }
-    /* Ellipsis for long text */
-    .td-ellipsis{
-      max-width: 360px;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
+    .table-striped > tbody > tr:nth-of-type(odd){ background:#fcfcfd; }
+    .table-modern tbody tr:hover{ background:var(--brand-50); transition:.12s; }
 
-    /* Buttons */
-    .btn-brand{
-      background: var(--brand);
-      border-color: var(--brand);
-      color:#fff;
+    /* Clamp 2 lines */
+    .clamp-2{
+      display:-webkit-box;
+      -webkit-box-orient:vertical;
+      -webkit-line-clamp:2;
+      overflow:hidden;
+      word-break:break-word;
     }
-    .btn-brand:hover{ background: var(--brand-700); border-color: var(--brand-700); }
-
-    .btn-outline-brand{
-      border-color: var(--brand);
-      color: var(--brand-700);
+    .link-detail{
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      margin-top:4px;
+      font-weight:900;
+      font-size:.82rem;
+      text-decoration:none;
+      color:var(--brand-700);
+      white-space:nowrap;
     }
-    .btn-outline-brand:hover{
-      background: var(--brand);
-      color:#fff;
+    .link-detail:hover{ text-decoration:underline; }
+
+    /* Aksi buttons */
+    .btn-act{
+      width:34px; height:34px;
+      border-radius:10px;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      border:1px solid rgba(226,232,240,.95);
+      background:#fff;
     }
+    .btn-act.edit{ border-color:rgba(245,158,11,.35); color:#92400e; background:#fff7ed; }
+    .btn-act.edit:hover{ filter:brightness(.98); }
+    .btn-act.del{ border-color:rgba(239,68,68,.30); color:#991b1b; background:#fef2f2; }
+    .btn-act.del:hover{ filter:brightness(.98); }
 
-    /* Utilities */
-    .shadow-soft{ box-shadow: 0 6px 16px rgba(15,23,42,.06); }
+    /* Mobile */
+    .backdrop{
+      display:none;
+      position:fixed;
+      inset:0;
+      background:rgba(15,23,42,.38);
+      z-index:1035;
+    }
+    .backdrop.show{ display:block; }
 
-    /* Responsive: collapse sidebar */
-    @media (max-width: 991.98px){
-      .sidebar{ position:fixed; left:-280px; z-index:1040; transition:left .2s ease; }
-      .sidebar.open{ left:0; }
-      .content{ padding:18px; }
-      .backdrop{
-        display:none; position:fixed; inset:0; background:rgba(15,23,42,.38); z-index:1035;
+    @media(max-width:991px){
+      .sidebar{
+        position:fixed;
+        left:-290px;
+        top:56px;
+        height:calc(100vh - 56px);
+        z-index:1040;
+        transition:left .2s;
       }
-      .backdrop.show{ display:block; }
+      .sidebar.open{ left:0; }
+      .content{ padding:14px; }
+      .stats-grid{ grid-template-columns: 1fr; }
     }
-    .nav-pills .nav-link {
-    padding: 0.35rem 0.9rem;
-    font-size: 0.85rem;
-    }
-    /* jaga supaya baris tidak mudah patah */
-    .card .flex-nowrap { overflow-x: auto; }
-    /* rapikan tinggi kontrol */
-    .card .form-control-sm { line-height: 1.2; }
-
   </style>
 </head>
 
 <body>
-  <!-- Topbar -->
-  <nav class="navbar topbar navbar-expand-lg">
-    <div class="container-fluid">
-      <button class="btn btn-light d-lg-none me-2" id="sidebarToggle" aria-label="Toggle sidebar">
-        <i class="bi bi-list"></i>
-      </button>
-      <div class="brand-title">STAS-RG • Keuangan</div>
-      <div class="ms-auto">
-        @include('navbar')
-      </div>
+
+<!-- TOPBAR -->
+<nav class="navbar topbar">
+  <div class="container-fluid">
+    <button class="btn btn-outline-light d-lg-none me-2" id="sidebarToggle">
+      <i class="bi bi-list"></i>
+    </button>
+
+    <div class="brand">
+      <span>STAS-RG</span>
+      <span class="brand-badge">{{ Auth::user()->role === 'admin' ? 'ADMIN' : 'PENELITI' }}</span>
     </div>
-  </nav>
 
-  <div class="app">
-    <!-- Sidebar -->
-    <aside class="sidebar" id="appSidebar" aria-label="Sidebar">
-      <div class="menu-title">Menu</div>
-      <a class="nav-link-custom" href="{{ route('dashboard') }}"><i class="bi bi-speedometer2"></i> Dashboard</a>
-      <a class="nav-link-custom" href="{{ route('project.index') }}"><i class="bi bi-kanban"></i> Project</a>
-      <a class="nav-link-custom" href="{{ route('requestpembelian.index') }}"><i class="bi bi-bag-check"></i> Request Pembelian</a>
+    <div class="ms-auto">@include('navbar')</div>
+  </div>
+</nav>
 
-      @if (Auth::user()->role == 'admin')
-        <div class="menu-title mt-3">Administrasi</div>
-        <a class="nav-link-custom" href="{{ route('sumberdana.index') }}"><i class="bi bi-cash-coin"></i> Sumber Dana</a>
-        <a class="nav-link-custom active" href="{{ route('pencatatan_keuangan') }}"><i class="bi bi-journal-text"></i> Pencatatan Keuangan</a>
-        <a class="nav-link-custom" href="{{ route('laporan_keuangan') }}"><i class="bi bi-graph-up"></i> Laporan Keuangan</a>
-        <a class="nav-link-custom" href="{{ route('users.index') }}"><i class="bi bi-people"></i> Management User</a>
-      @endif
-    </aside>
-    <div class="backdrop" id="backdrop"></div>
+<div class="app">
 
-    <!-- Main -->
-    <main class="content">
-      <div class="d-flex align-items-end justify-content-between flex-wrap gap-2">
-        <div>
-          <div class="page-title">Pencatatan Keuangan</div>
-          <div class="page-sub">
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="appSidebar">
+    <div class="menu-title">Menu</div>
+
+    <a class="nav-link-custom {{ request()->routeIs('dashboard') ? 'active' : '' }}" href="{{ route('dashboard') }}">
+      <i class="bi bi-speedometer2"></i> Dashboard
+    </a>
+
+    <a class="nav-link-custom {{ request()->routeIs('project.*') ? 'active' : '' }}" href="{{ route('project.index') }}">
+      <i class="bi bi-kanban"></i> Project
+    </a>
+
+    <a class="nav-link-custom {{ request()->routeIs('requestpembelian.*') ? 'active' : '' }}" href="{{ route('requestpembelian.index') }}">
+      <i class="bi bi-bag-check"></i> Request Pembelian
+    </a>
+
+    @if(Auth::user()->role == 'admin')
+      <div class="menu-title mt-3">Administrasi</div>
+
+      <a class="nav-link-custom {{ request()->routeIs('sumberdana.*') ? 'active' : '' }}" href="{{ route('sumberdana.index') }}">
+        <i class="bi bi-cash-coin"></i> Sumber Dana
+      </a>
+
+      <a class="nav-link-custom {{ request()->routeIs('kas.*') ? 'active' : '' }}" href="{{ route('kas.index') }}">
+        <i class="bi bi-wallet2"></i> Kas
+      </a>
+
+      <a class="nav-link-custom {{ request()->routeIs('pencatatan_keuangan') ? 'active' : '' }}" href="{{ route('pencatatan_keuangan') }}">
+        <i class="bi bi-journal-text"></i> Pencatatan Keuangan
+      </a>
+
+      <a class="nav-link-custom {{ request()->routeIs('laporan_keuangan') ? 'active' : '' }}" href="{{ route('laporan_keuangan') }}">
+        <i class="bi bi-graph-up"></i> Laporan Keuangan
+      </a>
+
+      <a class="nav-link-custom {{ request()->routeIs('users.*') ? 'active' : '' }}" href="{{ route('users.index') }}">
+        <i class="bi bi-people"></i> Management User
+      </a>
+    @endif
+  </aside>
+
+  <div class="backdrop" id="backdrop"></div>
+
+  <!-- CONTENT -->
+  <main class="content">
+
+    <!-- HERO -->
+    <section class="hero">
+      <div class="hero-inner">
+        <div class="hero-left">
+          <h1 class="title">Pencatatan Keuangan</h1>
+          <p class="sub">
             @if(request()->has('start_date') && request()->has('end_date'))
               @if(request('start_date') === request('end_date'))
-                Total nominal transaksi pada tanggal {{ \Carbon\Carbon::parse(request('start_date'))->locale('id')->translatedFormat('d F Y') }}.
+                Total transaksi pada {{ \Carbon\Carbon::parse(request('start_date'))->locale('id')->translatedFormat('d F Y') }}.
               @else
-                Total nominal transaksi dari {{ \Carbon\Carbon::parse(request('start_date'))->locale('id')->translatedFormat('d F Y') }}
+                Total transaksi dari {{ \Carbon\Carbon::parse(request('start_date'))->locale('id')->translatedFormat('d F Y') }}
                 sampai {{ \Carbon\Carbon::parse(request('end_date'))->locale('id')->translatedFormat('d F Y') }}.
               @endif
             @else
               Total nominal transaksi keseluruhan.
             @endif
+          </p>
+        </div>
+
+        <div class="tools-row">
+          <div class="tools-left">
+            <a href="{{ route('form_input_pencatatan_keuangan') }}" class="btn btn-brand">
+              <i class="bi bi-plus-lg"></i> Tambah Pencatatan
+            </a>
+          </div>
+
+          <div class="tools-right">
+            <a
+              href="https://drive.google.com/file/d/1NicpoYzDkSk64F3HfVEDWt1tpk0WvrlI/view?usp=sharing"
+              target="_blank"
+              rel="noopener"
+              class="btn btn-soft"
+              title="Buka Manual Book"
+            >
+              <i class="bi bi-journal-bookmark"></i> Manual Book
+            </a>
           </div>
         </div>
       </div>
+    </section>
 
-      @if(session('success'))
-        <div class="alert alert-success mt-2">{{ session('success') }}</div>
-      @endif
+    @if(session('success'))
+      <div class="alert alert-success mt-3">{{ session('success') }}</div>
+    @endif
+    @if(session('error'))
+      <div class="alert alert-danger mt-3">{{ session('error') }}</div>
+    @endif
 
-        <div class="row g-3 align-items-start mb-2">
-        <!-- Kiri: Total Pemasukan -->
-        <div class="col-lg-6">
-            <div class="card text-center">
-            <div class="card-body">
-                <div class="fw-semibold">Total Pemasukan</div>
-                <h3 id="total-pemasukan">Rp. 0</h3>
-            </div>
-            </div>
-        </div>
-
-        <!-- Kanan: Total Pengeluaran -->
-        <div class="col-lg-6">
-            <div class="card text-center">
-            <div class="card-body">
-                <div class="fw-semibold">Total Pengeluaran</div>
-                <h3 id="total-pengeluaran">Rp. 0</h3>
-            </div>
-            </div>
-        </div>
-        </div>
-
-        <!-- Tabs Filter (dibawah KPI) -->
-        <div class="d-flex justify-content-center mb-4">
-        <ul class="nav nav-pills nav-sm" id="filterTabs">
-            <li class="nav-item"><a class="nav-link active" href="#" data-filter="semua">Semua</a></li>
-            <li class="nav-item"><a class="nav-link" href="#" data-filter="pemasukan">Pemasukan</a></li>
-            <li class="nav-item"><a class="nav-link" href="#" data-filter="pengeluaran">Pengeluaran</a></li>
-        </ul>
-        </div>
-
-<div class="card action-card shadow-soft mt-3">
-  <div class="card-body">
-
-    <div class="row g-2 align-items-center flex-nowrap">
-      <!-- kiri: filter -->
-      <div class="col-auto">
-        <label for="startDate" class="fw-semibold mb-0">Mulai</label>
+    <!-- SUMMARY (mirip Kas) -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-label">Total Pemasukan</div>
+        <div class="stat-value tnum" id="total-pemasukan">Rp 0</div>
       </div>
-      <div class="col-auto">
-        <input type="date" id="startDate" name="start_date"
-               class="form-control form-control-sm" style="width: 150px;" form="filterForm">
-      </div>
-      <div class="col-auto">
-        <span class="mx-1">sampai</span>
-      </div>
-      <div class="col-auto">
-        <input type="date" id="endDate" name="end_date"
-               class="form-control form-control-sm" style="width: 150px;" form="filterForm">
-      </div>
-      <div class="col-auto">
-        <a href="{{ route('pencatatan_keuangan') }}"
-           class="btn btn-outline-secondary btn-sm d-flex align-items-center"
-           data-bs-toggle="tooltip" title="Reset Filter">
-          <i class="bi bi-arrow-counterclockwise"></i>
-        </a>
-      </div>
-
-      <!-- kanan: tombol tambah, terdorong ke pojok -->
-      <div class="col ms-auto text-end">
-        <button type="button" class="btn btn-success btn-sm shadow-soft"
-                onclick="window.location.href='/form_input_pencatatan_keuangan'">
-          <i class="bi bi-plus-lg me-1"></i> Tambah Pencatatan Keuangan
-        </button>
+      <div class="stat-card">
+        <div class="stat-label">Total Pengeluaran</div>
+        <div class="stat-value tnum" id="total-pengeluaran">Rp 0</div>
       </div>
     </div>
 
-    <!-- form GET (boleh taruh di mana saja di card ini) -->
-    <form id="filterForm" method="GET" action="{{ route('filter_pencatatan_keuangan') }}"></form>
+    <!-- TABS -->
+    <div class="tabs-wrap">
+      <div class="tabs" id="filterTabs">
+        <a href="#" class="tab-pill active" data-filter="semua">Semua</a>
+        <a href="#" class="tab-pill" data-filter="pemasukan">Pemasukan</a>
+        <a href="#" class="tab-pill" data-filter="pengeluaran">Pengeluaran</a>
+      </div>
+    </div>
 
-  </div>
-</div>
+    <!-- FILTER DATE -->
+    <div class="filter-card">
+      <div class="filter-row">
+        <div class="fw-bold">Filter Tanggal</div>
 
+        <input type="date" id="startDate" name="start_date" class="form-date" form="filterForm">
+        <span class="text-muted fw-bold">sampai</span>
+        <input type="date" id="endDate" name="end_date" class="form-date" form="filterForm">
 
-      <!-- Table -->
-      <div class="table-wrap shadow-soft mt-3">
-        <div class="table-responsive">
-          <table class="table table-modern table-striped align-middle">
-            <thead>
-              <tr>
-                <th style="width:56px">No.</th>
-                <th style="min-width:140px">Tanggal</th>
-                <th style="min-width:160px">Tim Peneliti</th>
-                <th style="min-width:220px">Sub Kategori Pendanaan</th>
-                <th style="min-width:260px">Deskripsi</th>
-                <th class="text-end" style="min-width:140px">Jumlah</th>
-                <th style="min-width:160px">Metode Pembayaran</th>
-                <th style="min-width:110px">Bukti</th>
-                <th style="min-width:120px">Aksi</th>
-              </tr>
-            </thead>
-            <tbody>
-              @foreach($pencatatanKeuangans as $index => $transaksi)
-                <tr data-jenis="{{ strtolower($transaksi->jenis_transaksi ?? 'pengeluaran') }}">
-                  <td>{{ $index + 1 }}</td>
-                  <td>{{ $transaksi->created_at->timezone('Asia/Jakarta')->format('d-m-Y H:i') }}</td>
-                  <td class="td-ellipsis" title="{{ $transaksi->project->nama_project ?? 'Tidak Ada' }}">
-                    {{ $transaksi->project->nama_project ?? 'Tidak Ada' }}
-                  </td>
-                  <td class="td-ellipsis" title="{{ $transaksi->subKategoriPendanaan->nama ?? 'Tidak Ada' }}">
-                    {{ $transaksi->subKategoriPendanaan->nama ?? 'Tidak Ada' }}
-                  </td>
-                  <td class="td-ellipsis" title="{{ $transaksi->deskripsi_transaksi }}">
-                    {{ $transaksi->deskripsi_transaksi }}
-                  </td>
-                  <td class="text-end">Rp. {{ number_format($transaksi->jumlah_transaksi, 0, ',', '.') }}</td>
-                  <td>{{ strtoupper($transaksi->metode_pembayaran) }}</td>
-                  <td>
-                    @if($transaksi->bukti_transaksi)
-                      <button type="button" class="btn btn-link p-0" data-bs-toggle="modal" data-bs-target="#modalBukti{{ $transaksi->id }}">
-                        Lihat Bukti
-                      </button>
-                      <!-- Modal Bukti -->
-                      <div class="modal fade" id="modalBukti{{ $transaksi->id }}" tabindex="-1" aria-labelledby="modalBuktiLabel{{ $transaksi->id }}" aria-hidden="true">
-                        <div class="modal-dialog modal-dialog-centered">
-                          <div class="modal-content">
-                            <div class="modal-header">
-                              <h5 class="modal-title" id="modalBuktiLabel{{ $transaksi->id }}">Bukti Transaksi</h5>
-                              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                            </div>
-                            <div class="modal-body text-center">
-                              <img src="{{ asset('storage/' . $transaksi->bukti_transaksi) }}" alt="Bukti Transaksi" class="img-fluid rounded shadow-sm mb-3">
-                              <a href="{{ asset('storage/' . $transaksi->bukti_transaksi) }}" class="btn btn-brand" download>
-                                <i class="bi bi-download me-1"></i> Unduh Bukti
-                              </a>
-                            </div>
+        <a href="{{ route('pencatatan_keuangan') }}" class="icon-btn" title="Reset Filter">
+          <i class="bi bi-arrow-counterclockwise"></i>
+        </a>
+
+        <div class="ms-auto">
+          <button type="submit" form="filterForm" class="btn btn-brand">
+            <i class="bi bi-funnel"></i> Terapkan
+          </button>
+        </div>
+      </div>
+      <form id="filterForm" method="GET" action="{{ route('filter_pencatatan_keuangan') }}"></form>
+    </div>
+
+    <!-- TABLE -->
+    <div class="table-wrap">
+      <div class="table-responsive">
+        <table class="table table-modern table-striped align-middle">
+          <thead>
+            <tr>
+              <th style="width:60px">No</th>
+              <th style="width:160px">Tanggal</th>
+              <th style="width:170px">Tim</th>
+              <th style="width:250px">Sub Kategori</th>
+              <th style="width:300px">Deskripsi</th>
+              <th class="text-end" style="width:160px">Jumlah</th>
+              <th style="width:160px">Metode</th>
+              <th style="width:90px">Bukti</th>
+              <th style="width:120px">Aksi</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            @foreach($pencatatanKeuangans as $index => $transaksi)
+              @php
+                $tim  = $transaksi->project->nama_project ?? 'Tidak Ada';
+                $sub  = $transaksi->subKategoriPendanaan->nama ?? 'Tidak Ada';
+                $desk = $transaksi->deskripsi_transaksi ?? '-';
+              @endphp
+
+              <tr data-jenis="{{ strtolower($transaksi->jenis_transaksi ?? 'pengeluaran') }}">
+                <td>{{ $index + 1 }}</td>
+
+                <td>
+                  <div class="fw-bold">{{ $transaksi->created_at->timezone('Asia/Jakarta')->format('d-m-Y') }}</div>
+                  <div style="font-size:.82rem;color:var(--ink-600);font-weight:700;">
+                    {{ $transaksi->created_at->timezone('Asia/Jakarta')->format('H:i') }}
+                  </div>
+                </td>
+
+                <td title="{{ $tim }}" class="fw-semibold">
+                  {{ \Illuminate\Support\Str::limit($tim, 24) }}
+                </td>
+
+                <td title="{{ $sub }}">
+                  <div class="clamp-2 fw-semibold">{{ $sub }}</div>
+                  <a class="link-detail" href="#" data-bs-toggle="modal" data-bs-target="#modalDetail{{ $transaksi->id }}">
+                    <i class="bi bi-eye"></i> Detail
+                  </a>
+                </td>
+
+                <td title="{{ $desk }}">
+                  <div class="clamp-2">{{ $desk }}</div>
+                </td>
+
+                <td class="text-end tnum fw-bold">
+                  Rp {{ number_format($transaksi->jumlah_transaksi, 0, ',', '.') }}
+                </td>
+
+                <td class="fw-semibold">{{ strtoupper($transaksi->metode_pembayaran) }}</td>
+
+                <td>
+                  @if($transaksi->bukti_transaksi)
+                    <a href="#" class="link-detail" style="margin-top:0"
+                       data-bs-toggle="modal" data-bs-target="#modalBukti{{ $transaksi->id }}">
+                      Lihat
+                    </a>
+
+                    <div class="modal fade" id="modalBukti{{ $transaksi->id }}" tabindex="-1" aria-hidden="true">
+                      <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content">
+                          <div class="modal-header">
+                            <h5 class="modal-title">Bukti Transaksi</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                          </div>
+                          <div class="modal-body text-center">
+                            <img src="{{ asset('storage/' . $transaksi->bukti_transaksi) }}" alt="Bukti" class="img-fluid rounded shadow-sm mb-3">
+                            <a href="{{ asset('storage/' . $transaksi->bukti_transaksi) }}" class="btn btn-brand" download>
+                              <i class="bi bi-download"></i> Unduh
+                            </a>
                           </div>
                         </div>
                       </div>
-                    @else
-                      <span class="text-muted">-</span>
-                    @endif
-                  </td>
-                  <td>
-                    <div class="d-flex gap-1">
-                      <a href="{{ route('pencatatan_keuangan.edit', $transaksi->id) }}" class="btn btn-warning btn-sm" data-bs-toggle="tooltip" title="Edit">
-                        <i class="bi bi-pencil-square"></i>
-                      </a>
-                      <form action="{{ route('pencatatan_keuangan.destroy', $transaksi->id) }}" method="POST" class="m-0">
-                        @csrf
-                        @method('DELETE')
-                        <button type="button" class="btn btn-danger btn-sm" onclick="confirmDelete({{ $transaksi->id }})" data-bs-toggle="tooltip" title="Hapus">
-                          <i class="bi bi-trash-fill"></i>
-                        </button>
-                      </form>
                     </div>
-                  </td>
-                </tr>
-              @endforeach
-            </tbody>
-          </table>
-        </div>
+                  @else
+                    <span class="text-muted">-</span>
+                  @endif
+                </td>
+
+                <td>
+                  <div class="d-flex gap-1">
+                    <a href="{{ route('pencatatan_keuangan.edit', $transaksi->id) }}" class="btn-act edit" title="Edit">
+                      <i class="bi bi-pencil-square"></i>
+                    </a>
+
+                    <form action="{{ route('pencatatan_keuangan.destroy', $transaksi->id) }}" method="POST" class="m-0">
+                      @csrf
+                      @method('DELETE')
+                      <button type="button" class="btn-act del" title="Hapus" onclick="confirmDelete({{ $transaksi->id }})">
+                        <i class="bi bi-trash-fill"></i>
+                      </button>
+                    </form>
+                  </div>
+                </td>
+              </tr>
+
+              <!-- Modal Detail -->
+              <div class="modal fade" id="modalDetail{{ $transaksi->id }}" tabindex="-1" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered modal-lg">
+                  <div class="modal-content">
+                    <div class="modal-header">
+                      <h5 class="modal-title">Detail Transaksi</h5>
+                      <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                      <div class="row g-3">
+                        <div class="col-md-6">
+                          <div class="text-muted" style="font-weight:800;font-size:.78rem;letter-spacing:.06em;text-transform:uppercase;">Tim</div>
+                          <div class="fw-bold">{{ $tim }}</div>
+                        </div>
+                        <div class="col-md-6">
+                          <div class="text-muted" style="font-weight:800;font-size:.78rem;letter-spacing:.06em;text-transform:uppercase;">Tanggal</div>
+                          <div class="fw-bold">{{ $transaksi->created_at->timezone('Asia/Jakarta')->format('d-m-Y H:i') }}</div>
+                        </div>
+                        <div class="col-md-6">
+                          <div class="text-muted" style="font-weight:800;font-size:.78rem;letter-spacing:.06em;text-transform:uppercase;">Sub Kategori</div>
+                          <div class="fw-bold">{{ $sub }}</div>
+                        </div>
+                        <div class="col-md-6">
+                          <div class="text-muted" style="font-weight:800;font-size:.78rem;letter-spacing:.06em;text-transform:uppercase;">Metode</div>
+                          <div class="fw-bold">{{ strtoupper($transaksi->metode_pembayaran) }}</div>
+                        </div>
+                        <div class="col-12">
+                          <div class="text-muted" style="font-weight:800;font-size:.78rem;letter-spacing:.06em;text-transform:uppercase;">Deskripsi</div>
+                          <div class="fw-semibold">{{ $desk }}</div>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="modal-footer">
+                      <button type="button" class="btn btn-soft" data-bs-dismiss="modal">
+                        <i class="bi bi-x-lg"></i> Tutup
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+            @endforeach
+          </tbody>
+        </table>
       </div>
+    </div>
 
-      <!-- Toast -->
-      <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 1080;">
-        <div id="notifToast" class="toast align-items-center text-white bg-success border-0" role="alert" aria-live="assertive" aria-atomic="true">
-          <div class="d-flex">
-            <div class="toast-body" id="notifMessage"></div>
-            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
-          </div>
-        </div>
-      </div>
-    </main>
-  </div>
+  </main>
+</div>
 
-  <!-- Scripts -->
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<!-- SCRIPT -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-  <script>
-    // Sidebar toggle (mobile)
-    const sidebar = document.getElementById('appSidebar');
-    const toggleBtn = document.getElementById('sidebarToggle');
-    const backdrop = document.getElementById('backdrop');
+<script>
+  // sidebar mobile toggle
+  const sidebar = document.getElementById('appSidebar');
+  const toggleBtn = document.getElementById('sidebarToggle');
+  const backdrop = document.getElementById('backdrop');
 
-    function closeSidebar(){ sidebar.classList.remove('open'); backdrop.classList.remove('show'); }
-    function openSidebar(){ sidebar.classList.add('open'); backdrop.classList.add('show'); }
+  const openSidebar = ()=>{ sidebar.classList.add('open'); backdrop.classList.add('show'); }
+  const closeSidebar = ()=>{ sidebar.classList.remove('open'); backdrop.classList.remove('show'); }
 
-    toggleBtn && toggleBtn.addEventListener('click', ()=> sidebar.classList.contains('open') ? closeSidebar() : openSidebar());
-    backdrop && backdrop.addEventListener('click', closeSidebar);
+  toggleBtn?.addEventListener('click', ()=> sidebar.classList.contains('open') ? closeSidebar() : openSidebar());
+  backdrop?.addEventListener('click', closeSidebar);
 
-    // Toast notif (tetap sama)
-    document.addEventListener("DOMContentLoaded", function () {
-      let notif = localStorage.getItem("notif");
-      if (notif) {
-        document.getElementById("notifMessage").textContent = notif;
-        let toast = new bootstrap.Toast(document.getElementById("notifToast"));
-        toast.show();
-        localStorage.removeItem("notif");
+  // SweetAlert Delete (AJAX)
+  function confirmDelete(transaksiId) {
+    Swal.fire({
+      title: "Apakah Anda yakin?",
+      text: "Data pencatatan keuangan akan dihapus permanen!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Ya, Hapus!",
+      cancelButtonText: "Batal",
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#3085d6",
+    }).then((result) => {
+      if (result.isConfirmed) {
+        fetch(`/pencatatan_keuangan/${transaksiId}`, {
+          method: "DELETE",
+          headers: {
+            "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]').getAttribute("content"),
+            "Content-Type": "application/json",
+            "Accept": "application/json"
+          }
+        })
+        .then(r => { if(!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); })
+        .then(data => {
+          if (data.success) {
+            Swal.fire({ title:"Berhasil!", text:data.message, icon:"success", timer:1500, showConfirmButton:false });
+            setTimeout(()=> location.reload(), 1500);
+          } else {
+            Swal.fire({ title:"Gagal!", text:data.message || "Terjadi kesalahan", icon:"error" });
+          }
+        })
+        .catch(err => Swal.fire({ title:"Gagal!", text:"Server error: " + err.message, icon:"error" }));
       }
     });
+  }
 
-    // SweetAlert Delete (tetap sama)
-    function confirmDelete(transaksiId) {
-      Swal.fire({
-        title: "Apakah Anda yakin?",
-        text: "Data pencatatan keuangan akan dihapus secara permanen!",
-        icon: "warning",
-        showCancelButton: true,
-        confirmButtonText: "Ya, Hapus!",
-        cancelButtonText: "Batal",
-        confirmButtonColor: "#d33",
-        cancelButtonColor: "#3085d6",
-      }).then((result) => {
-        if (result.isConfirmed) {
-          fetch(`/pencatatan_keuangan/${transaksiId}`, {
-            method: "DELETE",
-            headers: {
-              "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]').getAttribute("content"),
-              "Content-Type": "application/json",
-              "Accept": "application/json"
-            }
-          })
-          .then(response => {
-            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-            return response.json();
-          })
-          .then(data => {
-            if (data.success) {
-              Swal.fire({ title:"Berhasil!", text:data.message, icon:"success", timer:1800, showConfirmButton:false });
-              setTimeout(()=> location.reload(), 1800);
-            } else {
-              Swal.fire({ title:"Gagal!", text:data.message || "Terjadi kesalahan saat menghapus data", icon:"error" });
-            }
-          })
-          .catch(error => {
-            Swal.fire({ title:"Gagal!", text:"Terjadi kesalahan pada server: " + error.message, icon:"error" });
-          });
-        }
-      });
-    }
-
-    // Filter tanggal (auto submit & batasan)
-    document.addEventListener("DOMContentLoaded", function () {
-      const startDateInput = document.getElementById("startDate");
-      const endDateInput = document.getElementById("endDate");
-      const filterForm = document.getElementById("filterForm");
-
-      const today = new Date();
-      const todayString = today.toISOString().split('T')[0];
-      startDateInput.setAttribute('max', todayString);
-      endDateInput.setAttribute('max', todayString);
-
-      startDateInput.addEventListener("change", function () {
-        if (startDateInput.value) endDateInput.setAttribute('min', startDateInput.value);
-        if (startDateInput.value && endDateInput.value) filterForm.submit();
-      });
-      endDateInput.addEventListener("change", function () {
-        if (startDateInput.value && endDateInput.value) filterForm.submit();
-      });
-    });
-
-    // (Opsional) Hook tombol cepat – sesuaikan handler server-side kalau sudah ada
-    document.getElementById("btn-filter-semua")?.addEventListener("click", ()=> window.location.href = "{{ route('pencatatan_keuangan') }}");
-    // Untuk btn-filter-pemasukan & btn-filter-pengeluaran, arahkan ke route yang sudah kamu pakai:
-    // document.getElementById("btn-filter-pemasukan")?.addEventListener("click", ()=> window.location.href = "{{ route('pencatatan_keuangan', ['type' => 'income']) }}");
-    // document.getElementById("btn-filter-pengeluaran")?.addEventListener("click", ()=> window.location.href = "{{ route('pencatatan_keuangan', ['type' => 'expense']) }}");
-  </script>
-
-    <script>
-    (function(){
-    const rows = document.querySelectorAll('table.table tbody tr');
+  // Tabs filter + hitung KPI berdasarkan yang tampil
+  (function(){
+    const rows = document.querySelectorAll('table tbody tr');
     const tabs = document.querySelectorAll('#filterTabs [data-filter]');
     const elIn  = document.getElementById('total-pemasukan');
     const elOut = document.getElementById('total-pengeluaran');
-    const caption = document.getElementById('caption-keseluruhan');
 
     const num = s => Number((s||'').replace(/[^0-9]/g,''));
     const rup = n => new Intl.NumberFormat('id-ID').format(n||0);
 
     function recompute(){
-        let tIn=0, tOut=0;
-        rows.forEach(tr=>{
+      let tIn=0, tOut=0;
+      rows.forEach(tr=>{
         if (tr.style.display==='none') return;
         const jenis = (tr.dataset.jenis||'').toLowerCase();
-        const val = num((tr.querySelector('td:nth-child(6)')||{}).textContent);
-        if (jenis==='pemasukan') tIn+=val; else tOut+=val;
-        });
-        elIn.textContent  = 'Rp. ' + rup(tIn);
-        elOut.textContent = 'Rp. ' + rup(tOut);
+        const cell = tr.querySelector('td:nth-child(6)');
+        const val = num(cell ? cell.textContent : '');
+        if (jenis==='pemasukan') tIn += val; else tOut += val;
+      });
+      elIn.textContent  = 'Rp ' + rup(tIn);
+      elOut.textContent = 'Rp ' + rup(tOut);
     }
 
     function applyFilter(filter){
-        tabs.forEach(tab => tab.classList.toggle('active', tab.dataset.filter===filter));
-        rows.forEach(tr=>{
+      tabs.forEach(tab => tab.classList.toggle('active', tab.dataset.filter===filter));
+      rows.forEach(tr=>{
         const j = (tr.dataset.jenis||'').toLowerCase();
         tr.style.display = (filter==='semua' || j===filter) ? '' : 'none';
-        });
-        if (caption) {
-        caption.textContent = "Total nominal transaksi " + (filter==='semua' ? "keseluruhan" : filter);
-        }
-        recompute();
+      });
+      recompute();
     }
 
-    tabs.forEach(tab => {
-        tab.addEventListener('click', e=>{
-        e.preventDefault();
-        applyFilter(tab.dataset.filter);
-        });
-    });
+    tabs.forEach(tab => tab.addEventListener('click', e=>{
+      e.preventDefault();
+      applyFilter(tab.dataset.filter);
+    }));
 
-    applyFilter('semua'); // default
-    })();
-    </script>
+    applyFilter('semua');
+  })();
+
+  // Filter tanggal: set max & min
+  document.addEventListener("DOMContentLoaded", function () {
+    const startDateInput = document.getElementById("startDate");
+    const endDateInput = document.getElementById("endDate");
+
+    const today = new Date().toISOString().split('T')[0];
+    startDateInput?.setAttribute('max', today);
+    endDateInput?.setAttribute('max', today);
+
+    startDateInput?.addEventListener("change", function () {
+      if (startDateInput.value) endDateInput.setAttribute('min', startDateInput.value);
+    });
+  });
+</script>
 
 </body>
 </html>

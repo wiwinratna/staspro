@@ -5,13 +5,12 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="csrf-token" content="{{ csrf_token() }}">
-  <title>Edit Sumber Dana</title>
+  <title>Tambah Kas</title>
 
   <!-- Fonts & Icons -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet"/>
-  <link href="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/css/tom-select.css" rel="stylesheet"/>
 
   <style>
     :root{
@@ -153,13 +152,19 @@
       gap:12px;
       flex-wrap:wrap;
     }
-    .tools-left, .tools-right{
+    .tools-left{
       display:flex;
       align-items:center;
       gap:10px;
       flex-wrap:wrap;
     }
-    .tools-right{ margin-left:auto; }
+    .tools-right{
+      margin-left:auto;
+      display:flex;
+      align-items:center;
+      gap:10px;
+      flex-wrap:wrap;
+    }
 
     .btn-brand{
       height:38px;
@@ -200,55 +205,70 @@
       border-color:rgba(226,232,240,.95);
     }
 
-    /* Card */
-    .card-soft{
+    /* Panel form */
+    .panel{
       background:var(--card);
       border:1px solid rgba(226,232,240,.95);
       border-radius:22px;
+      padding:16px;
       box-shadow:var(--shadow);
-      overflow:visible; /* IMPORTANT: biar dropdown tomselect gak kepotong */
     }
-    .card-soft .card-header{
-      background:#f8fafc;
-      border-bottom:1px solid rgba(226,232,240,.95);
-      font-weight:900;
-      padding:14px 16px;
+    .panel-head{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:12px;
+      flex-wrap:wrap;
+      margin-bottom:8px;
     }
-    .card-soft .card-body{ padding:16px; overflow:visible; }
-
-    .section-title{
+    .panel-title{
       font-weight:900;
+      margin:0;
+    }
+    .panel-hint{
+      margin:4px 0 0;
       color:var(--ink-600);
-      text-transform:uppercase;
-      letter-spacing:.06em;
-      font-size:.82rem;
-      margin-bottom:6px;
+      font-size:.9rem;
+      font-weight:500;
     }
 
-    /* TomSelect tweak */
-    .ts-control{
-      border-radius:14px !important;
-      border-color:rgba(226,232,240,.95) !important;
-      padding:10px 12px !important;
-      box-shadow:none !important;
-      min-height:44px !important;
+    /* Form */
+    .form-label{
+      font-weight:800;
+      color:#0f172a;
+      font-size:.9rem;
     }
-    .ts-wrapper.multi .ts-control>div{
-      border-radius:999px !important;
-      padding:3px 10px !important;
-      font-weight:800 !important;
-      background:var(--brand-50) !important;
-      border:1px solid rgba(22,163,74,.18) !important;
-      color:var(--brand-700) !important;
+    .form-control, .form-select{
+      border-radius:14px;
+      border:1px solid rgba(226,232,240,.95);
+      padding:.72rem .9rem;
+      font-weight:600;
     }
-    .ts-dropdown{
-      z-index:2000 !important;
-      border-radius:16px !important;
-      overflow:hidden !important;
-      box-shadow:0 18px 40px rgba(15,23,42,.12) !important;
+    .form-control:focus, .form-select:focus{
+      box-shadow:0 0 0 .25rem rgba(22,163,74,.14);
+      border-color:rgba(22,163,74,.45);
     }
-    .ts-dropdown .ts-dropdown-content{
-      max-height:260px !important;
+
+    .btn-danger-soft{
+      height:38px;
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      border-radius:999px;
+      font-weight:800;
+      padding:0 14px;
+      background:#fff;
+      color:#991b1b;
+      border:1px solid #fecaca;
+      box-shadow:0 10px 26px rgba(15,23,42,.05);
+      white-space:nowrap;
+      text-decoration:none;
+    }
+    .btn-danger-soft:hover{
+      background:#fef2f2;
+      transform:translateY(-1px);
+      color:#991b1b;
+      border-color:#fecaca;
     }
 
     /* Mobile */
@@ -346,15 +366,18 @@
     <section class="hero">
       <div class="hero-inner">
         <div class="hero-left">
-          <h1 class="title">Edit Sumber Dana</h1>
-          <p class="sub">Perbarui data sumber dana dan subkategori terkait.</p>
+          <h1 class="title">Tambah Transaksi Kas</h1>
+          <p class="sub">Input kas masuk / kas keluar dengan cepat dan rapi.</p>
         </div>
 
         <div class="tools-row">
           <div class="tools-left">
-            <a href="{{ route('sumberdana.index') }}" class="btn btn-soft">
-              <i class="bi bi-arrow-left-short"></i> Kembali ke Daftar
+            <a href="{{ route('kas.index') }}" class="btn btn-soft">
+              <i class="bi bi-arrow-left"></i> Kembali
             </a>
+            <button type="submit" form="kasForm" class="btn btn-brand">
+              <i class="bi bi-save2"></i> Simpan
+            </button>
           </div>
 
           <div class="tools-right">
@@ -374,96 +397,106 @@
 
     @if ($errors->any())
       <div class="alert alert-danger mt-3">
-        <strong>Terjadi kesalahan:</strong>
+        <strong>Ada input yang belum valid:</strong>
         <ul class="mb-0">
-          @foreach ($errors->all() as $error)
-            <li>{{ $error }}</li>
+          @foreach($errors->all() as $e)
+            <li>{{ $e }}</li>
           @endforeach
         </ul>
       </div>
     @endif
 
-    <!-- FORM -->
-    <div class="card card-soft">
-      <div class="card-header">Form Edit Sumber Dana</div>
-      <div class="card-body">
+    @if ($message = Session::get('success'))
+      <div class="alert alert-success mt-3">{{ $message }}</div>
+    @endif
+    @if ($message = Session::get('error'))
+      <div class="alert alert-danger mt-3">{{ $message }}</div>
+    @endif
 
-        <!-- IMPORTANT: route kamu hanya support POST -->
-        <form action="{{ route('sumberdana.update', $sumberdana->id) }}" method="POST">
-          @csrf
-
-
-          <div class="row g-3">
-            <div class="col-md-6">
-              <label for="nama_sumber_dana" class="form-label fw-semibold">Nama Sumber Dana</label>
-              <input
-                type="text"
-                id="nama_sumber_dana"
-                name="nama_sumber_dana"
-                class="form-control"
-                value="{{ old('nama_sumber_dana', $sumberdana->nama_sumber_dana) }}"
-              >
-            </div>
-
-            <div class="col-md-6">
-              <label for="jenis_pendanaan" class="form-label fw-semibold">Jenis Pendanaan</label>
-              <select id="jenis_pendanaan" name="jenis_pendanaan" class="form-select">
-                <option value="internal"  {{ old('jenis_pendanaan', $sumberdana->jenis_pendanaan) == 'internal' ? 'selected' : '' }}>Internal</option>
-                <option value="eksternal" {{ old('jenis_pendanaan', $sumberdana->jenis_pendanaan) == 'eksternal' ? 'selected' : '' }}>Eksternal</option>
-              </select>
-            </div>
-          </div>
-
-          <div class="my-4" style="height:1px;background:var(--line);"></div>
-
-          <div class="section-title">Subkategori</div>
-          <div class="text-muted mb-2" style="font-size:.92rem;">
-            Ketik untuk mencari/menambah subkategori. Bisa pilih lebih dari satu.
-          </div>
-
-          <select id="subkategori" name="subkategori[]" multiple>
-            @php
-              $oldSubs = collect(old('subkategori', $subkategori->pluck('nama')->toArray()));
-            @endphp
-
-            @if(!empty($listSubkategori))
-              @foreach($listSubkategori as $item)
-                @php
-                  $nama = is_string($item)
-                    ? $item
-                    : (is_array($item) ? ($item['nama'] ?? '') : ($item->nama ?? ''));
-
-                  $nama = trim((string) $nama);
-                @endphp
-
-                @if($nama !== '')
-                  <option value="{{ $nama }}" @selected($oldSubs->contains($nama))>
-                    {{ $nama }}
-                  </option>
-                @endif
-              @endforeach
-            @endif
-          </select>
-
-          <div class="mt-4 d-flex gap-2 flex-wrap">
-            <button type="submit" class="btn btn-brand">
-              <i class="bi bi-check2-circle"></i> Simpan Perubahan
-            </button>
-            <a href="{{ route('sumberdana.index') }}" class="btn btn-soft">Batal</a>
-          </div>
-
-        </form>
-
+    <!-- FORM PANEL -->
+    <div class="panel">
+      <div class="panel-head">
+        <div>
+          <h5 class="panel-title mb-0">Form Kas</h5>
+          <p class="panel-hint">Lengkapi tanggal, tipe, kategori, nominal, dan (opsional) deskripsi.</p>
+        </div>
       </div>
+
+      <form id="kasForm" action="{{ route('kas.store') }}" method="POST" class="row g-3 mt-1">
+        @csrf
+
+        <div class="col-md-3">
+          <label class="form-label">Tanggal</label>
+          <input
+            type="date"
+            name="tanggal"
+            class="form-control"
+            value="{{ old('tanggal', date('Y-m-d')) }}"
+            required
+          >
+        </div>
+
+        <div class="col-md-3">
+          <label class="form-label">Tipe</label>
+          <select name="tipe" class="form-select" required>
+            <option value="">-- Pilih --</option>
+            <option value="masuk"  {{ old('tipe')=='masuk' ? 'selected' : '' }}>Masuk</option>
+            <option value="keluar" {{ old('tipe')=='keluar' ? 'selected' : '' }}>Keluar</option>
+          </select>
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label">Kategori</label>
+          <input
+            type="text"
+            name="kategori"
+            class="form-control"
+            placeholder="Contoh: Penutupan Project / Operasional / Donasi"
+            value="{{ old('kategori') }}"
+            required
+          >
+        </div>
+
+        <div class="col-md-4">
+          <label class="form-label">Nominal (Rp)</label>
+          <input
+            type="number"
+            name="nominal"
+            class="form-control"
+            min="1"
+            step="1"
+            value="{{ old('nominal') }}"
+            required
+          >
+        </div>
+
+        <div class="col-md-8">
+          <label class="form-label">Deskripsi (opsional)</label>
+          <input
+            type="text"
+            name="deskripsi"
+            class="form-control"
+            placeholder="Contoh: Sisa dana project A masuk ke kas"
+            value="{{ old('deskripsi') }}"
+          >
+        </div>
+
+        <div class="col-12 d-flex gap-2 pt-1">
+          <button type="submit" class="btn btn-brand">
+            <i class="bi bi-save2"></i> Simpan
+          </button>
+          <a href="{{ route('kas.index') }}" class="btn btn-danger-soft">
+            <i class="bi bi-x-circle"></i> Batal
+          </a>
+        </div>
+      </form>
     </div>
 
   </main>
 </div>
 
-<!-- Scripts -->
+<!-- SCRIPT -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/js/tom-select.complete.min.js"></script>
-
 <script>
   // sidebar mobile toggle
   const sidebar = document.getElementById('appSidebar');
@@ -475,16 +508,7 @@
 
   toggleBtn?.addEventListener('click', ()=> sidebar.classList.contains('open') ? closeSidebar() : openSidebar());
   backdrop?.addEventListener('click', closeSidebar);
-
-  // TomSelect subkategori
-  new TomSelect('#subkategori',{
-    create:true,
-    persist:false,
-    plugins:['remove_button'],
-    placeholder:'Cari / tambah subkategori…',
-    maxItems:null,
-    sortField:{ field:'text', direction:'asc' }
-  });
 </script>
+
 </body>
 </html>

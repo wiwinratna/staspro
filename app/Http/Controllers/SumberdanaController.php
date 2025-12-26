@@ -89,9 +89,9 @@ class SumberdanaController extends Controller
 
 public function update(Request $request, string $id)
 {
-    $validated = $request->validate([
+    $request->validate([
         'nama_sumber_dana' => 'required|string|max:255',
-        'jenis_pendanaan'  => 'required|string|max:255|in:internal,eksternal',
+        'jenis_pendanaan'  => 'required|string|in:internal,eksternal',
         'subkategori'      => 'nullable|array',
         'subkategori.*'    => 'nullable|string|max:255',
     ]);
@@ -103,36 +103,52 @@ public function update(Request $request, string $id)
         $sumberdana->update([
             'nama_sumber_dana' => $request->nama_sumber_dana,
             'jenis_pendanaan'  => $request->jenis_pendanaan,
-            'user_id_updated'  => Auth::user()->id,
+            'user_id_updated'  => Auth::id(),
         ]);
 
-        // 2) Tambah subkategori baru (opsional)
-        if ($request->filled('subkategori')) {
-            foreach ($request->subkategori as $raw) {
-                $raw = trim((string)$raw);
-                if ($raw === '') { continue; }
+        // 2) Ambil subkategori dari form (yang terbaru)
+        $inputSubs = collect($request->input('subkategori', []))
+            ->map(fn($x) => Str::title(trim((string)$x)))
+            ->filter(fn($x) => $x !== '')
+            ->unique()
+            ->values();
 
-                $name  = Str::title($raw);
-                $exists = SubkategoriSumberdana::where('id_sumberdana', $sumberdana->id)
-                          ->where('nama', 'LIKE', $name)->exists();
+        // 3) Ambil subkategori yang sekarang di DB
+        $dbSubs = SubkategoriSumberdana::where('id_sumberdana', $sumberdana->id)
+            ->pluck('nama')
+            ->map(fn($x) => Str::title(trim((string)$x)))
+            ->unique()
+            ->values();
 
-                if (!$exists) {
-                    SubkategoriSumberdana::create([
-                        'id_sumberdana'   => $sumberdana->id,
-                        'nama'            => $name,
-                        'nama_form'       => Str::lower(str_replace(' ', '_', $name)),
-                        'user_id_created' => Auth::id(),
-                        'user_id_updated' => Auth::id(),
-                    ]);
-                }
-            }
+        // 4) Yang harus DIHAPUS = ada di DB tapi tidak ada di input
+        $toDelete = $dbSubs->diff($inputSubs);
+
+        if ($toDelete->isNotEmpty()) {
+            SubkategoriSumberdana::where('id_sumberdana', $sumberdana->id)
+                ->whereIn('nama', $toDelete->all())
+                ->delete();
         }
 
-        return redirect()->route('sumberdana.edit', $sumberdana->id)->with('success', 'Perubahan disimpan.');
+        // 5) Yang harus DITAMBAH = ada di input tapi belum ada di DB
+        $toInsert = $inputSubs->diff($dbSubs);
+
+        foreach ($toInsert as $name) {
+            SubkategoriSumberdana::create([
+                'id_sumberdana'   => $sumberdana->id,
+                'nama'            => $name,
+                'nama_form'       => Str::lower(str_replace(' ', '_', $name)),
+                'user_id_created' => Auth::id(),
+                'user_id_updated' => Auth::id(),
+            ]);
+        }
+
+        // 6) Redirect biar kelihatan berubah (dan gak “kayak ga ngaruh”)
+        return redirect()->route('sumberdana.index')->with('success', 'Perubahan disimpan.');
     } catch (\Exception $e) {
         return redirect()->route('sumberdana.edit', $id)->with('error', 'Gagal menyimpan: '.$e->getMessage());
     }
 }
+
 
     public function destroy(string $id)
     {

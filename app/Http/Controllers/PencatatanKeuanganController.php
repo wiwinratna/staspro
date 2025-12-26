@@ -45,14 +45,18 @@ class PencatatanKeuanganController extends Controller
     }
 
     // Menampilkan form input pencatatan keuangan
+    // Menampilkan form input pencatatan keuangan
     public function create(Request $request)
     {
-        $projects = Project::all();
+        // ✅ hanya project aktif yang boleh dipilih
+        $projects = Project::where('status', 'aktif')->get();
+
         $subKategoriSumberdana = SubkategoriSumberdana::all(); 
         $tanggalFormatted = now()->format('d-m-Y');
 
         return view('transaksi.form_input_pencatatan_keuangan', compact('projects', 'subKategoriSumberdana', 'tanggalFormatted'));
     }
+
 
     public function getSubkategori(Request $request)
     {
@@ -71,126 +75,143 @@ class PencatatanKeuanganController extends Controller
         return response()->json($subkategori);
     }
 
-    // Menyimpan pencatatan keuangan baru
-    public function store(Request $request)
-    {
-        $request->validate([
-            'tanggal' => 'required|date_format:d-m-Y',
-            'project' => 'required|exists:project,id',
-            'subkategori_sumberdana' => 'required|exists:subkategori_sumberdana,id',
-            'jenis_transaksi' => 'required|in:pemasukan,pengeluaran',
-            'deskripsi' => 'required|string|max:255',
-            'jumlah_transaksi' => 'required|numeric|min:0',
-            'metode_pembayaran' => 'required|string|max:100',
-            'bukti_transaksi' => 'nullable|image|mimes:jpeg,png,jpg|max:2048'
-        ], [
-            'tanggal.required' => 'Tanggal harus diisi',
-            'project.required' => 'Project harus dipilih',
-            'subkategori_sumberdana.required' => 'Subkategori sumber dana harus dipilih',
-            'jenis_transaksi.required' => 'Jenis transaksi harus dipilih',
-            'jenis_transaksi.in' => 'Jenis transaksi harus pemasukan atau pengeluaran',
-            'deskripsi.required' => 'Deskripsi harus diisi',
-            'jumlah_transaksi.required' => 'Jumlah transaksi harus diisi',
-            'metode_pembayaran.required' => 'Metode pembayaran harus diisi',
-        ]);
+// Menyimpan pencatatan keuangan baru
+public function store(Request $request)
+{
+    $request->validate([
+        'tanggal' => 'required|date_format:d-m-Y',
+        'project' => 'required|exists:project,id',
+        'subkategori_sumberdana' => 'required|exists:subkategori_sumberdana,id',
+        'jenis_transaksi' => 'required|in:pemasukan,pengeluaran',
+        'deskripsi' => 'required|string|max:255',
+        'jumlah_transaksi' => 'required|numeric|min:0',
+        'metode_pembayaran' => 'required|string|max:100',
+        'bukti_transaksi' => 'nullable|image|mimes:jpeg,png,jpg|max:2048'
+    ], [
+        'tanggal.required' => 'Tanggal harus diisi',
+        'project.required' => 'Project harus dipilih',
+        'subkategori_sumberdana.required' => 'Subkategori sumber dana harus dipilih',
+        'jenis_transaksi.required' => 'Jenis transaksi harus dipilih',
+        'jenis_transaksi.in' => 'Jenis transaksi harus pemasukan atau pengeluaran',
+        'deskripsi.required' => 'Deskripsi harus diisi',
+        'jumlah_transaksi.required' => 'Jumlah transaksi harus diisi',
+        'metode_pembayaran.required' => 'Metode pembayaran harus diisi',
+    ]);
 
-        try {
-            \Log::info('Request data:', $request->all());
+    try {
+        \Log::info('Request data:', $request->all());
 
-            $tanggal = Carbon::createFromFormat('d-m-Y', $request->tanggal)->format('Y-m-d');
-            $jumlah = (float) str_replace(['Rp.', ',', ' ', '.'], '', $request->jumlah_transaksi);    
+        $tanggal = Carbon::createFromFormat('d-m-Y', $request->tanggal)->format('Y-m-d');
+        $jumlah = (float) str_replace(['Rp.', ',', ' ', '.'], '', $request->jumlah_transaksi);
 
-            $project = Project::find($request->project);
-            if (!$project) {
-                return response()->json(['success' => false, 'message' => 'Project tidak ditemukan.']);
-            }
-
-            $dataToSave = [
-                'tanggal' => $tanggal,
-                'project_id' => $request->project,
-                'sub_kategori_pendanaan' => $request->subkategori_sumberdana,
-                'jenis_transaksi' => $request->jenis_transaksi,
-                'deskripsi_transaksi' => $request->deskripsi,
-                'jumlah_transaksi' => $jumlah,
-                'metode_pembayaran' => $request->metode_pembayaran,
-            ];
-
-            if ($request->hasFile('bukti_transaksi')) {
-                $dataToSave['bukti_transaksi'] = $request->file('bukti_transaksi')->store('bukti_transaksi', 'public');
-            }
-
-            \Log::info('Data to save:', $dataToSave);
-
-            $pencatatanKeuangan = PencatatanKeuangan::create($dataToSave);
-
-            // Update rincian anggaran proyek
-            $detail = DetailSubkategori::where('id_subkategori_sumberdana', $request->subkategori_sumberdana)
-                ->where('id_project', $project->id)
-                ->first();
-
-            if ($detail) {
-                if (is_null($detail->realisasi_anggaran)) {
-                    $detail->realisasi_anggaran = 0;
-                }
-
-                if ($request->jenis_transaksi == 'pemasukan') {
-                    $detail->nominal += $jumlah;
-                } else if ($request->jenis_transaksi == 'pengeluaran') {
-                    if ($detail->realisasi_anggaran + $jumlah <= $detail->nominal) {
-                        $detail->realisasi_anggaran += $jumlah;
-                    } else {
-                        return response()->json(['success' => false, 'message' => 'Pengeluaran melebihi anggaran.']);
-                    }
-                }
-
-                $detail->sisa_anggaran = $detail->nominal - $detail->realisasi_anggaran;
-                $detail->save();
-
-                \Log::info('Detail setelah update:', [
-                    'nominal' => $detail->nominal,
-                    'realisasi_anggaran' => $detail->realisasi_anggaran,
-                    'sisa_anggaran' => $detail->sisa_anggaran,
-                ]);
-            } else {
-                \Log::error('Detail subkategori tidak ditemukan untuk subkategori: ' . $request->subkategori_sumberdana);
-            }
-
-            return response()->json(['success' => true, 'message' => 'Pencatatan keuangan berhasil disimpan.']);
-
-        } catch (\Exception $e) {
-            \Log::error('Error saving pencatatan keuangan: ' . $e->getMessage());
-            \Log::error('Stack trace: ' . $e->getTraceAsString());
-            
-            return response()->json([
-                'success' => false, 
-                'message' => 'Gagal menyimpan pencatatan keuangan: ' . $e->getMessage()
-            ]);
+        $project = Project::find($request->project);
+        if (!$project) {
+            return response()->json(['success' => false, 'message' => 'Project tidak ditemukan.']);
         }
+
+        // ✅ CEGAH project yang sudah ditutup masih bisa dipakai transaksi
+        // Ganti 'status' / 'aktif' sesuai kolom yang kamu punya (misal is_active, closed_at, dll)
+        if (isset($project->status) && $project->status !== 'aktif') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Project sudah ditutup dan tidak dapat digunakan untuk pencatatan.'
+            ], 422);
+        }
+
+        $dataToSave = [
+            'tanggal' => $tanggal,
+            'project_id' => $request->project,
+            'sub_kategori_pendanaan' => $request->subkategori_sumberdana,
+            'jenis_transaksi' => $request->jenis_transaksi,
+            'deskripsi_transaksi' => $request->deskripsi,
+            'jumlah_transaksi' => $jumlah,
+            'metode_pembayaran' => $request->metode_pembayaran,
+        ];
+
+        if ($request->hasFile('bukti_transaksi')) {
+            $dataToSave['bukti_transaksi'] = $request->file('bukti_transaksi')->store('bukti_transaksi', 'public');
+        }
+
+        \Log::info('Data to save:', $dataToSave);
+
+        $pencatatanKeuangan = PencatatanKeuangan::create($dataToSave);
+
+        // Update rincian anggaran proyek
+        $detail = DetailSubkategori::where('id_subkategori_sumberdana', $request->subkategori_sumberdana)
+            ->where('id_project', $project->id)
+            ->first();
+
+        if ($detail) {
+            if (is_null($detail->realisasi_anggaran)) {
+                $detail->realisasi_anggaran = 0;
+            }
+
+            if ($request->jenis_transaksi == 'pemasukan') {
+                $detail->nominal += $jumlah;
+            } else if ($request->jenis_transaksi == 'pengeluaran') {
+                if ($detail->realisasi_anggaran + $jumlah <= $detail->nominal) {
+                    $detail->realisasi_anggaran += $jumlah;
+                } else {
+                    return response()->json(['success' => false, 'message' => 'Pengeluaran melebihi anggaran.']);
+                }
+            }
+
+            $detail->sisa_anggaran = $detail->nominal - $detail->realisasi_anggaran;
+            $detail->save();
+
+            \Log::info('Detail setelah update:', [
+                'nominal' => $detail->nominal,
+                'realisasi_anggaran' => $detail->realisasi_anggaran,
+                'sisa_anggaran' => $detail->sisa_anggaran,
+            ]);
+        } else {
+            \Log::error('Detail subkategori tidak ditemukan untuk subkategori: ' . $request->subkategori_sumberdana);
+        }
+
+        return response()->json(['success' => true, 'message' => 'Pencatatan keuangan berhasil disimpan.']);
+
+    } catch (\Exception $e) {
+        \Log::error('Error saving pencatatan keuangan: ' . $e->getMessage());
+        \Log::error('Stack trace: ' . $e->getTraceAsString());
+
+        return response()->json([
+            'success' => false,
+            'message' => 'Gagal menyimpan pencatatan keuangan: ' . $e->getMessage()
+        ]);
     }
+}
+
 
     // Menampilkan form edit pencatatan keuangan
-    public function edit($id) 
-    {
-        $pencatatanKeuangan = PencatatanKeuangan::findOrFail($id);
-        $projects = Project::all();
-        $subKategoriSumberdana = SubkategoriSumberdana::all();
+public function edit($id)
+{
+    $pencatatanKeuangan = PencatatanKeuangan::findOrFail($id);
 
-        $tanggal = old('tanggal', $pencatatanKeuangan->tanggal ?? now()->format('Y-m-d'));
+    // ambil project dari transaksi yang sedang diedit
+    $project = Project::find($pencatatanKeuangan->project_id);
 
-        try {
-            $tanggalFormatted = \Carbon\Carbon::parse($tanggal)->format('d-m-Y');
-        } catch (\Exception $e) {
-            $tanggalFormatted = now()->format('d-m-Y');
-        }
-
-        // Perbaiki path view dan kirim data subkategori yang sudah dipilih
-        return view('transaksi.form_input_pencatatan_keuangan', compact(
-            'pencatatanKeuangan', 
-            'projects', 
-            'subKategoriSumberdana', 
-            'tanggalFormatted'
-        ));
+    // kalau project tidak ada / sudah ditutup
+    if (!$project || (isset($project->status) && $project->status !== 'aktif')) {
+        return redirect()->route('pencatatan_keuangan')
+            ->with('error', 'Project sudah ditutup / tidak ditemukan, transaksi tidak bisa diedit.');
     }
+
+    // list project aktif untuk dropdown
+    $projects = Project::where('status', 'aktif')->orderBy('nama_project')->get();
+
+    // subkategori boleh semua, tapi nanti dropdown kamu isi via fetch by project
+    $subKategoriSumberdana = SubkategoriSumberdana::all();
+
+    // format tanggal untuk flatpickr
+    $tanggalFormatted = \Carbon\Carbon::parse($pencatatanKeuangan->tanggal)->format('d-m-Y');
+
+    return view('transaksi.form_input_pencatatan_keuangan', compact(
+        'pencatatanKeuangan',
+        'projects',
+        'subKategoriSumberdana',
+        'tanggalFormatted'
+    ));
+}
 
     public function update(Request $request, $id)
     {
@@ -348,47 +369,62 @@ class PencatatanKeuanganController extends Controller
         }
     }
 
-    public function laporanKeuangan(Request $request)
-    {
-        $projects = Project::all();
+public function laporanKeuangan(Request $request)
+{
+    $projects = Project::all();
 
-        // Mulai query untuk transaksi
-        $query = pencatatanKeuangan::query();
+    // Mulai query untuk transaksi
+    $query = PencatatanKeuangan::query();
 
-        // Filter berdasarkan tim peneliti
-        if ($request->filled('tim_peneliti')) {
-            $query->where('project_id', $request->tim_peneliti);
-        }
-
-        // Filter berdasarkan metode pembayaran
-        if ($request->filled('metode_pembayaran')) {
-            $query->where('metode_pembayaran', $request->metode_pembayaran);
-        }
-
-        // Filter berdasarkan sumber dana
-        if ($request->filled('sumber_dana')) {
-            $query->whereHas('project.sumberDana', function($q) use ($request) {
-                $q->where('jenis_pendanaan', $request->sumber_dana);
-            });
-        }
-
-        // Ambil data transaksi yang sudah difilter
-        $pencatatanKeuangans = $query->get();
-
-        // Log untuk memeriksa transaksi yang diambil
-        \Log::info('Transaksi yang diambil untuk laporan: ', $pencatatanKeuangans->toArray());
-
-        // Menghitung total pemasukan (debit)
-        $totalDebit = $pencatatanKeuangans->where('jenis_transaksi', 'pemasukan')->sum('jumlah_transaksi');
-
-        // Menghitung total pengeluaran (kredit)
-        $totalKredit = $pencatatanKeuangans->where('jenis_transaksi', 'pengeluaran')->sum('jumlah_transaksi');
-
-        // Menghitung total keseluruhan
-        $totalNominal = $totalDebit - $totalKredit;
-
-        return view('laporan_keuangan', compact('projects', 'pencatatanKeuangans', 'totalDebit', 'totalKredit', 'totalNominal'));
+    // Filter tim peneliti
+    if ($request->filled('tim_peneliti')) {
+        $query->where('project_id', $request->tim_peneliti);
     }
+
+    // Filter metode pembayaran
+    if ($request->filled('metode_pembayaran')) {
+        $query->where('metode_pembayaran', $request->metode_pembayaran);
+    }
+
+    // Filter sumber dana
+    if ($request->filled('sumber_dana')) {
+        $query->whereHas('project.sumberDana', function ($q) use ($request) {
+            $q->where('jenis_pendanaan', $request->sumber_dana);
+        });
+    }
+
+    // ✅ Filter rentang tanggal (pakai kolom `tanggal` transaksi)
+    if ($request->filled('start_date') && $request->filled('end_date')) {
+        $start = Carbon::parse($request->start_date)->startOfDay()->toDateString();
+        $end   = Carbon::parse($request->end_date)->endOfDay()->toDateString();
+        $query->whereBetween('tanggal', [$start, $end]);
+    }
+
+    // ✅ Ambil data SETELAH semua filter
+    $pencatatanKeuangans = $query->get();
+
+    // ✅ Baru hitung tanggal awal/akhir (buat dipakai di export / info)
+    $tanggal_awal  = $request->filled('start_date')
+        ? $request->start_date
+        : optional($pencatatanKeuangans->min('tanggal'))->format('Y-m-d');
+
+    $tanggal_akhir = $request->filled('end_date')
+        ? $request->end_date
+        : optional($pencatatanKeuangans->max('tanggal'))->format('Y-m-d');
+
+    $totalDebit  = $pencatatanKeuangans->where('jenis_transaksi', 'pemasukan')->sum('jumlah_transaksi');
+    $totalKredit = $pencatatanKeuangans->where('jenis_transaksi', 'pengeluaran')->sum('jumlah_transaksi');
+
+    return view('laporan_keuangan', compact(
+        'projects',
+        'pencatatanKeuangans',
+        'totalDebit',
+        'totalKredit',
+        'tanggal_awal',
+        'tanggal_akhir'
+    ));
+}
+
 
     // Export laporan keuangan ke Excel
     public function export(Request $request, $format)

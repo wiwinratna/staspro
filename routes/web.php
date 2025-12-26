@@ -10,6 +10,7 @@ use App\Http\Controllers\SumberdanaController;
 use App\Http\Controllers\PencatatanKeuanganController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\KasTransactionController;
 
 Route::get('/login', [AuthController::class, 'index'])->name('login')->middleware('guest');
 Route::post('/login', [AuthController::class, 'login'])->name('login.post')->middleware('guest');
@@ -20,6 +21,8 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 Route::get('/', function () {
     return redirect('/login');
 });
+
+
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'index'])->name('profile.index');
@@ -43,6 +46,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/project/{id}/edit', [ProjectController::class, 'edit'])->name('project.edit');
     Route::put('/project/{id}', [ProjectController::class, 'update'])->name('project.update');
     Route::delete('/project/{id}', [ProjectController::class, 'destroy'])->name('project.destroy');
+    // ✅ TAMBAH INI: Tutup project (otomatis pindah sisa ke kas)
+    Route::post('/project/{id}/close', [ProjectController::class, 'close'])->name('project.close');
     Route::get('/project/{project}/subcategories', [ProjectController::class, 'getProjectSubcategories']);
 
     Route::get('/requestpembelian', [RequestpembelianController::class, 'index'])->name('requestpembelian.index');
@@ -109,4 +114,11 @@ Route::middleware('auth')->group(function () {
         // Menghapus user
         Route::delete('/users/{user}', [UserController::class, 'destroy'])->name('users.destroy');
     });    
+
+
+    Route::middleware('auth')->group(function () {
+        Route::get('/kas', [KasTransactionController::class, 'index'])->name('kas.index');
+        Route::get('/kas/create', [KasTransactionController::class, 'create'])->name('kas.create');
+        Route::post('/kas', [KasTransactionController::class, 'store'])->name('kas.store');
+    });
 });

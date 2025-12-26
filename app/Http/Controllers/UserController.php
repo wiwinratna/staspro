@@ -77,8 +77,18 @@ class UserController extends Controller
     public function destroy($id)
     {
         $user = User::findOrFail($id);
+
+        // CEK: user masih dipakai di tabel detail_project?
+        $dipakai = \DB::table('detail_project')->where('id_user', $id)->exists();
+
+        if ($dipakai) {
+            return redirect()->route('users.index')
+                ->with('error', 'User masih dipakai di detail project. Hapus/ubah relasi project dulu sebelum menghapus user.');
+        }
+
         $user->delete();
 
-        return redirect()->route('users.index')->with('success', 'User  berhasil dihapus.');
+        return redirect()->route('users.index')->with('success', 'User berhasil dihapus.');
     }
+
 }

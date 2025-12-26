@@ -10,6 +10,7 @@ use App\Models\RequestpembelianHeader;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
 
 class ProjectController extends Controller
 {
@@ -351,4 +352,77 @@ class ProjectController extends Controller
         // Redirect ke halaman project tanpa pesan sukses
         return redirect()->route('project.index');
     }
+
+public function close(Request $request, $id)
+{
+    $project = Project::findOrFail($id);
+
+    // kalau sudah ditutup, jangan dobel insert
+    if (strtolower($project->status ?? '') === 'ditutup') {
+        return response()->json([
+            'success' => false,
+            'message' => 'Project sudah ditutup.'
+        ], 400);
+    }
+
+    return DB::transaction(function () use ($project, $id) {
+
+        // ===== HITUNG DARI DETAIL DANA (ANGGARAN vs REALISASI) =====
+        // Sesuaikan nama tabel/kolom kalau beda
+        $totalAnggaran = DB::table('detail_subkategori')   // <-- kalau tabelmu beda, ganti di sini
+            ->where('id_project', $id)
+            ->sum('nominal');
+
+        $totalRealisasi = DB::table('detail_subkategori')  // <-- kalau tabelmu beda, ganti di sini
+            ->where('id_project', $id)
+            ->sum('realisasi_anggaran');
+
+        $sisa = (int) $totalAnggaran - (int) $totalRealisasi;
+
+        // ===== MASUKKAN KE KAS kalau sisa > 0 =====
+        $kasMasuk = 0;
+
+        if ($sisa > 0) {
+            // cegah dobel insert untuk project yang sama
+            $already = DB::table('kas_transactions')
+                ->where('project_id', $id)
+                ->where('tipe', 'masuk')
+                ->where('kategori', 'Sisa Project')
+                ->exists();
+
+            if (!$already) {
+                DB::table('kas_transactions')->insert([
+                    'tanggal'           => Carbon::now()->toDateString(),
+                    'tipe'              => 'masuk',
+                    'kategori'          => 'Sisa Project',
+                    'project_id'        => $id,
+                    'nominal'           => $sisa,
+                    'deskripsi'         => 'Penutupan project: ' . ($project->nama_project ?? ('#' . $id)),
+                    'metode_pembayaran' => '-',
+                    'bukti'             => null,
+                    'created_by'        => auth()->id(),
+                    'created_at'        => now(),
+                    'updated_at'        => now(),
+                ]);
+            }
+
+            $kasMasuk = $sisa;
+        }
+
+        // ===== UPDATE STATUS PROJECT =====
+        $project->status = 'ditutup';
+        $project->save();
+
+        // ===== RESPONSE buat popup (sesuai yang kamu mau) =====
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'total_masuk' => (int) $totalAnggaran,     // tampil sebagai "Total Masuk"
+                'total_keluar'=> (int) $totalRealisasi,    // tampil sebagai "Total Keluar"
+                'sisa'        => (int) $sisa,              // ini akan jadi 6.400.000
+                'kas_masuk'   => (int) $kasMasuk
+            ]
+        ]);
+    });
+}
 }

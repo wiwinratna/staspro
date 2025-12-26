@@ -15,16 +15,23 @@ use Illuminate\Support\Facades\Log;
 
 class RequestpembelianController extends Controller
 {
-    public function index()
-    {
-        $request_pembelian = DB::table('request_pembelian_header as a')
-            ->leftJoin('project as b', 'a.id_project', '=', 'b.id')
-            ->leftJoin(DB::raw("(SELECT id_request_pembelian_header, GROUP_CONCAT(CONCAT(kuantitas, ' x ', nama_barang)) as nama_barang, SUM(harga * kuantitas) as total_harga FROM request_pembelian_detail GROUP BY id_request_pembelian_header) as c"), 'a.id', '=', 'c.id_request_pembelian_header')
-            ->select('a.id', 'a.no_request', 'b.nama_project', 'c.nama_barang', 'c.total_harga', 'a.status_request')
-            ->get();
+public function index()
+{
+    $q = DB::table('request_pembelian_header as a')
+        ->leftJoin('project as b', 'a.id_project', '=', 'b.id')
+        ->leftJoin(DB::raw("(SELECT id_request_pembelian_header, GROUP_CONCAT(CONCAT(kuantitas, ' x ', nama_barang)) as nama_barang, SUM(harga * kuantitas) as total_harga FROM request_pembelian_detail GROUP BY id_request_pembelian_header) as c"), 'a.id', '=', 'c.id_request_pembelian_header')
+        ->select('a.id', 'a.no_request', 'b.nama_project', 'c.nama_barang', 'c.total_harga', 'a.status_request');
 
-        return view('requestpembelian.index', ['request_pembelian' => $request_pembelian]);
+    // ✅ kalau bukan admin, tampilkan hanya yang dibuat user tersebut
+    if (Auth::user()->role != 'admin') {
+        $q->where('a.user_id_created', Auth::id());
     }
+
+    $request_pembelian = $q->get();
+
+    return view('requestpembelian.index', ['request_pembelian' => $request_pembelian]);
+}
+
 
     public function create()
     {
@@ -102,9 +109,15 @@ class RequestpembelianController extends Controller
 
     public function detail(string $id)
     {
-        $request_pembelian = RequestpembelianHeader::find($id);
-        $detail            = RequestpembelianDetail::where('id_request_pembelian_header', $id)->get();
-        $project           = Project::all();
+        $request_pembelian = RequestpembelianHeader::findOrFail($id);
+
+        // ✅ kalau bukan admin, cuma boleh buka detail miliknya sendiri
+        if (Auth::user()->role != 'admin' && $request_pembelian->user_id_created != Auth::id()) {
+            abort(403, 'Akses ditolak');
+        }
+
+        $detail  = RequestpembelianDetail::where('id_request_pembelian_header', $id)->get();
+        $project = Project::all();
         
         $projectId = $request_pembelian->id_project;
         
@@ -162,30 +175,68 @@ class RequestpembelianController extends Controller
         return view('requestpembelian.addbukti', ['detail' => $detail]);
     }
 
-    public function storebukti(Request $request, string $id)
-    {
-        $validated = $request->validate([
-            'bukti_bayar' => 'required|image|mimes:jpeg,png,jpg|max:2048',
+public function storebukti(Request $request, string $id)
+{
+    // 1) Validasi header dulu (tanpa bukti_bayar dulu)
+    $request->validate([
+        'id_request_pembelian_header' => 'required|exists:request_pembelian_header,id',
+    ]);
+
+    $headerId = $request->id_request_pembelian_header;
+    $header   = RequestpembelianHeader::findOrFail($headerId);
+
+    // 2) Gate: hanya tim peneliti boleh upload saat approve_request / reject_payment
+    // (admin tidak perlu upload)
+    if (Auth::user()->role === 'admin') {
+        return redirect()
+            ->route('requestpembelian.detail', $headerId)
+            ->with('error', 'Admin tidak diperbolehkan mengunggah bukti pembayaran.');
+    }
+
+    if (!in_array($header->status_request, ['approve_request', 'reject_payment'])) {
+        return redirect()
+            ->route('requestpembelian.detail', $headerId)
+            ->with('error', 'Bukti bayar hanya bisa diupload setelah Approve Request atau saat Reject Payment (upload ulang).');
+    }
+
+    // 3) Baru validasi file setelah lolos gate
+    $validated = $request->validate([
+        'bukti_bayar' => 'required|image|mimes:jpeg,png,jpg|max:2048',
+    ]);
+
+    try {
+        // upload file
+        $bukti_bayar = $request->file('bukti_bayar');
+        $filename_buktibayar = time() . '.' . $bukti_bayar->getClientOriginalExtension();
+        $bukti_bayar->move('bukti_bayar', $filename_buktibayar);
+
+        // update detail bukti
+        RequestpembelianDetail::where('id', $id)->update([
+            'bukti_bayar'     => $filename_buktibayar,
+            'user_id_updated' => Auth::id(),
+            'updated_at'      => now(),
         ]);
 
-        try {
-            $bukti_bayar = $request->file('bukti_bayar');
-            $filename_buktibayar = time() . '.' . $bukti_bayar->getClientOriginalExtension();
-            $bukti_bayar->move('bukti_bayar', $filename_buktibayar);
-
-            RequestpembelianDetail::where('id', $id)->update([
-                'bukti_bayar' => $filename_buktibayar,
-                'user_id_updated' => Auth::user()->id,
-                'updated_at' => now(),
-            ]);
-
-            return redirect()->route('requestpembelian.detail', $request->id_request_pembelian_header)
-                            ->with('success', 'Bukti Pembayaran berhasil diunggah');
-        } catch (\Exception $e) {
-            return redirect()->route('requestpembelian.detail', $request->id_request_pembelian_header)
-                            ->with('error', 'Bukti Pembayaran gagal diunggah');
+        // AUTO: approve_request / reject_payment -> submit_payment
+        if (in_array($header->status_request, ['approve_request', 'reject_payment'])) {
+            $header->status_request    = 'submit_payment';
+            $header->keterangan_reject = null;
+            $header->user_id_updated   = Auth::id();
+            $header->updated_at        = now();
+            $header->save();
         }
+
+        return redirect()
+            ->route('requestpembelian.detail', $headerId)
+            ->with('success', 'Bukti Pembayaran berhasil diunggah');
+
+    } catch (\Exception $e) {
+        return redirect()
+            ->route('requestpembelian.detail', $headerId)
+            ->with('error', 'Bukti Pembayaran gagal diunggah: ' . $e->getMessage());
     }
+}
+
 
     public function editdetail(string $id)
     {
@@ -201,7 +252,8 @@ class RequestpembelianController extends Controller
 
         return view('requestpembelian.editdetail', [
             'detail' => $detail,
-            'subkategori' => $subkategori
+            'subkategori' => $subkategori,
+            'header' => $header
         ]);
     }
 
@@ -227,6 +279,19 @@ class RequestpembelianController extends Controller
                 $filename_buktibayar = time() . '.' . $bukti_bayar->getClientOriginalExtension();
                 $bukti_bayar->move('bukti_bayar', $filename_buktibayar);
             }
+
+            if ($request->hasFile('bukti_bayar')) {
+                $header = RequestpembelianHeader::find($detail->id_request_pembelian_header);
+
+                if ($header && in_array($header->status_request, ['approve_request', 'reject_payment'])) {
+                    $header->status_request    = 'submit_payment';
+                    $header->keterangan_reject = null;
+                    $header->user_id_updated   = Auth::id();
+                    $header->updated_at        = now();
+                    $header->save();
+                }
+            }
+
 
             RequestpembelianDetail::where('id', $id)->update([
                 'nama_barang'     => $request->nama_barang,
