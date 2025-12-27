@@ -8,13 +8,15 @@ use App\Models\RequestpembelianHeader;
 use App\Models\PencatatanKeuangan;
 use App\Models\User;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 class DashboardController extends Controller
 {
     public function index(Request $request)
     {
         $user = auth()->user();
-        $isAdmin = $user->role === 'admin';
+        $isAdmin = ($user->role === 'admin');
 
         // =========================
         // 1) RANGE TANGGAL (default 30 hari terakhir)
@@ -25,7 +27,6 @@ class DashboardController extends Controller
         if (!$startDate || !$endDate) {
             $start = now()->subDays(30)->startOfDay();
             $end   = now()->endOfDay();
-
             $startDate = $start->toDateString();
             $endDate   = $end->toDateString();
         } else {
@@ -34,35 +35,53 @@ class DashboardController extends Controller
         }
 
         // =========================
-        // 2) PROJECT COUNTS
+        // 2) PROJECT IDs yang bisa diakses peneliti (BERDASARKAN detail_project)
+        // =========================
+        $joinedProjectIds = collect();
+
+        if (!$isAdmin) {
+            $joinedProjectIds = DB::table('detail_project')
+                ->where('id_user', $user->id)
+                ->pluck('id_project')
+                ->map(fn($v) => (int)$v)
+                ->unique()
+                ->values();
+        }
+
+        // =========================
+        // 3) PROJECT COUNTS + latest projects
         // =========================
         $projectBase = Project::query();
-        // kalau kamu mau peneliti cuma lihat project yang dia buat:
-        if (!$isAdmin && \Schema::hasColumn('project', 'user_id_created')) {
-            $projectBase->where('user_id_created', $user->id);
+
+        if (!$isAdmin) {
+            $projectBase->whereIn('id', $joinedProjectIds->isEmpty() ? [0] : $joinedProjectIds->toArray());
         }
 
         $totalProjects  = (clone $projectBase)->count();
         $activeProjects = (clone $projectBase)->where('status', 'aktif')->count();
         $closedProjects = (clone $projectBase)->where('status', 'ditutup')->count();
 
-        // Project terbaru (top 3)
         $latestProjects = (clone $projectBase)
             ->orderByDesc('created_at')
             ->limit(3)
             ->get(['id','nama_project','tahun','durasi','status','created_at']);
 
         // =========================
-        // 3) REQUEST PEMBELIAN (PERIODE)
+        // 4) REQUEST PEMBELIAN (PERIODE)
         // =========================
         $reqBase = RequestpembelianHeader::query();
 
-        if (!$isAdmin && \Schema::hasColumn('request_pembelian_header', 'user_id_created')) {
-            $reqBase->where('user_id_created', $user->id);
+        if (!$isAdmin) {
+            // Peneliti: request yang project-nya dia join
+            if (Schema::hasColumn('request_pembelian_header', 'id_project')) {
+                $reqBase->whereIn('id_project', $joinedProjectIds->isEmpty() ? [0] : $joinedProjectIds->toArray());
+            } elseif (Schema::hasColumn('request_pembelian_header', 'project_id')) {
+                $reqBase->whereIn('project_id', $joinedProjectIds->isEmpty() ? [0] : $joinedProjectIds->toArray());
+            }
         }
 
-        // total request periode pakai tgl_request (sesuai tabel kamu)
-        $reqPeriod = (clone $reqBase)->whereBetween('tgl_request', [$start->toDateString(), $end->toDateString()]);
+        $reqPeriod = (clone $reqBase)
+            ->whereBetween('tgl_request', [$start->toDateString(), $end->toDateString()]);
 
         $totalRequestsPeriod    = (clone $reqPeriod)->count();
         $submitRequestsPeriod   = (clone $reqPeriod)->where('status_request', 'submit_request')->count();
@@ -70,25 +89,23 @@ class DashboardController extends Controller
         $rejectedRequestsPeriod = (clone $reqPeriod)->where('status_request', 'reject_request')->count();
         $doneRequestsPeriod     = (clone $reqPeriod)->where('status_request', 'done')->count();
 
-        // "request baru" = submit_request pada periode (biar tidak ngaco)
         $newRequests = $submitRequestsPeriod;
 
-        // Request terbaru (top 3) pada periode
         $latestRequests = (clone $reqPeriod)
             ->orderByDesc('tgl_request')
             ->orderByDesc('id')
             ->limit(3)
             ->get(['id','no_request','tgl_request','status_request']);
 
-        // Untuk peneliti (kalau Blade butuh)
-        $myRequestsPeriod = $totalRequestsPeriod;
-        $mySubmitRequestsPeriod = $submitRequestsPeriod;
+        // Alias biar blade peneliti aman
+        $myRequestsPeriod         = $totalRequestsPeriod;
+        $mySubmitRequestsPeriod   = $submitRequestsPeriod;
         $myApprovedRequestsPeriod = $approvedRequestsPeriod;
         $myRejectedRequestsPeriod = $rejectedRequestsPeriod;
-        $myDoneRequestsPeriod = $doneRequestsPeriod;
+        $myDoneRequestsPeriod     = $doneRequestsPeriod;
 
         // =========================
-        // 4) PENCATATAN KEUANGAN (PERIODE) - ADMIN SAJA
+        // 5) PENCATATAN KEUANGAN (PERIODE) - ADMIN SAJA
         // =========================
         $pencatatanMasukPeriod = 0;
         $pencatatanKeluarPeriod = 0;
@@ -111,7 +128,6 @@ class DashboardController extends Controller
 
             $pencatatanCountPeriod = (clone $keuBase)->count();
 
-            // Grafik pengeluaran per proyek (pakai project_id di pencatatan_keuangan)
             $projectsForChart = Project::orderBy('nama_project')->get(['id','nama_project']);
             foreach ($projectsForChart as $p) {
                 $namaProjects[] = $p->nama_project;
@@ -123,49 +139,35 @@ class DashboardController extends Controller
         }
 
         // =========================
-        // 5) KAS (PERIODE) - ADMIN SAJA (pakai DB::table kalau belum ada model)
+        // 6) KAS (PERIODE) - ADMIN SAJA
         // =========================
         $kasMasukPeriod = 0;
         $kasKeluarPeriod = 0;
         $kasCountPeriod = 0;
 
         if ($isAdmin) {
-            // kalau kamu punya model KasTransaction pakai model, kalau belum pakai query builder:
-            $kasBase = \DB::table('kas_transactions')
+            $kasBase = DB::table('kas_transactions')
                 ->whereBetween('tanggal', [$start->toDateString(), $end->toDateString()]);
 
-            $kasMasukPeriod = (clone $kasBase)->where('tipe', 'masuk')->sum('nominal');
+            $kasMasukPeriod  = (clone $kasBase)->where('tipe', 'masuk')->sum('nominal');
             $kasKeluarPeriod = (clone $kasBase)->where('tipe', 'keluar')->sum('nominal');
-            $kasCountPeriod = (clone $kasBase)->count();
+            $kasCountPeriod  = (clone $kasBase)->count();
         }
 
         // =========================
-        // 6) TIM PENELITI (ADMIN SAJA)
+        // 7) TIM PENELITI (ADMIN SAJA)
         // =========================
         $totalTeams = $isAdmin ? User::where('role', 'peneliti')->count() : 0;
 
         return view('dashboard', compact(
-            // range
             'startDate','endDate',
-
-            // project
             'totalProjects','activeProjects','closedProjects','latestProjects',
-
-            // request periode
             'totalRequestsPeriod','submitRequestsPeriod','approvedRequestsPeriod','rejectedRequestsPeriod','doneRequestsPeriod',
             'newRequests','latestRequests',
-
-            // peneliti aliases (biar Blade aman)
             'myRequestsPeriod','mySubmitRequestsPeriod','myApprovedRequestsPeriod','myRejectedRequestsPeriod','myDoneRequestsPeriod',
-
-            // pencatatan (admin)
             'pencatatanMasukPeriod','pencatatanKeluarPeriod','pencatatanCountPeriod',
             'namaProjects','pengeluaranPerProject',
-
-            // kas (admin)
             'kasMasukPeriod','kasKeluarPeriod','kasCountPeriod',
-
-            // teams
             'totalTeams'
         ));
     }

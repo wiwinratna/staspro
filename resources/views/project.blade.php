@@ -107,18 +107,6 @@
       font-weight:700;
     }
 
-    .nav-badge{
-      margin-left:auto;
-      min-width:20px; height:20px;
-      padding:0 6px;
-      border-radius:999px;
-      display:inline-flex; align-items:center; justify-content:center;
-      font-size:.72rem; font-weight:800;
-      background:var(--danger);
-      color:#fff;
-      box-shadow:0 10px 18px rgba(239,68,68,.22);
-    }
-
     .content{ flex:1; padding:18px 18px 22px; }
 
     /* HERO ala dashboard */
@@ -220,7 +208,7 @@
     .btn-apply:hover{ filter:brightness(.98); transform:translateY(-1px); }
     .btn-apply i{ line-height:1; }
 
-    /* ✅ DISAMAININ SAMA DASHBOARD */
+    /* tombol manual book */
     .btn-manual{
       height:36px;
       display:inline-flex; align-items:center; gap:8px;
@@ -371,6 +359,27 @@
     }
     .proj-actions form{ margin:0; }
 
+    /* badge anggota (clean: tampil hanya jika join) */
+    .proj-member{
+      position:absolute;
+      left:14px;
+      bottom:14px;
+      font-size:.72rem;
+      font-weight:800;
+      padding:.22rem .6rem;
+      border-radius:999px;
+      background:rgba(255,255,255,.22);
+      border:1px solid rgba(255,255,255,.30);
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      white-space:nowrap;
+    }
+    .proj-card.joined{
+      outline:2px solid rgba(255,255,255,.35);
+      box-shadow:0 18px 42px rgba(2,6,23,.18);
+    }
+
     /* mobile sidebar */
     .backdrop{
       display:none;
@@ -481,7 +490,6 @@
           </div>
 
           <div class="tools-right">
-            <!-- ✅ tombol manual book DISAMAININ -->
             <a class="btn-manual"
                href="https://drive.google.com/file/d/1NicpoYzDkSk64F3HfVEDWt1tpk0WvrlI/view?usp=sharing"
                target="_blank" rel="noopener" title="Buka Manual Book">
@@ -511,9 +519,13 @@
 
     <div class="row g-3">
       @foreach($aktif as $p)
+      @php
+        $isJoined = Auth::user()->role !== 'admin' && in_array($p->id, $joinedProjectIds ?? []);
+      @endphp
+
       <div class="col-12 col-sm-6 col-lg-4 col-xxl-3 project-item"
            data-search="{{ strtolower($p->nama_project.' '.$p->tahun.' on going ongoing aktif') }}">
-        <div class="proj-card" role="button" tabindex="0"
+        <div class="proj-card {{ $isJoined ? 'joined' : '' }}" role="button" tabindex="0"
              onclick="location.href='{{ route('project.show',$p->id) }}'"
              onkeydown="if(event.key==='Enter'){ this.click(); }">
 
@@ -525,6 +537,12 @@
           <div class="proj-meta">
             <div>Sumber Dana: {{ $p->sumberDana->jenis_pendanaan ?? '-' }}</div>
           </div>
+
+          @if(Auth::user()->role !== 'admin' && $isJoined)
+            <span class="proj-member">
+              <i class="bi bi-people-fill"></i> Kamu tergabung
+            </span>
+          @endif
 
           @if(Auth::user()->role=='admin')
           <div class="proj-actions" onclick="event.stopPropagation()">
@@ -555,9 +573,13 @@
 
     <div class="row g-3">
       @foreach($arsip as $p)
+      @php
+        $isJoined = Auth::user()->role !== 'admin' && in_array($p->id, $joinedProjectIds ?? []);
+      @endphp
+
       <div class="col-12 col-sm-6 col-lg-4 col-xxl-3 project-item"
            data-search="{{ strtolower($p->nama_project.' '.$p->tahun.' ditutup arsip') }}">
-        <div class="proj-card archived" role="button" tabindex="0"
+        <div class="proj-card archived {{ $isJoined ? 'joined' : '' }}" role="button" tabindex="0"
              onclick="location.href='{{ route('project.show',$p->id) }}'"
              onkeydown="if(event.key==='Enter'){ this.click(); }">
 
@@ -566,6 +588,12 @@
 
           <div class="proj-title">{{ $p->nama_project }}</div>
           <div class="proj-meta">Project telah diarsipkan</div>
+
+          @if(Auth::user()->role !== 'admin' && $isJoined)
+            <span class="proj-member">
+              <i class="bi bi-people-fill"></i> Kamu tergabung
+            </span>
+          @endif
 
           @if(Auth::user()->role=='admin')
           <div class="proj-actions" onclick="event.stopPropagation()">
@@ -591,7 +619,7 @@
 
   </main>
 </div>
-
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
   // sidebar toggle (mobile)
   const sidebar = document.getElementById('appSidebar');

@@ -249,6 +249,25 @@
       border-color:rgba(22,163,74,.45);
     }
 
+    /* input-group Rp */
+    .input-group-text{
+      border-radius:14px;
+      border:1px solid rgba(226,232,240,.95);
+      background:#f8fafc;
+      font-weight:900;
+      color:var(--ink-600);
+      padding:.72rem .9rem;
+    }
+    .input-group .input-group-text{
+      border-top-right-radius:0;
+      border-bottom-right-radius:0;
+      border-right:0;
+    }
+    .input-group .form-control{
+      border-top-left-radius:0;
+      border-bottom-left-radius:0;
+    }
+
     .btn-danger-soft{
       height:38px;
       display:inline-flex;
@@ -375,9 +394,6 @@
             <a href="{{ route('kas.index') }}" class="btn btn-soft">
               <i class="bi bi-arrow-left"></i> Kembali
             </a>
-            <button type="submit" form="kasForm" class="btn btn-brand">
-              <i class="bi bi-save2"></i> Simpan
-            </button>
           </div>
 
           <div class="tools-right">
@@ -458,16 +474,20 @@
         </div>
 
         <div class="col-md-4">
-          <label class="form-label">Nominal (Rp)</label>
-          <input
-            type="number"
-            name="nominal"
-            class="form-control"
-            min="1"
-            step="1"
-            value="{{ old('nominal') }}"
-            required
-          >
+          <label class="form-label">Nominal</label>
+          <div class="input-group">
+            <span class="input-group-text">Rp</span>
+            <input
+              type="number"
+              name="nominal"
+              class="form-control"
+              min="1"
+              step="1"
+              value="{{ old('nominal') }}"
+              required
+            >
+          </div>
+          <div class="form-text text-secondary">Tidak boleh minus & tidak boleh 0.</div>
         </div>
 
         <div class="col-md-8">
@@ -481,6 +501,7 @@
           >
         </div>
 
+        <!-- TOMBOL DI BAWAH (SIMPAN DISINI) -->
         <div class="col-12 d-flex gap-2 pt-1">
           <button type="submit" class="btn btn-brand">
             <i class="bi bi-save2"></i> Simpan
@@ -508,6 +529,41 @@
 
   toggleBtn?.addEventListener('click', ()=> sidebar.classList.contains('open') ? closeSidebar() : openSidebar());
   backdrop?.addEventListener('click', closeSidebar);
+</script>
+
+<script>
+/*
+  Nominal:
+  - ketik minus langsung hilang
+  - 0 tidak boleh (leading zero dihapus)
+  - submit diblok kalau nominal kosong / < 1
+*/
+(function(){
+  const form = document.getElementById('kasForm');
+  const nominal = form?.querySelector('input[name="nominal"]');
+  if (!nominal) return;
+
+  function clean(){
+    let v = String(nominal.value ?? '');
+    v = v.replace(/[^\d]/g, ''); // "-" hilang
+    v = v.replace(/^0+/, '');    // "0" hilang
+    nominal.value = v;
+  }
+
+  nominal.addEventListener('input', clean, true);
+  nominal.addEventListener('paste', () => setTimeout(clean, 0), true);
+  nominal.addEventListener('wheel', (e) => e.preventDefault(), { passive:false });
+
+  form.addEventListener('submit', (e) => {
+    clean();
+    if (nominal.value === '' || Number(nominal.value) < 1) {
+      e.preventDefault();
+      e.stopPropagation();
+      nominal.focus();
+      return false;
+    }
+  }, true);
+})();
 </script>
 
 </body>

@@ -476,6 +476,7 @@
 
 <!-- SCRIPT -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
 <script>
   // sidebar mobile toggle
   const sidebar = document.getElementById('appSidebar');
@@ -487,6 +488,135 @@
 
   toggleBtn?.addEventListener('click', ()=> sidebar.classList.contains('open') ? closeSidebar() : openSidebar());
   backdrop?.addEventListener('click', closeSidebar);
+</script>
+
+<script>
+/*
+  HARD LOCK: MINUS & 0 DILARANG (MINIMAL 1)
+  - bekerja di semua input type=number (termasuk halaman create)
+  - tanpa ubah tampilan
+*/
+(function(){
+  const isNumberInput = (el) => el && el.tagName === 'INPUT' && el.type === 'number';
+
+  function sanitize(el){
+    if (!isNumberInput(el)) return;
+
+    // paksa min/step via JS (tanpa ubah HTML)
+    el.min = '1';
+    el.step = '1';
+
+    // bersihkan value: hanya digit, minimal 1
+    let v = String(el.value ?? '');
+
+    // jika user ngetik "-" atau hal aneh, buang semua non-digit
+    v = v.replace(/[^\d]/g, '');
+
+    // buang leading zero (00012 -> 12)
+    v = v.replace(/^0+/, '');
+
+    // kalau kosong, biarkan kosong (nanti submit diblock)
+    if (v === '') {
+      el.value = '';
+      return;
+    }
+
+    // kalau hasilnya 0 atau <1, kosongkan
+    if (Number(v) < 1) {
+      el.value = '';
+      return;
+    }
+
+    el.value = v;
+  }
+
+  // pas halaman siap, set min & lock wheel + sanitize awal
+  document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('input[type="number"]').forEach((el) => {
+      el.min = '1';
+      el.step = '1';
+
+      // stop scroll changing values
+      el.addEventListener('wheel', (e) => e.preventDefault(), { passive:false });
+
+      // sanitize jika ada value dari autofill
+      sanitize(el);
+    });
+
+    // blok submit kalau ada number input kosong / <1
+    document.querySelectorAll('form').forEach((form) => {
+      form.addEventListener('submit', (e) => {
+        const nums = form.querySelectorAll('input[type="number"]');
+        for (const el of nums) {
+          sanitize(el);
+          if (el.value === '' || Number(el.value) < 1) {
+            e.preventDefault();
+            e.stopPropagation();
+            el.focus();
+            return false;
+          }
+        }
+      }, true);
+    });
+  });
+
+  // kunci input realtime (ini yang bikin "-" & "0" ga bertahan)
+  document.addEventListener('input', (e) => {
+    if (isNumberInput(e.target)) sanitize(e.target);
+  }, true);
+
+  // kunci ketikan: blok minus, plus, e, E, koma, titik, spasi, dan 0 kalau di awal
+  document.addEventListener('keydown', (e) => {
+    const el = e.target;
+    if (!isNumberInput(el)) return;
+
+    // izinkan tombol kontrol
+    const allowed = [
+      'Backspace','Delete','Tab','Enter','Escape',
+      'ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Home','End'
+    ];
+    if (allowed.includes(e.key)) return;
+    if (e.ctrlKey || e.metaKey) return;
+
+    // larang karakter non digit (termasuk -, +, e, E, ., ,)
+    if (!/^\d$/.test(e.key)) {
+      e.preventDefault();
+      return;
+    }
+
+    // larang "0" sebagai digit pertama (biar gak bisa 0 / 00 / 000)
+    if (e.key === '0') {
+      const cur = String(el.value ?? '');
+      const start = el.selectionStart ?? cur.length;
+      const end = el.selectionEnd ?? cur.length;
+      const next = cur.slice(0,start) + '0' + cur.slice(end);
+
+      // kalau hasilnya jadi "0" di awal / leading zero, block
+      if (/^0/.test(next)) {
+        e.preventDefault();
+        return;
+      }
+    }
+  }, true);
+
+  // blok paste yang mengandung minus atau hasilnya 0
+  document.addEventListener('paste', (e) => {
+    const el = e.target;
+    if (!isNumberInput(el)) return;
+
+    const text = (e.clipboardData || window.clipboardData).getData('text') || '';
+    if (text.includes('-')) {
+      e.preventDefault();
+      return;
+    }
+
+    const digits = text.replace(/[^\d]/g,'').replace(/^0+/,'');
+    if (!digits || Number(digits) < 1) {
+      e.preventDefault();
+      return;
+    }
+  }, true);
+})();
 </script>
 
 </body>

@@ -27,10 +27,7 @@
       height:56px;
       border-bottom:1px solid rgba(255,255,255,.18);
     }
-    .brand{
-      display:flex; align-items:center; gap:10px;
-      font-weight:800; letter-spacing:.2px;
-    }
+    .brand{ display:flex; align-items:center; gap:10px; font-weight:800; letter-spacing:.2px; }
     .brand-badge{
       font-size:.72rem; font-weight:800;
       padding:.22rem .55rem; border-radius:999px;
@@ -116,6 +113,34 @@
       justify-content:flex-end;
     }
 
+    /* TOTAL CARD */
+    .total-card{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      padding:12px 14px;
+      border-radius:14px;
+      border:1px solid var(--line);
+      background:linear-gradient(135deg, rgba(22,163,74,.10), rgba(255,255,255,.85));
+    }
+    .total-card .label{ font-weight:800; color:var(--ink-600); font-size:.85rem; }
+    .total-card .value{ font-weight:900; font-size:1.15rem; color:var(--ink); }
+
+    /* tombol tambah sejajar */
+    .btn-add-item{
+      display:inline-flex !important;
+      align-items:center;
+      justify-content:center;
+      gap:8px;
+      padding:.55rem .95rem;
+      line-height:1;
+      white-space:nowrap;
+      border-radius:12px;
+      font-weight:800;
+    }
+    .btn-add-item i{ display:inline-block !important; line-height:1; font-size:1.05rem; }
+
     @media (max-width: 991.98px){
       .sidebar{ position:fixed; left:-280px; z-index:1040; transition:left .2s; top:56px; height:calc(100vh - 56px); }
       .sidebar.open{ left:0; }
@@ -161,10 +186,21 @@
 
     $statusClass = 'st-'.$status;
 
-    // aturan UI
     $isAdmin = Auth::user()->role === 'admin';
-    $canEditItems = ($isAdmin) || in_array($status, ['submit_request','reject_request']); // ✅ admin selalu boleh edit/hapus
-    $canUploadBukti = (!$isAdmin) && in_array($status, ['approve_request','reject_payment']);
+    $canEditItems = ($isAdmin) || in_array($status, ['submit_request','reject_request']);
+    $canUploadBukti = (!$isAdmin) && in_array($status, ['approve_request','reject_payment','submit_payment']);
+
+
+
+    // ✅ TOTAL
+    $grandTotal = 0;
+    foreach($detail as $it){
+      $q = (int)($it->kuantitas ?? 0);
+      $h = (int)($it->harga ?? 0);
+      if($q < 0) $q = 0;
+      if($h < 0) $h = 0;
+      $grandTotal += ($q * $h);
+    }
   @endphp
 
   <div class="app">
@@ -260,6 +296,16 @@
               <span class="status-badge {{ $statusClass }}">{{ $statusLabel }}</span>
             </span>
 
+            <div class="total-card">
+              <div>
+                <div class="label">Total Keseluruhan</div>
+                <div class="value">Rp {{ number_format($grandTotal,0,',','.') }}</div>
+              </div>
+              <div class="hint-pill" style="background:#fff;">
+                <i class="bi bi-calculator"></i> <b>{{ count($detail) }}</b> item
+              </div>
+            </div>
+
             @if(!$isAdmin)
               @if($status === 'approve_request')
                 <span class="hint-pill"><i class="bi bi-info-circle"></i> Request sudah disetujui. Silahkan <b>upload bukti pembayaran</b>.</span>
@@ -335,7 +381,8 @@
                 <tr>
                   <th>Nama Barang</th>
                   <th class="text-center">Qty</th>
-                  <th>Harga</th>
+                  <th class="text-end">Harga</th>
+                  <th class="text-end">Total</th>
                   <th>Link Pembelian</th>
                   <th>Subkategori</th>
                   <th class="text-center">Aksi</th>
@@ -344,10 +391,19 @@
 
               <tbody>
                 @foreach ($detail as $d)
+                  @php
+                    $qty = (int)($d->kuantitas ?? 0);
+                    $hargaItem = (int)($d->harga ?? 0);
+                    if($qty < 0) $qty = 0;
+                    if($hargaItem < 0) $hargaItem = 0;
+                    $rowTotal = $qty * $hargaItem;
+                  @endphp
                   <tr>
                     <td>{{ $d->nama_barang }}</td>
-                    <td class="text-center">{{ $d->kuantitas }}</td>
-                    <td>Rp {{ number_format($d->harga,0,',','.') }}</td>
+                    <td class="text-center">{{ $qty }}</td>
+                    <td class="text-end">Rp {{ number_format($hargaItem,0,',','.') }}</td>
+                    <td class="text-end fw-bold">Rp {{ number_format($rowTotal,0,',','.') }}</td>
+
                     <td><a href="{{ $d->link_pembelian }}" target="_blank" rel="noreferrer">Lihat Link</a></td>
                     <td>
                       @if ($d->id_subkategori_sumberdana)
@@ -362,13 +418,13 @@
                     </td>
 
                     <td class="actions text-center">
-                      {{-- ====== BUKTI BAYAR BUTTON RULES ====== --}}
+                      {{-- BUKTI --}}
                       @if($d->bukti_bayar)
                         <a href="{{ asset('bukti_bayar/'.$d->bukti_bayar) }}" class="btn btn-success btn-icon" title="Lihat Bukti" target="_blank" rel="noreferrer">
                           <i class="bi bi-receipt-cutoff"></i>
                         </a>
 
-                        @if(!$isAdmin && $status === 'reject_payment')
+                        @if(!$isAdmin && in_array($status, ['reject_payment','submit_payment']))
                           <a href="{{ route('requestpembelian.addbukti',$d->id) }}" class="btn btn-primary btn-icon" title="Upload Ulang Bukti">
                             <i class="bi bi-arrow-repeat"></i>
                           </a>
@@ -386,7 +442,7 @@
                         @endif
                       @endif
 
-                      {{-- ====== EDIT/DELETE ITEM ====== --}}
+                      {{-- EDIT/DELETE --}}
                       @if($canEditItems)
                         <a href="{{ route('requestpembelian.editdetail',$d->id) }}" class="btn btn-warning btn-icon" title="Edit">
                           <i class="bi bi-pencil-square"></i>
@@ -412,11 +468,11 @@
                   </tr>
                 @endforeach
 
-                {{-- ====== FORM TAMBAH ITEM (tim peneliti, hanya saat status masih bisa edit) ====== --}}
+                {{-- FORM TAMBAH ITEM (PENELITI, saat editable) --}}
                 @if(!$isAdmin)
                   @if($canEditItems)
                     <tr>
-                      <td colspan="6" class="pt-3">
+                      <td colspan="7" class="pt-3">
                         <form action="{{ route('requestpembelian.storedetail') }}" method="POST" class="row g-2 align-items-end" id="formAddItem">
                           @csrf
                           <input type="hidden" name="id_request_pembelian_header" value="{{ $request_pembelian->id }}">
@@ -428,24 +484,28 @@
 
                           <div class="col-lg-1">
                             <label class="form-label mb-1">Qty</label>
-                            <input type="number" name="kuantitas" class="form-control" min="1" required>
+                            <input type="number" name="kuantitas" id="qty" class="form-control" min="1" step="1" required>
                           </div>
 
                           <div class="col-lg-2">
                             <label class="form-label mb-1">Harga</label>
                             <input type="text" name="harga" id="harga" class="form-control" inputmode="numeric" placeholder="Rp 0" required>
-                            <div class="form-text">Akan dikirim sebagai angka.</div>
                           </div>
 
-                          <div class="col-lg-3">
+                          <div class="col-lg-2">
+                            <label class="form-label mb-1">Total</label>
+                            <input type="text" id="totalPreview" class="form-control" value="Rp 0" disabled>
+                          </div>
+
+                          <div class="col-lg-2">
                             <label class="form-label mb-1">Link Pembelian</label>
                             <input type="url" name="link_pembelian" class="form-control" required>
                           </div>
 
-                          <div class="col-lg-2">
+                          <div class="col-lg-1">
                             <label class="form-label mb-1">Subkategori</label>
                             <select name="id_subkategori_sumberdana" class="form-select">
-                              <option value="">-- Pilih Subkategori --</option>
+                              <option value="">-- Pilih --</option>
                               @foreach ($subkategori as $sub)
                                 <option value="{{ $sub->id }}">{{ $sub->nama }}</option>
                               @endforeach
@@ -453,8 +513,9 @@
                           </div>
 
                           <div class="col-lg-1 text-end">
-                            <button type="submit" class="btn btn-success w-100">
-                              <i class="bi bi-plus-lg me-1"></i> Tambah
+                            <button type="submit" class="btn btn-success w-100 btn-add-item" id="btnTambah">
+                              <i class="bi bi-plus-lg"></i>
+                              <span>Tambah</span>
                             </button>
                           </div>
                         </form>
@@ -462,7 +523,7 @@
                     </tr>
                   @else
                     <tr>
-                      <td colspan="6" class="text-center py-4">
+                      <td colspan="7" class="text-center py-4">
                         <span class="hint-pill">
                           <i class="bi bi-lock"></i>
                           Item tidak bisa ditambah/diedit karena status sudah <b>{{ $statusLabel }}</b>.
@@ -473,6 +534,16 @@
                 @endif
 
               </tbody>
+
+              {{-- FOOTER TOTAL --}}
+              <tfoot>
+                <tr>
+                  <th colspan="3" class="text-end">Total Keseluruhan</th>
+                  <th class="text-end">Rp {{ number_format($grandTotal,0,',','.') }}</th>
+                  <th colspan="3"></th>
+                </tr>
+              </tfoot>
+
             </table>
           </div>
         </div>
@@ -505,23 +576,65 @@
       sel?.addEventListener('change',toggle); toggle();
     })();
 
-    // Format rupiah + kirim angka murni
+    // ====== VALIDASI + FORMAT + PREVIEW TOTAL ======
     (function(){
       const harga = document.getElementById('harga');
+      const qty   = document.getElementById('qty');
       const form  = document.getElementById('formAddItem');
-      if(!harga || !form) return;
+      const totalPreview = document.getElementById('totalPreview');
+      const btnTambah = document.getElementById('btnTambah');
+      if(!form) return;
 
       const toNumber = (s) => (s || '').toString().replace(/[^0-9]/g,'');
 
-      harga.addEventListener('input', () => {
-        const raw = toNumber(harga.value);
-        if(!raw){ harga.value = ''; return; }
-        harga.value = 'Rp ' + new Intl.NumberFormat('id-ID').format(raw);
+      function updateTotal(){
+        const q = parseInt(qty?.value || '0', 10) || 0;
+        const h = parseInt(toNumber(harga?.value || ''), 10) || 0;
+        const t = Math.max(0,q) * Math.max(0,h);
+        if(totalPreview){
+          totalPreview.value = 'Rp ' + new Intl.NumberFormat('id-ID').format(t);
+        }
+      }
+
+      // Qty: cegah minus (extra guard)
+      qty?.addEventListener('input', ()=>{
+        if(qty.value === '') { updateTotal(); return; }
+        const v = parseInt(qty.value,10);
+        if(isNaN(v) || v < 1) qty.value = 1;
+        updateTotal();
       });
 
-      form.addEventListener('submit', () => {
+      // Harga: hanya angka + format rupiah
+      harga?.addEventListener('input', () => {
+        const raw = toNumber(harga.value);
+        if(!raw){ harga.value = ''; updateTotal(); return; }
+        harga.value = 'Rp ' + new Intl.NumberFormat('id-ID').format(raw);
+        updateTotal();
+      });
+
+      // Submit: pastikan angka murni & tidak 0 / minus
+      form.addEventListener('submit', (e) => {
+        const q = parseInt(qty?.value || '0',10) || 0;
+        const h = parseInt(toNumber(harga?.value || ''),10) || 0;
+
+        if(q < 1){
+          e.preventDefault();
+          alert('Qty minimal 1 yaa.');
+          qty?.focus();
+          return;
+        }
+        if(h < 1){
+          e.preventDefault();
+          alert('Harga harus lebih dari 0 yaa.');
+          harga?.focus();
+          return;
+        }
+
+        // kirim angka murni
         harga.value = toNumber(harga.value);
       });
+
+      updateTotal();
     })();
   </script>
 </body>
