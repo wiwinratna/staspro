@@ -23,8 +23,7 @@
       --bg:#f6f7fb; --card:#ffffff;
       --shadow:0 10px 30px rgba(15,23,42,.08);
     }
-
-    *{ box-sizing:border-box }
+    *{box-sizing:border-box}
     body{
       margin:0;
       background:var(--bg);
@@ -40,82 +39,79 @@
       border-bottom:1px solid rgba(255,255,255,.18);
       height:56px;
     }
-    .brand{ display:flex;align-items:center;gap:10px; font-weight:800; letter-spacing:.2px; }
+    .brand{display:flex;align-items:center;gap:10px;font-weight:800;letter-spacing:.2px}
     .brand-badge{
-      font-size:.72rem; font-weight:800;
-      padding:.22rem .55rem; border-radius:999px;
+      font-size:.72rem;font-weight:800;
+      padding:.22rem .55rem;border-radius:999px;
       background:rgba(255,255,255,.16);
       border:1px solid rgba(255,255,255,.22);
       white-space:nowrap;
     }
 
     /* Layout */
-    .app{ display:flex; min-height:calc(100vh - 56px); }
+    .app{display:flex;min-height:calc(100vh - 56px)}
     .sidebar{
-      width:260px; background:var(--card); border-right:1px solid var(--line);
-      padding:14px; position:sticky; top:56px; height:calc(100vh - 56px); overflow:auto;
+      width:260px;background:var(--card);
+      border-right:1px solid var(--line);
+      padding:14px;
+      position:sticky; top:56px;
+      height:calc(100vh - 56px);
+      overflow:auto;
     }
     .menu-title{
-      font-size:.72rem; letter-spacing:.08em; color:var(--ink-600);
-      text-transform:uppercase; margin:8px 0; font-weight:700;
+      font-size:.72rem;letter-spacing:.08em;color:var(--ink-600);
+      text-transform:uppercase;margin:8px 0;font-weight:700;
     }
     .nav-link-custom{
-      display:flex; align-items:center; gap:10px;
-      padding:9px 10px; border-radius:14px; text-decoration:none;
-      color:var(--ink); font-weight:600; font-size:.92rem; line-height:1;
-      transition:.18s; white-space:nowrap;
+      display:flex;align-items:center;gap:10px;
+      padding:9px 10px;border-radius:14px;text-decoration:none;
+      color:var(--ink);font-weight:600;font-size:.92rem;line-height:1;
+      transition:.18s;white-space:nowrap;
     }
-    .nav-link-custom i{ font-size:1.05rem; }
-    .nav-link-custom:hover{ background:var(--brand-50); color:var(--brand-700); transform:translateX(2px); }
+    .nav-link-custom i{font-size:1.05rem}
+    .nav-link-custom:hover{background:var(--brand-50);color:var(--brand-700);transform:translateX(2px)}
     .nav-link-custom.active{
       background:linear-gradient(135deg,var(--brand-700),var(--brand));
-      color:#fff; box-shadow:0 16px 28px rgba(2,6,23,.12); font-weight:700;
+      color:#fff;box-shadow:0 16px 28px rgba(2,6,23,.12);font-weight:700;
     }
 
-    .content{ flex:1; padding:18px 18px 22px; min-width:0; }
+    .content{flex:1;padding:18px 18px 22px;min-width:0}
+    .main-inner{width:100%;max-width:100%}
 
-    /* ✅ FULL WIDTH */
-    .main-inner{ width:100%; max-width:100%; }
-
-    /* HERO */
+    /* Hero */
     .hero{
-      border-radius:22px; padding:18px;
+      border-radius:22px;padding:18px;
       background:
         radial-gradient(900px 240px at 18% 0%, rgba(22,163,74,.22), transparent 60%),
         radial-gradient(700px 220px at 85% 10%, rgba(22,163,74,.14), transparent 55%),
         linear-gradient(135deg, rgba(255,255,255,.92), rgba(255,255,255,.76));
       border:1px solid rgba(226,232,240,.95);
       box-shadow:var(--shadow);
-      position:relative; overflow:hidden; margin-bottom:14px;
+      position:relative;overflow:hidden;margin-bottom:14px;
     }
     .hero::after{
-      content:""; position:absolute; inset:-1px;
+      content:"";position:absolute;inset:-1px;
       background:
         radial-gradient(600px 160px at 12% 0%, rgba(22,163,74,.18), transparent 55%),
         radial-gradient(500px 160px at 95% 0%, rgba(22,163,74,.10), transparent 55%);
-      pointer-events:none; opacity:.65;
+      pointer-events:none;opacity:.65;
     }
-    .hero-inner{ position:relative; z-index:2; width:100%; }
-    .hero-left .title{ font-size:1.65rem; font-weight:900; margin:0; letter-spacing:-.2px; }
-    .hero-left .sub{ margin:6px 0 0; color:var(--ink-600); font-weight:500; }
+    .hero-inner{position:relative;z-index:2;width:100%}
+    .hero-left .title{font-size:1.65rem;font-weight:900;margin:0;letter-spacing:-.2px}
+    .hero-left .sub{margin:6px 0 0;color:var(--ink-600);font-weight:500}
 
-    .tools-row{
-      margin-top:14px;
-      display:flex; align-items:center; justify-content:space-between;
-      gap:12px; flex-wrap:wrap;
-    }
-    .tools-right{ margin-left:auto; display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+    .tools-row{margin-top:14px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+    .tools-right{margin-left:auto;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 
-    /* Manual Book (putih) */
     .btn-manual{
-      height:38px; display:inline-flex; align-items:center; gap:8px;
-      border-radius:999px; font-weight:800; padding:0 14px;
-      background:#fff; color:var(--ink);
+      height:38px;display:inline-flex;align-items:center;gap:8px;
+      border-radius:999px;font-weight:800;padding:0 14px;
+      background:#fff;color:var(--ink);
       border:1px solid rgba(226,232,240,.95);
       box-shadow:0 10px 26px rgba(15,23,42,.05);
-      white-space:nowrap; text-decoration:none;
+      white-space:nowrap;text-decoration:none;
     }
-    .btn-manual:hover{ background:var(--brand-50); transform:translateY(-1px); color:var(--brand-700); }
+    .btn-manual:hover{background:var(--brand-50);transform:translateY(-1px);color:var(--brand-700)}
 
     /* Cards */
     .card{
@@ -124,38 +120,38 @@
       border-radius:22px;
       box-shadow:var(--shadow);
     }
-    .card h5{ font-weight:900; }
-    .subtle{ color:var(--ink-600); }
-    .label-sm{ font-size:.72rem; letter-spacing:.08em; color:var(--ink-600); text-transform:uppercase; font-weight:900; }
-    .value-lg{ font-weight:900; }
+    .card h5{font-weight:900}
+    .subtle{color:var(--ink-600)}
+    .label-sm{font-size:.72rem;letter-spacing:.08em;color:var(--ink-600);text-transform:uppercase;font-weight:900}
+    .value-lg{font-weight:900}
 
     /* Status badge */
     .badge-proj{
-      display:inline-flex; align-items:center; gap:6px;
-      padding:.35rem .55rem; border-radius:10px; font-weight:900; border:1px solid transparent;
+      display:inline-flex;align-items:center;gap:6px;
+      padding:.35rem .55rem;border-radius:10px;font-weight:900;border:1px solid transparent;
       white-space:nowrap;
     }
-    .badge-proj-planned{ background:#eff6ff; color:#1d4ed8; border-color:#bfdbfe; }
-    .badge-proj-on-going{ background:#ecfdf5; color:#166534; border-color:#bbf7d0; }
-    .badge-proj-paused{ background:#fff7ed; color:#9a3412; border-color:#fed7aa; }
-    .badge-proj-cancelled{ background:#fef2f2; color:#b91c1c; border-color:#fecaca; }
-    .badge-proj-completed{ background:#eefdfb; color:#0f766e; border-color:#99f6e4; }
-    .badge-proj-closed{ background:#f1f5f9; color:#0f172a; border-color:#cbd5e1; }
+    .badge-proj-planned{background:#eff6ff;color:#1d4ed8;border-color:#bfdbfe}
+    .badge-proj-on-going{background:#ecfdf5;color:#166534;border-color:#bbf7d0}
+    .badge-proj-paused{background:#fff7ed;color:#9a3412;border-color:#fed7aa}
+    .badge-proj-cancelled{background:#fef2f2;color:#b91c1c;border-color:#fecaca}
+    .badge-proj-completed{background:#eefdfb;color:#0f766e;border-color:#99f6e4}
+    .badge-proj-closed{background:#f1f5f9;color:#0f172a;border-color:#cbd5e1}
 
     /* Tables */
     .table-modern{
-      margin:0; font-size:.92rem;
-      border-collapse:separate; border-spacing:0;
-      overflow:hidden; border-radius:16px;
+      margin:0;font-size:.92rem;
+      border-collapse:separate;border-spacing:0;
+      overflow:hidden;border-radius:16px;
       border:1px solid rgba(226,232,240,.95);
     }
     .table-modern thead th{
-      background:#f8fafc; color:var(--ink-600);
-      font-weight:900; text-transform:uppercase;
-      font-size:.72rem; letter-spacing:.08em;
+      background:#f8fafc;color:var(--ink-600);
+      font-weight:900;text-transform:uppercase;
+      font-size:.72rem;letter-spacing:.08em;
       padding:14px 12px;
       border-bottom:1px solid rgba(226,232,240,.95);
-      position:sticky; top:0; z-index:1;
+      position:sticky;top:0;z-index:1;
       white-space:nowrap;
     }
     .table-modern tbody td{
@@ -164,40 +160,43 @@
       border-top:1px solid #eef2f7;
       font-weight:600;
     }
-    .table-modern tbody tr:hover{ background:var(--brand-50); transition:.12s; }
-    .tnum{ font-variant-numeric: tabular-nums; }
+    .table-modern tbody tr:hover{background:var(--brand-50);transition:.12s}
+    .tnum{font-variant-numeric:tabular-nums}
 
-    /* Highlight */
-    .tr-over{ background:#fef2f2; }
-    .tr-near{ background:#fff7ed; }
+    .tr-over{background:#fef2f2}
+    .tr-near{background:#fff7ed}
 
     /* Anggota chips */
-    .chips-scroll{ max-height:160px; overflow:auto; padding-right:6px; }
-    .chips-wrap{ display:flex; flex-wrap:wrap; gap:6px; }
+    .chips-scroll{max-height:160px;overflow:auto;padding-right:6px}
+    .chips-wrap{display:flex;flex-wrap:wrap;gap:6px}
     .chip{
-      background:#f1f5f9; border:1px solid #e2e8f0; color:#0f172a;
-      border-radius:999px; padding:6px 10px; font-weight:800;
+      background:#f1f5f9;border:1px solid #e2e8f0;color:#0f172a;
+      border-radius:999px;padding:6px 10px;font-weight:800;
     }
 
-    /* Tomselect & btn */
-    .ts-wrapper{ width:100%; }
-    .ts-wrapper .ts-control{ min-height:40px; }
-    .btn-eq{ height:40px; display:inline-flex; align-items:center; justify-content:center; border-radius:14px; font-weight:900; }
+    /* TomSelect + btn */
+    .ts-wrapper{width:100%}
+    .ts-wrapper .ts-control{min-height:40px}
+    .btn-eq{
+      height:40px;
+      display:inline-flex;align-items:center;justify-content:center;
+      border-radius:14px;font-weight:900;
+    }
 
     /* Mobile sidebar */
-    .backdrop{ display:none; position:fixed; inset:0; background:rgba(15,23,42,.38); z-index:1035; }
-    .backdrop.show{ display:block; }
+    .backdrop{display:none;position:fixed;inset:0;background:rgba(15,23,42,.38);z-index:1035}
+    .backdrop.show{display:block}
     @media (max-width:991.98px){
-      .sidebar{ position:fixed; left:-290px; top:56px; height:calc(100vh - 56px); z-index:1040; transition:left .2s; }
-      .sidebar.open{ left:0; }
-      .content{ padding:14px; }
+      .sidebar{position:fixed;left:-290px;top:56px;height:calc(100vh - 56px);z-index:1040;transition:left .2s}
+      .sidebar.open{left:0}
+      .content{padding:14px}
     }
 
     /* Print */
     @media print{
-      .topbar,.sidebar,.hero,.backdrop{ display:none !important; }
-      .content{ padding:0; }
-      .card{ box-shadow:none; border:1px solid #ccc; }
+      .topbar,.sidebar,.hero,.backdrop{display:none !important}
+      .content{padding:0}
+      .card{box-shadow:none;border:1px solid #ccc}
     }
   </style>
 </head>
@@ -210,9 +209,11 @@
         <i class="bi bi-list"></i>
       </button>
 
+      @php $isAdmin = strtolower(Auth::user()->role ?? '') === 'admin'; @endphp
+
       <div class="brand">
         <span>STAS-RG</span>
-        <span class="brand-badge">{{ Auth::user()->role === 'admin' ? 'ADMIN' : 'PENELITI' }}</span>
+        <span class="brand-badge">{{ $isAdmin ? 'ADMIN' : 'PENELITI' }}</span>
       </div>
 
       <div class="ms-auto">@include('navbar')</div>
@@ -228,7 +229,7 @@
         <i class="bi bi-speedometer2"></i> Dashboard
       </a>
 
-      <a class="nav-link-custom {{ request()->routeIs('project.*') ? 'active' : '' }} active" href="{{ route('project.index') }}">
+      <a class="nav-link-custom {{ request()->routeIs('project.*') ? 'active' : '' }}" href="{{ route('project.index') }}">
         <i class="bi bi-kanban"></i> Project
       </a>
 
@@ -236,7 +237,7 @@
         <i class="bi bi-bag-check"></i> Request Pembelian
       </a>
 
-      @if (Auth::user()->role == 'admin')
+      @if ($isAdmin)
         <div class="menu-title mt-3">Administrasi</div>
 
         <a class="nav-link-custom {{ request()->routeIs('sumberdana.*') ? 'active' : '' }}" href="{{ route('sumberdana.index') }}">
@@ -267,8 +268,12 @@
     <main class="content">
       <div class="main-inner">
 
-        @if ($message = Session::get('success')) <div class="alert alert-success">{{ $message }}</div> @endif
-        @if ($message = Session::get('error'))   <div class="alert alert-danger">{{ $message }}</div>   @endif
+        @if ($message = Session::get('success'))
+          <div class="alert alert-success">{{ $message }}</div>
+        @endif
+        @if ($message = Session::get('error'))
+          <div class="alert alert-danger">{{ $message }}</div>
+        @endif
 
         <!-- HERO -->
         <section class="hero">
@@ -350,9 +355,10 @@
               <p class="mb-2">{{ $snippet }}@if($isTrimmed)…@endif</p>
 
               <h5 class="mt-3 mb-2 text-center">Anggota Tim Riset</h5>
+
               @php $anggotaCount = count($anggota ?? []); @endphp
 
-              @if($anggotaCount===0)
+              @if($anggotaCount === 0)
                 <div class="text-center subtle py-4">Belum ada anggota tim.</div>
               @else
                 <div class="chips-scroll">
@@ -365,7 +371,7 @@
                 <div class="small subtle mt-1">Total: {{ $anggotaCount }} orang</div>
               @endif
 
-              @if (Auth::user()->role == 'admin')
+              @if ($isAdmin)
                 <div class="mt-3">
                   <form id="addMemberForm" action="{{ route('detailproject.store') }}" method="POST" class="row g-2 align-items-end">
                     @csrf
@@ -387,9 +393,7 @@
                     </div>
 
                     <div class="col-12">
-                      <div class="form-text">
-                        Cari nama. Support pencarian server-side jika route <code>users.search</code> tersedia.
-                      </div>
+                      <div class="form-text">Cari nama. Support pencarian server-side jika route <code>users.search</code> tersedia.</div>
                     </div>
                   </form>
                 </div>
@@ -406,11 +410,12 @@
                 <a class="btn btn-outline-secondary btn-eq" href="{{ route('project.downloadproposal', $project->id) }}">
                   <i class="bi bi-download me-1"></i> Download Proposal
                 </a>
+
                 <a class="btn btn-outline-secondary btn-eq" href="{{ route('project.downloadrab', $project->id) }}">
                   <i class="bi bi-download me-1"></i> Download RAB
                 </a>
 
-                @if(Auth::user()->role == 'admin')
+                @if($isAdmin)
                   @if(!$isClosed)
                     <button type="button"
                       class="btn btn-danger btn-eq js-close-project"
@@ -418,6 +423,7 @@
                       data-nama="{{ $project->nama_project }}">
                       <i class="bi bi-lock-fill me-1"></i> Tutup Project
                     </button>
+
                     <small class="subtle">
                       Saat ditutup, sistem menghitung sisa dana dan otomatis memasukkannya ke Kas (jika ada).
                     </small>
@@ -433,7 +439,7 @@
 
             <!-- Pendanaan -->
             @php
-              $sdObj  = $project->sumberDana ?? ($sumber_dana ?? null);
+              $sdObj   = $project->sumberDana ?? ($sumber_dana ?? null);
               $sdJenis = $sdObj ? ucfirst(strtolower($sdObj->jenis_pendanaan ?? 'Internal')) : 'Internal';
               $sdNama  = $sdObj->nama_sumber_dana ?? 'Tidak tersedia';
             @endphp
@@ -451,6 +457,7 @@
                 </div>
               </div>
             </div>
+
           </div>
         </div>
 
@@ -471,14 +478,14 @@
                     </tr>
                   </thead>
                   <tbody>
-                    @php $total_nominal = 0; $total_realisasi = 0; @endphp
+                    @php $total_nominal_local = 0; $total_realisasi_local = 0; @endphp
 
                     @forelse ($detail_dana as $dd)
                       @php
                         $sisa = $dd->nominal - $dd->realisasi_anggaran;
                         $rowClass = $sisa < 0 ? 'tr-over' : ($dd->nominal > 0 && $sisa <= ($dd->nominal * 0.10) ? 'tr-near' : '');
-                        $total_nominal += $dd->nominal;
-                        $total_realisasi += $dd->realisasi_anggaran;
+                        $total_nominal_local += $dd->nominal;
+                        $total_realisasi_local += $dd->realisasi_anggaran;
                       @endphp
                       <tr class="{{ $rowClass }}">
                         <td>{{ $dd->nama_subkategori }}</td>
@@ -487,23 +494,25 @@
                         <td class="text-end tnum">Rp {{ number_format($sisa, 0, ',', '.') }}</td>
                       </tr>
                     @empty
-                      <tr><td colspan="4" class="text-center subtle py-4">Belum ada data anggaran.</td></tr>
+                      <tr>
+                        <td colspan="4" class="text-center subtle py-4">Belum ada data anggaran.</td>
+                      </tr>
                     @endforelse
 
                     <tr class="fw-bold">
                       <td>Total</td>
-                      <td class="text-end tnum">Rp {{ number_format($total_nominal, 0, ',', '.') }}</td>
-                      <td class="text-end tnum">Rp {{ number_format($total_realisasi, 0, ',', '.') }}</td>
-                      <td class="text-end tnum">Rp {{ number_format($total_nominal - $total_realisasi, 0, ',', '.') }}</td>
+                      <td class="text-end tnum">Rp {{ number_format($total_nominal_local, 0, ',', '.') }}</td>
+                      <td class="text-end tnum">Rp {{ number_format($total_realisasi_local, 0, ',', '.') }}</td>
+                      <td class="text-end tnum">Rp {{ number_format($total_nominal_local - $total_realisasi_local, 0, ',', '.') }}</td>
                     </tr>
                   </tbody>
                 </table>
               </div>
 
               @php
-                $sisaTotal = $total_nominal - $total_realisasi;
-                $ratio = $total_nominal > 0 ? ($sisaTotal / $total_nominal) : 0;
-                $pct = $total_nominal > 0 ? round($total_realisasi / $total_nominal * 100) : 0;
+                $sisaTotal = $total_nominal_local - $total_realisasi_local;
+                $ratio = $total_nominal_local > 0 ? ($sisaTotal / $total_nominal_local) : 0;
+                $pct = $total_nominal_local > 0 ? round($total_realisasi_local / $total_nominal_local * 100) : 0;
                 $pct = max(0, min(100, $pct));
                 $barClass = $pct >= 90 ? 'bg-warning' : 'bg-success';
                 $badgeClass = $sisaTotal < 0 ? 'bg-danger-subtle text-danger'
@@ -520,6 +529,7 @@
                   <span class="badge {{ $badgeClass }} p-2">Sisa: Rp {{ number_format($sisaTotal, 0, ',', '.') }}</span>
                 </div>
               </div>
+
             </div>
           </div>
         </div>
@@ -543,27 +553,27 @@
                   <tbody>
                     @php $total_request_local = 0; @endphp
 
-                    @forelse ($detail_request as $dd)
+                    @forelse ($detail_request as $dr)
                       <tr>
-                        <td class="text-center">{{ $dd->nama_barang }}</td>
-                        <td class="text-center tnum">{{ $dd->kuantitas }}</td>
-                        <td class="text-end tnum">Rp {{ number_format($dd->harga, 0, ',', '.') }}</td>
-                        <td class="text-end tnum">Rp {{ number_format($dd->total, 0, ',', '.') }}</td>
+                        <td class="text-center">{{ $dr->nama_barang }}</td>
+                        <td class="text-center tnum">{{ $dr->kuantitas }}</td>
+                        <td class="text-end tnum">Rp {{ number_format($dr->harga, 0, ',', '.') }}</td>
+                        <td class="text-end tnum">Rp {{ number_format($dr->total, 0, ',', '.') }}</td>
                       </tr>
-                      @php $total_request_local += $dd->total; @endphp
+                      @php $total_request_local += $dr->total; @endphp
                     @empty
-                      <tr><td colspan="4" class="text-center subtle py-4">Belum ada request pembelian.</td></tr>
+                      <tr>
+                        <td colspan="4" class="text-center subtle py-4">Belum ada request pembelian.</td>
+                      </tr>
                     @endforelse
 
                     @if (count($detail_request) > 0)
+                      @php
+                        $totalReqShow = isset($total_request_pembelian) ? $total_request_pembelian : $total_request_local;
+                      @endphp
                       <tr class="fw-bold">
                         <td colspan="3">Total Request Pembelian</td>
-                        <td class="text-end tnum">
-                          @php
-                            $totalReqShow = isset($total_request_pembelian) ? $total_request_pembelian : $total_request_local;
-                          @endphp
-                          Rp {{ number_format($totalReqShow, 0, ',', '.') }}
-                        </td>
+                        <td class="text-end tnum">Rp {{ number_format($totalReqShow, 0, ',', '.') }}</td>
                       </tr>
                     @endif
                   </tbody>
@@ -585,26 +595,33 @@
 
   <script>
     // Sidebar mobile toggle
-    const sidebar = document.getElementById('appSidebar');
+    const sidebar   = document.getElementById('appSidebar');
     const toggleBtn = document.getElementById('sidebarToggle');
-    const backdrop = document.getElementById('backdrop');
+    const backdrop  = document.getElementById('backdrop');
 
-    const openSidebar = ()=>{ sidebar.classList.add('open'); backdrop.classList.add('show'); };
+    const openSidebar  = ()=>{ sidebar.classList.add('open'); backdrop.classList.add('show'); };
     const closeSidebar = ()=>{ sidebar.classList.remove('open'); backdrop.classList.remove('show'); };
 
     toggleBtn?.addEventListener('click', ()=> sidebar.classList.contains('open') ? closeSidebar() : openSidebar());
     backdrop?.addEventListener('click', closeSidebar);
 
-    // Tom Select
+    // Tom Select (anggota)
     (function(){
       const el = document.getElementById('id_user');
       if(!el) return;
+
       const remoteUrl = el.getAttribute('data-url') || "";
 
       new TomSelect(el,{
-        create:false, maxItems:1, persist:false, preload:'focus',
-        valueField:'id', labelField:'name', searchField:['name'],
-        sortField:{field:'name',direction:'asc'}, maxOptions:50,
+        create:false,
+        maxItems:1,
+        persist:false,
+        preload:'focus',
+        valueField:'id',
+        labelField:'name',
+        searchField:['name'],
+        sortField:{field:'name',direction:'asc'},
+        maxOptions:50,
         render:{
           option:(d,e)=> `<div>${e(d.name||d.text||'')}</div>`,
           item:(d,e)=> `<div>${e(d.name||d.text||'')}</div>`
@@ -624,7 +641,7 @@
       const btn = e.target.closest('.js-close-project');
       if(!btn) return;
 
-      const id = btn.getAttribute('data-id');
+      const id   = btn.getAttribute('data-id');
       const nama = btn.getAttribute('data-nama');
       closeProject(id, nama);
     });
@@ -641,9 +658,13 @@
 
       if (!result.isConfirmed) return;
 
-      Swal.fire({ title:'Memproses...', allowOutsideClick:false, didOpen:()=>Swal.showLoading() });
+      Swal.fire({
+        title:'Memproses...',
+        allowOutsideClick:false,
+        didOpen:()=>Swal.showLoading()
+      });
 
-      try {
+      try{
         const res = await fetch('/project/' + id + '/close', {
           method: 'POST',
           headers: {
@@ -672,7 +693,7 @@
         } else {
           Swal.fire({ icon:'error', title:'Gagal', text: data.message || 'Terjadi kesalahan.' });
         }
-      } catch (e) {
+      } catch(e){
         Swal.close();
         Swal.fire({ icon:'error', title:'Error', text:'Tidak bisa menghubungi server.' });
       }
