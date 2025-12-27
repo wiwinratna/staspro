@@ -65,7 +65,7 @@
       box-shadow:0 8px 22px rgba(15,23,42,.06);
     }
 
-    /* FIX tombol putih */
+    /* tombol */
     .btn-brand{
       background:var(--brand) !important;
       border-color:var(--brand) !important;
@@ -100,13 +100,13 @@
 
   $isAdmin = Auth::user()->role === 'admin';
 
-  // normalisasi status biar aman (kadang ada spasi / huruf besar)
+  // normalisasi status
   $statusHeaderRaw = $header->status_request ?? '';
   $statusHeader = strtolower(trim($statusHeaderRaw));
   $statusHeader = str_replace(' ', '_', $statusHeader);
 
-  // aturan upload: approve_request / reject_payment
-  $allowUpload = in_array($statusHeader, ['approve_request','reject_payment']);
+  // ✅ FIX: izinkan upload juga saat submit_payment (biar bisa nyicil upload semua item)
+  $allowUpload = in_array($statusHeader, ['approve_request','reject_payment','submit_payment']);
 @endphp
 
 <!-- TOPBAR -->
@@ -138,7 +138,6 @@
       <i class="bi bi-bag-check"></i> Request Pembelian
     </a>
 
-    {{-- KAS cuma admin (peneliti ga muncul di halaman upload) --}}
     @if($isAdmin)
       <a class="nav-link-custom {{ request()->routeIs('kas.*') ? 'active' : '' }}" href="{{ route('kas.index') }}">
         <i class="bi bi-wallet2"></i> Kas
@@ -161,7 +160,7 @@
       <div>
         <div class="page-title">Upload Bukti Pembayaran</div>
         <div class="page-sub">
-          Upload bukti bayar hanya bisa setelah <b>Approve Request</b> atau saat <b>Reject Payment</b> (upload ulang).
+          Upload bukti bayar bisa saat <b>Approve Request</b>, <b>Reject Payment</b>, atau <b>Submit Payment</b> (melengkapi / perbaiki satu-satu).
         </div>
       </div>
 
@@ -205,14 +204,13 @@
 
         @elseif(!$allowUpload)
           <div class="alert alert-warning mb-0">
-            Bukti bayar belum bisa diunggah. Status harus <b>approve_request</b> atau <b>reject_payment</b>.
+            Bukti bayar belum bisa diunggah. Status harus <b>approve_request</b>, <b>reject_payment</b>, atau <b>submit_payment</b>.
           </div>
 
         @else
           <form action="{{ route('requestpembelian.storebukti', $detail->id) }}" method="POST" enctype="multipart/form-data">
             @csrf
 
-            {{-- ✅ PENTING: controller biasanya butuh ini --}}
             <input type="hidden" name="id_request_pembelian_header" value="{{ $detail->id_request_pembelian_header }}">
 
             <div class="mb-3">
@@ -236,7 +234,6 @@
 <!-- SCRIPT -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-  // sidebar mobile toggle
   const sidebar = document.getElementById('appSidebar');
   const toggleBtn = document.getElementById('sidebarToggle');
   const backdrop = document.getElementById('backdrop');

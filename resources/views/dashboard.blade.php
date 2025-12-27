@@ -477,12 +477,10 @@
         <i class="bi bi-kanban"></i> Project
       </a>
 
-      <a class="nav-link-custom {{ request()->routeIs('requestpembelian.*') ? 'active' : '' }}" href="{{ route('requestpembelian.index') }}">
-        <i class="bi bi-bag-check"></i> Request Pembelian
-        @if(Auth::user()->role === 'admin' && ($newRequests ?? 0) > 0)
-          <span class="nav-badge">{{ $newRequests }}</span>
-        @endif
-      </a>
+    <a class="nav-link-custom {{ request()->routeIs('requestpembelian.*') ? 'active' : '' }}" href="{{ route('requestpembelian.index') }}">
+      <i class="bi bi-bag-check"></i> Request Pembelian
+    </a>
+
 
       @if(Auth::user()->role === 'admin')
         <div class="menu-title mt-3">Administrasi</div>

@@ -16,9 +16,24 @@ class ProjectController extends Controller
 {
     public function index()
     {
-        $projects = Project::all();
-        return view('project', ['projects' => $projects]);
+        // biar sumberDana kebaca di card
+        $projects = Project::with('sumberDana')->get();
+
+        $joinedProjectIds = [];
+
+        // khusus peneliti: ambil project yang dia join dari detail_project
+        if (Auth::user()->role !== 'admin') {
+            $joinedProjectIds = DB::table('detail_project')
+                ->where('id_user', Auth::id())
+                ->pluck('id_project')
+                ->map(fn($v) => (int) $v)
+                ->unique()
+                ->toArray();
+        }
+
+        return view('project', compact('projects', 'joinedProjectIds'));
     }
+
 
     public function create()
     {
