@@ -5,9 +5,11 @@
      id="profileDropdown"
      data-bs-toggle="dropdown"
      aria-expanded="false">
-     
+
     <img
-      src="{{ Auth::user()->profile_picture ? asset('images/' . Auth::user()->profile_picture) : asset('images/default-profile.png') }}"
+      src="{{ Auth::user()->profile_picture 
+          ? asset('images/' . Auth::user()->profile_picture) 
+          : asset('images/default-profile.png') }}"
       alt="Profile"
       class="rounded-circle"
       width="32"
@@ -22,7 +24,14 @@
     <li>
       <form method="POST" action="{{ route('logout') }}">
         @csrf
-        <button type="submit" class="dropdown-item text-danger">Logout</button>
+
+        {{-- ⬇️ INI KUNCINYA --}}
+        <input type="hidden" name="redirect"
+               value="{{ auth()->user()->role }}">
+
+        <button type="submit" class="dropdown-item text-danger">
+          Logout
+        </button>
       </form>
     </li>
   </ul>
