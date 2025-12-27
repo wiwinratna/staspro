@@ -22,6 +22,24 @@ Route::get('/', function () {
     return redirect('/login');
 });
 
+Route::get('/admin/login', [AuthController::class, 'showAdminAuth'])
+    ->name('admin.login')
+    ->middleware('guest');
+
+Route::post('/admin/login', [AuthController::class, 'loginAdmin'])
+    ->name('admin.login.post')
+    ->middleware('guest');
+
+Route::get('/admin/register', function () {
+    return redirect()->route('admin.login'); // biar 1 halaman tab
+})->name('admin.register')->middleware('guest');
+
+Route::post('/admin/register', [AuthController::class, 'registerAdmin'])
+    ->name('admin.register.post')
+    ->middleware('guest');
+
+Route::post('/admin/logout', [AuthController::class, 'logoutAdmin'])->name('admin.logout');
+
 
 
 Route::middleware('auth')->group(function () {
