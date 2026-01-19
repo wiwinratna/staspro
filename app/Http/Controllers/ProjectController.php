@@ -20,22 +20,45 @@ class ProjectController extends Controller
 {
     public function index()
     {
-        // biar sumberDana kebaca di card
-        $projects = Project::with('sumberDana')->get();
+        $query = Project::with('sumberDana');
+
+        if (Auth::user()->role === 'peneliti') {
+            $query->where(function ($q) {
+                $q->where('workflow_status', 'finalized')
+                    ->orWhere('user_id_created', Auth::id()); // biar pengaju tetap bisa lihat prosesnya
+            });
+        }
+
+        $projects = $query->orderByDesc('id')->get();
 
         $joinedProjectIds = [];
 
-        // khusus peneliti: ambil project yang dia join dari detail_project
         if (strtolower(Auth::user()->role ?? '') !== 'admin') {
             $joinedProjectIds = DB::table('detail_project')
                 ->where('id_user', Auth::id())
                 ->pluck('id_project')
-                ->map(fn($v) => (int) $v)
+                ->map(fn ($v) => (int) $v)
                 ->unique()
                 ->toArray();
         }
 
         return view('project', compact('projects', 'joinedProjectIds'));
+    }
+
+    public function tracking()
+    {
+        $query = Project::with('sumberDana');
+
+        if (Auth::user()->role === 'peneliti') {
+            $query->where('user_id_created', Auth::id());
+        }
+
+        $projects = $query
+            ->whereIn('workflow_status', ['submitted', 'approved', 'funded'])
+            ->orderByDesc('id')
+            ->get();
+
+        return view('project.tracking', compact('projects'));
     }
 
     public function create()
@@ -77,34 +100,62 @@ class ProjectController extends Controller
 
             $subkategori_sumberdana = SubkategoriSumberdana::where('id_sumberdana', $sumberDanaId)->get();
 
-            $project = Project::create([
-                'tahun'           => $request->tahun,
-                'nama_project'    => $request->nama_project,
-                'id_sumber_dana'  => $sumberDanaId,
-                'durasi'          => $request->durasi,
-                'deskripsi'       => $request->deskripsi,
-                'file_proposal'   => $filename_proposal,
-                'file_rab'        => $filename_rab,
-                'user_id_created' => Auth::user()->id,
-                'user_id_updated' => Auth::user()->id,
-            ]);
+            DB::transaction(function () use (
+                $request,
+                $filename_proposal,
+                $filename_rab,
+                $sumberDanaId,
+                $subkategori_sumberdana,
+                &$project
+            ) {
+                $project = Project::create([
+                    'tahun'           => $request->tahun,
+                    'nama_project'    => $request->nama_project,
+                    'id_sumber_dana'  => $sumberDanaId,
+                    'durasi'          => $request->durasi,
+                    'deskripsi'       => $request->deskripsi,
+                    'file_proposal'   => $filename_proposal,
+                    'file_rab'        => $filename_rab,
 
-            foreach ($subkategori_sumberdana as $subkategori) {
-                $nama_form = $subkategori->nama_form;
+                    // ✅ workflow
+                    'workflow_status' => 'submitted',
+                    'submitted_at'    => now(),
 
-                if ($request->has($nama_form)) {
-                    $nominal = str_replace(['Rp.', '.', ','], ['', '', '.'], $request->$nama_form);
-                    $nominal = (float) $nominal;
+                    // ✅ ketua default = pengaju
+                    'ketua_id'        => Auth::id(),
 
-                    DetailSubkategori::create([
-                        'nominal'                   => $nominal,
-                        'id_subkategori_sumberdana' => $subkategori->id,
-                        'id_project'                => $project->id,
-                        'user_id_created'           => Auth::user()->id,
-                        'user_id_updated'           => Auth::user()->id,
-                    ]);
+                    'user_id_created' => Auth::id(),
+                    'user_id_updated' => Auth::id(),
+                ]);
+
+                // ✅ AUTO: pengaju otomatis jadi anggota detail_project
+                DB::table('detail_project')->updateOrInsert(
+                    ['id_project' => $project->id, 'id_user' => Auth::id()],
+                    [
+                        'user_id_created' => Auth::id(),
+                        'user_id_updated' => Auth::id(),
+                        'created_at'      => now(),
+                        'updated_at'      => now(),
+                    ]
+                );
+
+                foreach ($subkategori_sumberdana as $subkategori) {
+                    $nama_form = $subkategori->nama_form;
+
+                    if ($request->has($nama_form)) {
+                        $nominal = str_replace(['Rp.', '.', ','], ['', '', '.'], $request->$nama_form);
+                        $nominal = (float) $nominal;
+
+                        DetailSubkategori::create([
+                            'nominal'                   => $nominal,
+                            'id_subkategori_sumberdana' => $subkategori->id,
+                            'id_project'                => $project->id,
+                            'user_id_created'           => Auth::id(),
+                            'user_id_updated'           => Auth::id(),
+                        ]);
+                    }
                 }
-            }
+            });
 
             return redirect()->route('project.index')->with('success', 'Data berhasil ditambahkan');
         } catch (\Exception $e) {
@@ -116,16 +167,18 @@ class ProjectController extends Controller
     {
         $project = Project::with('sumberDana')->findOrFail($project->id);
 
+        $sumber_dana = null;
         if (!$project->sumberDana) {
             $sumber_dana = DB::table('sumber_dana')
                 ->where('id', $project->id_sumber_dana)
                 ->first();
         }
 
-        $anggota = DB::table('detail_project as a')
-            ->leftJoin('users as b', 'a.id_user', '=', 'b.id')
-            ->where('a.id_project', $project->id)
-            ->select('b.name')
+        $anggota = DB::table('detail_project as dp')
+            ->join('users as u', 'dp.id_user', '=', 'u.id')
+            ->where('dp.id_project', $project->id)
+            ->select('u.id', 'u.name')
+            ->orderBy('u.name')
             ->get();
 
         $users = DB::table('users as b')
@@ -164,6 +217,7 @@ class ProjectController extends Controller
             ->select(
                 'b.nama as nama_subkategori',
                 'a.nominal',
+                'a.anggaran_revisi',
                 'a.realisasi_anggaran',
                 'a.id',
                 'c.jenis_pendanaan',
@@ -171,45 +225,38 @@ class ProjectController extends Controller
             )
             ->get();
 
+        // NOTE: jenis & nama sumber dana tetap dihitung (biar view kamu aman)
         $jenis_pendanaan = $project->sumberDana
             ? $project->sumberDana->jenis_pendanaan
-            : (isset($sumber_dana) ? $sumber_dana->jenis_pendanaan : 'internal');
+            : ($sumber_dana ? $sumber_dana->jenis_pendanaan : 'internal');
 
         $nama_sumber_dana = $project->sumberDana
             ? $project->sumberDana->nama_sumber_dana
-            : (isset($sumber_dana) ? $sumber_dana->nama_sumber_dana : null);
+            : ($sumber_dana ? $sumber_dana->nama_sumber_dana : null);
 
-        $detail_dana = $detail_dana->map(function ($item) use ($total_request_pembelian, $jenis_pendanaan, $nama_sumber_dana) {
-            $realisasi = $item->realisasi_anggaran;
+        /**
+         * ✅ PERBAIKAN UTAMA (TANPA MERUBAH YANG UDAH BENER)
+         * Karena realisasi_anggaran kamu sudah benar di DB,
+         * jangan ditambah lagi dengan total_request_pembelian.
+         *
+         * Jadi blok $detail_dana->map(...) yang sebelumnya "menambahkan" request,
+         * dihapus/dimatikan.
+         */
 
-            if ($jenis_pendanaan == 'internal' && $item->nama_subkategori == 'Bahan Habis Pakai dan Peralatan') {
-                $realisasi += $total_request_pembelian;
-            } else if (
-                $jenis_pendanaan == 'eksternal' &&
-                strtolower($nama_sumber_dana) == strtolower('Kedaireka') &&
-                strtolower($item->nama_subkategori) == strtolower('Peralatan Pendukung Terkait Langsung dengan Kegiatan')
-            ) {
-                $realisasi += $total_request_pembelian;
-            } else if (
-                $jenis_pendanaan == 'eksternal' &&
-                strtolower($nama_sumber_dana) == strtolower('DRPTM') &&
-                strtolower($item->nama_subkategori) == strtolower('Bahan')
-            ) {
-                $realisasi += $total_request_pembelian;
-            } else if (
-                $jenis_pendanaan == 'eksternal' &&
-                strtolower($nama_sumber_dana) == strtolower('LPDP') &&
-                strtolower($item->nama_subkategori) == strtolower('Biaya Langsung')
-            ) {
-                $realisasi += $total_request_pembelian;
-            }
+        $total_nominal   = (int) $detail_dana->sum('nominal');
+        $total_realisasi = (int) $detail_dana->sum('realisasi_anggaran');
 
-            $item->realisasi_anggaran = $realisasi;
-            return $item;
-        });
+        // ✅ 1) Dana cair (limit) ambil dari tabel project_funding
+        $fundedTotal = (int) DB::table('project_funding')
+            ->where('project_id', $project->id)
+            ->sum('nominal');
 
-        $total_nominal   = $detail_dana->sum('nominal');
-        $total_realisasi = $detail_dana->sum('realisasi_anggaran');
+        // ✅ 2) penanda: revisi RAB udah pernah disimpan atau belum
+        $hasRabSubmitted = DB::table('detail_subkategori')
+            ->where('id_project', $project->id)
+            ->whereNotNull('anggaran_revisi')
+            ->whereRaw('anggaran_revisi <> nominal')
+            ->exists();
 
         return view('detail_project', [
             'project' => $project,
@@ -220,7 +267,11 @@ class ProjectController extends Controller
             'total_request_pembelian' => $total_request_pembelian,
             'total_nominal' => $total_nominal,
             'total_realisasi' => $total_realisasi,
-            'sumber_dana' => $project->sumberDana ?? ($sumber_dana ?? null)
+            'sumber_dana' => $project->sumberDana ?? $sumber_dana,
+
+            // ✅ TAMBAHAN INI
+            'fundedTotal' => $fundedTotal,
+            'hasRabSubmitted' => $hasRabSubmitted,
         ]);
     }
 
@@ -481,5 +532,146 @@ class ProjectController extends Controller
                 ]
             ]);
         });
+    }
+
+    public function rabRevise(Project $project)
+    {
+        $fundedTotal = (int) DB::table('project_funding')
+            ->where('project_id', $project->id)
+            ->sum('nominal');
+
+        // NOTE: ini query kamu—tetap dipakai (kalau memang kolomnya ada di tabel detail_subkategori)
+        $detail_dana = DB::table('detail_subkategori')
+            ->where('id_project', $project->id)
+            ->select('id', 'nama_subkategori', 'nominal', 'realisasi_anggaran')
+            ->get();
+
+        $detail_request = DB::table('request_pembelian_detail')
+            ->where('id_project', $project->id)
+            ->select('nama_barang', 'kuantitas', 'harga', 'total')
+            ->get();
+
+        return view('detail_project', [
+            'project' => $project,
+            'detail_dana' => $detail_dana,
+            'detail_request' => $detail_request,
+            'fundedTotal' => $fundedTotal,
+            'modeRabRevise' => true,
+        ]);
+    }
+
+    public function rabReviseSave(Request $request, Project $project)
+    {
+        $fundedTotal = (int) DB::table('project_funding')
+            ->where('project_id', $project->id)
+            ->sum('nominal');
+
+        $revisi = $request->input('revisi', []);
+        $revisi = is_array($revisi) ? $revisi : [];
+
+        $clean = [];
+        $sum = 0;
+
+        foreach ($revisi as $rowId => $val) {
+            $n = (int) preg_replace('/[^0-9]/', '', (string) $val);
+            $n = max(0, $n);
+            $clean[(int) $rowId] = $n;
+            $sum += $n;
+        }
+
+        if ($fundedTotal > 0 && $sum > $fundedTotal) {
+            return redirect()
+                ->route('project.show', $project->id)
+                ->with('error', 'Total revisi tidak boleh melebihi dana cair. Total: Rp ' . number_format($sum, 0, ',', '.'));
+        }
+
+        DB::transaction(function () use ($clean, $project) {
+            foreach ($clean as $rowId => $n) {
+                DB::table('detail_subkategori')
+                    ->where('id_project', $project->id)
+                    ->where('id', $rowId)
+                    ->update([
+                        'anggaran_revisi' => $n,
+                        'updated_at' => now(),
+                    ]);
+            }
+        });
+
+        return redirect()
+            ->route('project.show', $project->id)
+            ->with('success', 'Revisi RAB berhasil disimpan. Menunggu finalisasi admin/bendahara.');
+    }
+
+    public function setKetua(Request $request, Project $project)
+    {
+        $role = strtolower(Auth::user()->role ?? '');
+        $isAdmin = ($role === 'admin');
+
+        $creatorId = (int)($project->user_id_created ?? 0);
+        $isCreator = $creatorId > 0 ? ((int)Auth::id() === $creatorId) : false;
+
+        $isClosed = (strtolower($project->status ?? 'aktif') === 'ditutup');
+        $wf = strtolower($project->workflow_status ?? '');
+        $isFinalized = ($wf === 'finalized');
+
+        if ($isClosed) {
+            return back()->with('error', 'Project sudah ditutup, ketua tidak bisa diubah.');
+        }
+
+        // Yang boleh ganti: admin atau pengaju/creator
+        if (!$isAdmin && !$isCreator) {
+            return back()->with('error', 'Kamu tidak punya akses untuk mengganti ketua.');
+        }
+
+        $request->validate([
+            'ketua_id' => 'required|integer'
+        ]);
+
+        $ketuaId = (int) $request->ketua_id;
+
+        // Validasi: ketua harus anggota di detail_project
+        $isMember = DB::table('detail_project')
+            ->where('id_project', $project->id)
+            ->where('id_user', $ketuaId)
+            ->exists();
+
+        if (!$isMember) {
+            return back()->with('error', 'Ketua harus dipilih dari anggota project.');
+        }
+
+        $project->ketua_id = $ketuaId;
+        $project->user_id_updated = Auth::id();
+        $project->save();
+
+        return back()->with('success', 'Ketua project berhasil diperbarui.');
+    }
+
+    public function removeMember(Project $project, User $user)
+    {
+        $role = strtolower(auth()->user()->role ?? '');
+        $isAdmin = $role === 'admin';
+
+        $creatorId = (int)($project->user_id_created ?? $project->created_by ?? 0);
+        $isCreator = (int)auth()->id() === $creatorId;
+
+        if (!$isAdmin && !$isCreator) {
+            return back()->with('error', 'Kamu tidak punya akses menghapus anggota.');
+        }
+
+        if (strtolower($project->status ?? 'aktif') === 'ditutup') {
+            return back()->with('error', 'Project sudah ditutup. Anggota tidak bisa dihapus.');
+        }
+
+        // jangan boleh hapus ketua
+        if ((int)($project->ketua_id ?? 0) === (int)$user->id) {
+            return back()->with('error', 'Ketua tidak bisa dihapus. Ganti ketua dulu.');
+        }
+
+        DB::table('detail_project')
+            ->where('id_project', $project->id)
+            ->where('id_user', $user->id)
+            ->delete();
+
+        return back()->with('success', 'Anggota berhasil dihapus dari project.');
     }
 }

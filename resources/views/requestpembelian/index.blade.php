@@ -1,17 +1,9 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-  @extends('layouts.app')
-  <meta charset="UTF-8" />
-  <title>Request Pembelian</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="csrf-token" content="{{ csrf_token() }}">
+{{-- resources/views/requestpembelian/index.blade.php --}}
+@extends('layouts.panel')
 
-  <!-- Fonts & Icons -->
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet"/>
+@section('title','Request Pembelian')
 
+@push('styles')
   <!-- DataTables -->
   <link rel="stylesheet" href="https://cdn.datatables.net/2.2.2/css/dataTables.bootstrap5.css">
 
@@ -33,84 +25,6 @@
       --shadow:0 10px 30px rgba(15,23,42,.08);
       --shadow2:0 18px 40px rgba(15,23,42,.10);
     }
-
-    *{ box-sizing:border-box }
-    body{
-      margin:0;
-      background:var(--bg);
-      font-family:'Inter',system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
-      color:var(--ink);
-    }
-
-    /* Topbar */
-    .topbar{
-      position:sticky; top:0; z-index:1030;
-      background:linear-gradient(135deg,var(--brand-700),var(--brand));
-      color:#fff;
-      border-bottom:1px solid rgba(255,255,255,.18);
-      height:56px;
-    }
-    .brand{
-      display:flex;align-items:center;gap:10px;
-      font-weight:800;
-      letter-spacing:.2px;
-    }
-    .brand-badge{
-      font-size:.72rem; font-weight:800;
-      padding:.22rem .55rem; border-radius:999px;
-      background:rgba(255,255,255,.16);
-      border:1px solid rgba(255,255,255,.22);
-      white-space:nowrap;
-    }
-
-    /* Layout */
-    .app{ display:flex; min-height:calc(100vh - 56px); }
-    .sidebar{
-      width:260px;
-      background:var(--card);
-      border-right:1px solid var(--line);
-      padding:14px;
-      position:sticky; top:56px;
-      height:calc(100vh - 56px);
-      overflow:auto;
-    }
-
-    .menu-title{
-      font-size:.72rem;
-      letter-spacing:.08em;
-      color:var(--ink-600);
-      text-transform:uppercase;
-      margin:8px 0;
-      font-weight:700;
-    }
-
-    .nav-link-custom{
-      display:flex; align-items:center; gap:10px;
-      padding:9px 10px;
-      border-radius:14px;
-      text-decoration:none;
-      color:var(--ink);
-      font-weight:600;
-      font-size:.92rem;
-      line-height:1;
-      transition:.18s;
-      white-space:nowrap;
-    }
-    .nav-link-custom i{ font-size:1.05rem; }
-
-    .nav-link-custom:hover{
-      background:var(--brand-50);
-      color:var(--brand-700);
-      transform:translateX(2px);
-    }
-    .nav-link-custom.active{
-      background:linear-gradient(135deg,var(--brand-700),var(--brand));
-      color:#fff;
-      box-shadow:0 16px 28px rgba(2,6,23,.12);
-      font-weight:700;
-    }
-
-    .content{ flex:1; padding:18px 18px 22px; }
 
     /* HERO ala dashboard */
     .hero{
@@ -184,6 +98,7 @@
       box-shadow:0 16px 28px rgba(22,163,74,.18);
       color:#fff;
       white-space:nowrap;
+      text-decoration:none;
     }
     .btn-brand:hover{ filter:brightness(.98); transform:translateY(-1px); color:#fff; }
     .btn-brand i{ line-height:1; }
@@ -269,7 +184,6 @@
       text-align:center;
     }
 
-    /* Group label & divider */
     .tabs-title{
       margin-top:12px;
       font-weight:900;
@@ -284,7 +198,7 @@
       margin:12px 0;
     }
 
-    /* === Stage: Request & Payment sejajar === */
+    /* Stage: Request & Payment sejajar */
     .stage-grid{
       display:grid;
       grid-template-columns: 1fr 1fr;
@@ -298,9 +212,7 @@
       padding:12px 12px 10px;
       box-shadow:0 10px 26px rgba(15,23,42,.05);
     }
-    .stage-box-right{
-      position:relative;
-    }
+    .stage-box-right{ position:relative; }
     .stage-box-right:before{
       content:"";
       position:absolute;
@@ -345,7 +257,11 @@
       margin-top:12px;
       box-shadow:var(--shadow);
     }
-    .table-responsive{ max-height:68vh; overflow-y:auto; }
+    .table-responsive{
+      max-height:68vh;
+      overflow-y:auto;
+      overflow-x:auto; /* ✅ biar tabel ga dorong layout */
+    }
 
     .table-modern{ margin:0; font-size:.92rem; border-collapse:separate; border-spacing:0; }
     .table-modern thead th{
@@ -360,12 +276,14 @@
       position:sticky;
       top:0;
       z-index:5;
+      white-space:nowrap;
     }
     .table-modern tbody td{
       padding:14px 12px;
       vertical-align:middle;
       border-top:1px solid #eef2f7;
       font-weight:500;
+      white-space:nowrap;
     }
     .table-striped > tbody > tr:nth-of-type(odd){ background:#fcfcfd; }
     .table-modern tbody tr:hover{ background:var(--brand-50); transition:.12s; }
@@ -379,6 +297,7 @@
       -webkit-box-orient:vertical;
       word-break:break-word;
       line-height:1.25rem;
+      white-space:normal;
     }
 
     /* Badge status */
@@ -389,6 +308,10 @@
       border-radius:999px;
       white-space:nowrap;
       border:1px solid transparent;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      gap:6px;
     }
     .badge-submit-request { background:#fff7ed; color:#9a3412; border-color:#fed7aa; }
     .badge-approve-request{ background:#eff6ff; color:#1e40af; border-color:#bfdbfe; }
@@ -401,387 +324,318 @@
     .badge-done{ background:#eefdfb; color:#115e59; border-color:#99f6e4; }
 
     /* Action buttons */
-    .action-btns{ display:flex; justify-content:center; gap:6px; }
+    .action-btns{ display:flex; justify-content:center; gap:6px; flex-wrap:wrap; }
     .action-btns .btn{ padding:.32rem .6rem; font-size:.78rem; border-radius:10px; white-space:nowrap; font-weight:800; }
 
-    /* Mobile */
-    .backdrop{
-      display:none;
-      position:fixed;
-      inset:0;
-      background:rgba(15,23,42,.38);
-      z-index:1035;
-    }
-    .backdrop.show{ display:block; }
-
     @media(max-width:991px){
-      .sidebar{
-        position:fixed;
-        left:-290px;
-        top:56px;
-        height:calc(100vh - 56px);
-        z-index:1040;
-        transition:left .2s;
-      }
-      .sidebar.open{ left:0; }
-      .content{ padding:14px; }
       .col-item{ max-width:260px; }
-
       .stage-grid{ grid-template-columns: 1fr; }
       .stage-box-right:before{ display:none; }
     }
   </style>
-</head>
+@endpush
 
-<body>
+@section('content')
 
-<!-- TOPBAR -->
-<nav class="navbar topbar">
-  <div class="container-fluid">
-    <button class="btn btn-outline-light d-lg-none me-2" id="sidebarToggle">
-      <i class="bi bi-list"></i>
-    </button>
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-inner">
+      <div class="hero-left">
+        <h1 class="title">Request Pembelian</h1>
+        <p class="sub">
+          @if(Auth::user()->role == 'admin')
+            Daftar seluruh pengajuan pembelian beserta statusnya.
+          @else
+            Riwayat request pembelian milik kamu.
+          @endif
+        </p>
+      </div>
 
-    <div class="brand">
-      <span>STAS-RG</span>
-      <span class="brand-badge">{{ Auth::user()->role === 'admin' ? 'ADMIN' : 'PENELITI' }}</span>
-    </div>
-
-    <div class="ms-auto">@include('navbar')</div>
-  </div>
-</nav>
-
-<div class="app">
-
-  <!-- SIDEBAR -->
-  <aside class="sidebar" id="appSidebar">
-    <div class="menu-title">Menu</div>
-
-    <a class="nav-link-custom {{ request()->routeIs('dashboard') ? 'active' : '' }}" href="{{ route('dashboard') }}">
-      <i class="bi bi-speedometer2"></i> Dashboard
-    </a>
-
-    <a class="nav-link-custom {{ request()->routeIs('project.*') ? 'active' : '' }}" href="{{ route('project.index') }}">
-      <i class="bi bi-kanban"></i> Project
-    </a>
-
-    <a class="nav-link-custom {{ request()->routeIs('requestpembelian.*') ? 'active' : '' }}" href="{{ route('requestpembelian.index') }}">
-      <i class="bi bi-bag-check"></i> Request Pembelian
-    </a>
-
-    @if(Auth::user()->role == 'admin')
-      <div class="menu-title mt-3">Administrasi</div>
-
-      <a class="nav-link-custom {{ request()->routeIs('sumberdana.*') ? 'active' : '' }}" href="{{ route('sumberdana.index') }}">
-        <i class="bi bi-cash-coin"></i> Sumber Dana
-      </a>
-
-      <a class="nav-link-custom {{ request()->routeIs('kas.*') ? 'active' : '' }}" href="{{ route('kas.index') }}">
-        <i class="bi bi-wallet2"></i> Kas
-      </a>
-
-      <a class="nav-link-custom {{ request()->routeIs('pencatatan_keuangan') ? 'active' : '' }}" href="{{ route('pencatatan_keuangan') }}">
-        <i class="bi bi-journal-text"></i> Pencatatan Keuangan
-      </a>
-
-      <a class="nav-link-custom {{ request()->routeIs('laporan_keuangan') ? 'active' : '' }}" href="{{ route('laporan_keuangan') }}">
-        <i class="bi bi-graph-up"></i> Laporan Keuangan
-      </a>
-
-      <a class="nav-link-custom {{ request()->routeIs('users.*') ? 'active' : '' }}" href="{{ route('users.index') }}">
-        <i class="bi bi-people"></i> Management User
-      </a>
-    @endif
-  </aside>
-
-  <div class="backdrop" id="backdrop"></div>
-
-  <!-- CONTENT -->
-  <main class="content">
-
-    <!-- HERO -->
-    <section class="hero">
-      <div class="hero-inner">
-        <div class="hero-left">
-          <h1 class="title">Request Pembelian</h1>
-          <p class="sub">
-            @if(Auth::user()->role == 'admin')
-              Daftar seluruh pengajuan pembelian beserta statusnya.
-            @else
-              Riwayat request pembelian milik kamu.
-            @endif
-          </p>
-        </div>
-
-        <!-- area kosong atasnya: taruh Manual Book + tombol input -->
-        <div class="tools-row">
-          <div class="tools-left">
-            @if(Auth::user()->role != 'admin')
-              <a href="{{ route('requestpembelian.create') }}" class="btn btn-brand">
-                <i class="bi bi-plus-lg"></i> Input Request Pembelian
-              </a>
-            @endif
-          </div>
-
-          <div class="tools-right">
-            <a
-              href="https://drive.google.com/file/d/1NicpoYzDkSk64F3HfVEDWt1tpk0WvrlI/view?usp=sharing"
-              target="_blank"
-              rel="noopener"
-              class="btn btn-soft"
-              title="Buka Manual Book"
-            >
-              <i class="bi bi-journal-bookmark"></i> Manual Book
+      <div class="tools-row">
+        <div class="tools-left">
+          @if(Auth::user()->role != 'admin')
+            <a href="{{ route('requestpembelian.create') }}" class="btn-brand">
+              <i class="bi bi-plus-lg"></i> Input Request Pembelian
             </a>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    @if(session('success'))
-      <div class="alert alert-success mt-3">{{ session('success') }}</div>
-    @endif
-    @if(session('error'))
-      <div class="alert alert-danger mt-3">{{ session('error') }}</div>
-    @endif
-
-    <!-- WORKFLOW PANEL -->
-    <div class="panel">
-      <div class="panel-head">
-        <div>
-          <div class="fw-bold">Workflow Status</div>
-          <div class="workflow-hint">
-            Tahap <b>Request</b> untuk pengajuan awal, tahap <b>Payment</b> untuk proses bukti bayar.
-          </div>
-        </div>
-      </div>
-
-      <!-- GLOBAL -->
-      <div class="status-tabs" id="statusTabsGlobal">
-        <button class="tab-btn active" type="button" data-status="">
-          Semua <span class="tab-count" data-count="all">0</span>
-        </button>
-        <button class="tab-btn" type="button" data-status="done">
-          Done <span class="tab-count" data-count="done">0</span>
-        </button>
-      </div>
-
-      <div class="tabs-divider"></div>
-
-      <!-- REQUEST & PAYMENT SEJAJAR -->
-      <div class="stage-grid">
-        <div class="stage-box">
-          <div class="tabs-title mt-0">Tahap Request</div>
-          <div class="status-tabs" id="statusTabsRequest">
-            <button class="tab-btn" type="button" data-status="submit_request">
-              Submit Request <span class="tab-count" data-count="submit_request">0</span>
-            </button>
-            <button class="tab-btn" type="button" data-status="approve_request">
-              Approve Request <span class="tab-count" data-count="approve_request">0</span>
-            </button>
-            <button class="tab-btn" type="button" data-status="reject_request">
-              Reject Request <span class="tab-count" data-count="reject_request">0</span>
-            </button>
-          </div>
+          @endif
         </div>
 
-        <div class="stage-box stage-box-right">
-          <div class="tabs-title mt-0">Tahap Payment</div>
-          <div class="status-tabs" id="statusTabsPayment">
-            <button class="tab-btn" type="button" data-status="submit_payment">
-              Submit Payment <span class="tab-count" data-count="submit_payment">0</span>
-            </button>
-            <button class="tab-btn" type="button" data-status="approve_payment">
-              Approve Payment <span class="tab-count" data-count="approve_payment">0</span>
-            </button>
-            <button class="tab-btn" type="button" data-status="reject_payment">
-              Reject Payment <span class="tab-count" data-count="reject_payment">0</span>
-            </button>
-          </div>
+        <div class="tools-right">
+          <a
+            href="https://drive.google.com/file/d/1NicpoYzDkSk64F3HfVEDWt1tpk0WvrlI/view?usp=sharing"
+            target="_blank"
+            rel="noopener"
+            class="btn-soft"
+            title="Buka Manual Book"
+          >
+            <i class="bi bi-journal-bookmark"></i> Manual Book
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  @if(session('success'))
+    <div class="alert alert-success mt-3">{{ session('success') }}</div>
+  @endif
+  @if(session('error'))
+    <div class="alert alert-danger mt-3">{{ session('error') }}</div>
+  @endif
+
+  <!-- WORKFLOW PANEL -->
+  <div class="panel">
+    <div class="panel-head">
+      <div>
+        <div class="fw-bold">Workflow Status</div>
+        <div class="workflow-hint">
+          Tahap <b>Request</b> untuk pengajuan awal, tahap <b>Payment</b> untuk proses bukti bayar.
         </div>
       </div>
     </div>
 
-    <!-- TABLE -->
-    <div class="table-wrap">
-      <div class="table-responsive">
-        <table id="table" class="table table-modern table-striped align-middle">
+    <!-- GLOBAL -->
+    <div class="status-tabs" id="statusTabsGlobal">
+      <button class="tab-btn active" type="button" data-status="">
+        Semua <span class="tab-count" data-count="all">0</span>
+      </button>
+      <button class="tab-btn" type="button" data-status="done">
+        Done <span class="tab-count" data-count="done">0</span>
+      </button>
+    </div>
 
-          <thead>
-            <tr>
-              <th class="text-center" style="min-width:150px">Nomor Request</th>
-              <th class="text-start" style="min-width:190px">Tim Penelitian</th>
-              <th class="text-start" style="min-width:360px">Nama Barang</th>
-              <th class="text-end" style="min-width:150px">Total Harga</th>
-              <th class="text-center" style="min-width:160px">Status</th>
-              <th class="text-center" style="min-width:160px">Aksi</th>
-            </tr>
-          </thead>
+    <div class="tabs-divider"></div>
 
-          <tbody>
-          @foreach($request_pembelian as $r)
-            @php
-              $rawStatus = $r->status_request ?? '';
-              $status = strtolower(trim($rawStatus));
-              $status = str_replace(' ', '_', $status);
+    <!-- REQUEST & PAYMENT SEJAJAR -->
+    <div class="stage-grid">
+      <div class="stage-box">
+        <div class="tabs-title mt-0">Tahap Request</div>
+        <div class="status-tabs" id="statusTabsRequest">
+          <button class="tab-btn" type="button" data-status="submit_request">
+            Submit Request <span class="tab-count" data-count="submit_request">0</span>
+          </button>
+          <button class="tab-btn" type="button" data-status="approve_request">
+            Approve Request <span class="tab-count" data-count="approve_request">0</span>
+          </button>
+          <button class="tab-btn" type="button" data-status="reject_request">
+            Reject Request <span class="tab-count" data-count="reject_request">0</span>
+          </button>
+        </div>
+      </div>
 
-              $labelMap = [
-                'submit_request'  => 'Submit Request',
-                'approve_request' => 'Approve Request',
-                'reject_request'  => 'Reject Request',
-                'submit_payment'  => 'Submit Payment',
-                'approve_payment' => 'Approve Payment',
-                'reject_payment'  => 'Reject Payment',
-                'done'            => 'Done',
-              ];
+      <div class="stage-box stage-box-right">
+        <div class="tabs-title mt-0">Tahap Payment</div>
+        <div class="status-tabs" id="statusTabsPayment">
+          <button class="tab-btn" type="button" data-status="submit_payment">
+            Submit Payment <span class="tab-count" data-count="submit_payment">0</span>
+          </button>
+          <button class="tab-btn" type="button" data-status="approve_payment">
+            Approve Payment <span class="tab-count" data-count="approve_payment">0</span>
+          </button>
+          <button class="tab-btn" type="button" data-status="reject_payment">
+            Reject Payment <span class="tab-count" data-count="reject_payment">0</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
 
-              $badge = 'badge-' . str_replace('_','-',$status);
-              $label = $labelMap[$status] ?? ucwords(str_replace('_',' ', $status));
-            @endphp
+  <!-- TABLE -->
+  <div class="table-wrap">
+    <div class="table-responsive">
+      <table id="table" class="table table-modern table-striped align-middle w-100">
 
-            <tr data-status="{{ $status }}">
-              <td class="text-center">{{ $r->no_request }}</td>
-              <td class="text-start">{{ $r->nama_project }}</td>
+        <thead>
+          <tr>
+            <th class="text-center" style="min-width:150px">Nomor Request</th>
+            <th class="text-start" style="min-width:190px">Tim Penelitian</th>
+            <th class="text-start" style="min-width:360px">Nama Barang</th>
+            <th class="text-end" style="min-width:150px">Total Harga</th>
+            <th class="text-center" style="min-width:160px">Status</th>
+            <th class="text-center" style="min-width:160px">Aksi</th>
+          </tr>
+        </thead>
 
-              <td class="text-start">
-                <div class="col-item" title="{{ $r->nama_barang }}">
-                  {{ $r->nama_barang }}
-                </div>
-              </td>
+        <tbody>
+        @foreach($request_pembelian as $r)
+          @php
+            $rawStatus = $r->status_request ?? '';
+            $status = strtolower(trim($rawStatus));
+            $status = str_replace(' ', '_', $status);
 
-              <td class="text-end">Rp {{ number_format($r->total_harga,0,',','.') }}</td>
+            $labelMap = [
+              'submit_request'  => 'Submit Request',
+              'approve_request' => 'Approve Request',
+              'reject_request'  => 'Reject Request',
+              'submit_payment'  => 'Submit Payment',
+              'approve_payment' => 'Approve Payment',
+              'reject_payment'  => 'Reject Payment',
+              'done'            => 'Done',
+            ];
 
-              <td class="text-center">
-                <span class="badge badge-status {{ $badge }}">{{ $label }}</span>
-              </td>
+            $badge = 'badge-' . str_replace('_','-',$status);
+            $label = $labelMap[$status] ?? ucwords(str_replace('_',' ', $status));
+          @endphp
 
-              <td class="text-center">
-                <div class="action-btns">
-                  <a href="{{ route('requestpembelian.detail',$r->id) }}" class="btn btn-success btn-sm">Detail</a>
+          <tr data-status="{{ $status }}">
+            <td class="text-center">{{ $r->no_request }}</td>
+            <td class="text-start">{{ $r->nama_project }}</td>
+
+            <td class="text-start">
+              <div class="col-item" title="{{ $r->nama_barang }}">
+                {{ $r->nama_barang }}
+              </div>
+            </td>
+
+            <td class="text-end">Rp {{ number_format($r->total_harga,0,',','.') }}</td>
+
+            <td class="text-center">
+              <span class="badge badge-status {{ $badge }}">{{ $label }}</span>
+            </td>
+
+            <td class="text-center">
+              <div class="action-btns">
+                <a href="{{ route('requestpembelian.detail',$r->id) }}" class="btn btn-success btn-sm">Detail</a>
+
+                {{-- ADMIN: bisa approve/reject REQUEST saat status submit_request --}}
+                @if(Auth::user()->role === 'admin' && $status === 'submit_request')
+                  <form method="POST" action="{{ route('requestpembelian.changestatus') }}" class="d-inline">
+                    @csrf
+                    <input type="hidden" name="id_request_pembelian_header" value="{{ $r->id }}">
+                    <input type="hidden" name="status_request" value="approve_request">
+                    <button type="submit" class="btn btn-primary btn-sm">Approve</button>
+                  </form>
+
+                  <a href="{{ route('requestpembelian.detail',$r->id) }}" class="btn btn-outline-danger btn-sm">
+                    Reject
+                  </a>
+                @endif
+
+                {{-- BENDAHARA: bisa approve/reject PAYMENT saat status submit_payment --}}
+                @if(Auth::user()->role === 'bendahara' && $status === 'submit_payment')
+                  <form method="POST" action="{{ route('requestpembelian.changestatus') }}" class="d-inline">
+                    @csrf
+                    <input type="hidden" name="id_request_pembelian_header" value="{{ $r->id }}">
+                    <input type="hidden" name="status_request" value="approve_payment">
+                    <button type="submit" class="btn btn-primary btn-sm">Approve Payment</button>
+                  </form>
+
+                  <a href="{{ route('requestpembelian.detail',$r->id) }}" class="btn btn-outline-danger btn-sm">
+                    Reject Payment
+                  </a>
+                @endif
+
+                {{-- PENELITI: boleh delete hanya kalau masih submit_request / reject_request (opsional) --}}
+                @if(Auth::user()->role === 'peneliti' && in_array($status, ['submit_request','reject_request']))
                   <button class="btn btn-outline-danger btn-sm" onclick="confirmDelete({{ $r->id }})">Delete</button>
-                </div>
-              </td>
-            </tr>
-          @endforeach
-          </tbody>
+                @endif
+              </div>
+            </td>
+          </tr>
+        @endforeach
+        </tbody>
 
-        </table>
-      </div>
+      </table>
     </div>
+  </div>
 
-  </main>
-</div>
+@endsection
 
-<!-- SCRIPT -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<script src="https://code.jquery.com/jquery-3.7.1.js"></script>
-<script src="https://cdn.datatables.net/2.2.2/js/dataTables.js"></script>
-<script src="https://cdn.datatables.net/2.2.2/js/dataTables.bootstrap5.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+@push('scripts')
+  <script src="https://code.jquery.com/jquery-3.7.1.js"></script>
+  <script src="https://cdn.datatables.net/2.2.2/js/dataTables.js"></script>
+  <script src="https://cdn.datatables.net/2.2.2/js/dataTables.bootstrap5.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-<script>
-  // sidebar mobile toggle
-  const sidebar = document.getElementById('appSidebar');
-  const toggleBtn = document.getElementById('sidebarToggle');
-  const backdrop = document.getElementById('backdrop');
+  <script>
+    let dt;
 
-  const openSidebar = ()=>{ sidebar.classList.add('open'); backdrop.classList.add('show'); }
-  const closeSidebar = ()=>{ sidebar.classList.remove('open'); backdrop.classList.remove('show'); }
-
-  toggleBtn?.addEventListener('click', ()=> sidebar.classList.contains('open') ? closeSidebar() : openSidebar());
-  backdrop?.addEventListener('click', closeSidebar);
-
-  let dt;
-
-  $(function(){
-    dt = new DataTable('#table',{
-      paging:true, searching:true, ordering:true, info:true,
-      language:{
-        search:"Cari:",
-        lengthMenu:"Tampil _MENU_ data",
-        info:"Menampilkan _START_–_END_ dari _TOTAL_ data",
-        paginate:{previous:"‹",next:"›"}
-      },
-      columnDefs:[
-        { targets:[0,4,5], className:'text-center' },
-        { targets:[3], className:'text-end' },
-        { targets:[1,2], className:'text-start' },
-      ]
-    });
-
-    // Filter by active tab (active bisa dari group mana pun)
-    $.fn.dataTable.ext.search.push(function(settings, data, dataIndex){
-      const active = document.querySelector('.tab-btn.active');
-      const targetStatus = active ? active.getAttribute('data-status') : '';
-      if(!targetStatus) return true;
-
-      const rowNode = dt.row(dataIndex).node();
-      const rowStatus = rowNode?.getAttribute('data-status') || '';
-      return rowStatus === targetStatus;
-    });
-
-    function updateCounts(){
-      const counts = {
-        all: 0,
-        submit_request: 0,
-        approve_request: 0,
-        reject_request: 0,
-        submit_payment: 0,
-        approve_payment: 0,
-        reject_payment: 0,
-        done: 0,
-      };
-
-      // TOTAL asli (tidak terpengaruh search box)
-      dt.rows({ search: 'none' }).every(function(){
-        const node = this.node();
-        const st = node?.getAttribute('data-status') || '';
-        counts.all++;
-        if (counts[st] !== undefined) counts[st]++;
+    $(function(){
+      dt = new DataTable('#table',{
+        paging:true, searching:true, ordering:true, info:true,
+        language:{
+          search:"Cari:",
+          lengthMenu:"Tampil _MENU_ data",
+          info:"Menampilkan _START_–_END_ dari _TOTAL_ data",
+          paginate:{previous:"‹",next:"›"}
+        },
+        columnDefs:[
+          { targets:[0,4,5], className:'text-center' },
+          { targets:[3], className:'text-end' },
+          { targets:[1,2], className:'text-start' },
+        ]
       });
 
-      Object.keys(counts).forEach(k=>{
-        const el = document.querySelector(`[data-count="${k}"]`);
-        if(el) el.textContent = counts[k];
+      // Filter by active tab (active bisa dari group mana pun)
+      $.fn.dataTable.ext.search.push(function(settings, data, dataIndex){
+        const active = document.querySelector('.tab-btn.active');
+        const targetStatus = active ? active.getAttribute('data-status') : '';
+        if(!targetStatus) return true;
+
+        const rowNode = dt.row(dataIndex).node();
+        const rowStatus = rowNode?.getAttribute('data-status') || '';
+        return rowStatus === targetStatus;
+      });
+
+      function updateCounts(){
+        const counts = {
+          all: 0,
+          submit_request: 0,
+          approve_request: 0,
+          reject_request: 0,
+          submit_payment: 0,
+          approve_payment: 0,
+          reject_payment: 0,
+          done: 0,
+        };
+
+        // TOTAL asli (tidak terpengaruh search box)
+        dt.rows({ search: 'none' }).every(function(){
+          const node = this.node();
+          const st = node?.getAttribute('data-status') || '';
+          counts.all++;
+          if (counts[st] !== undefined) counts[st]++;
+        });
+
+        Object.keys(counts).forEach(k=>{
+          const el = document.querySelector(`[data-count="${k}"]`);
+          if(el) el.textContent = counts[k];
+        });
+      }
+
+      updateCounts();
+      dt.on('draw', updateCounts);
+
+      // Click tab => aktifin satu tab global (bukan per group)
+      document.querySelectorAll('.tab-btn').forEach(btn=>{
+        btn.addEventListener('click', ()=>{
+          document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+          btn.classList.add('active');
+          dt.draw();
+        });
+      });
+    });
+
+    function confirmDelete(id){
+      Swal.fire({
+        title:'Yakin ingin menghapus?',
+        text:'Data tidak dapat dikembalikan!',
+        icon:'warning',
+        showCancelButton:true,
+        confirmButtonColor:'#d33',
+        cancelButtonText:'Batal',
+        confirmButtonText:'Ya, hapus!'
+      }).then((r)=>{
+        if(r.isConfirmed){
+          const f=document.createElement('form');
+          f.method='POST';
+          f.action='/requestpembelian/destroy/'+id;
+          const csrf = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+          f.innerHTML=`<input type="hidden" name="_token" value="${csrf}">
+                       <input type="hidden" name="_method" value="DELETE">`;
+          document.body.appendChild(f);
+          f.submit();
+        }
       });
     }
-
-    updateCounts();
-    dt.on('draw', updateCounts);
-
-    // Click tab => aktifin satu tab global (bukan per group)
-    document.querySelectorAll('.tab-btn').forEach(btn=>{
-      btn.addEventListener('click', ()=>{
-        document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
-        btn.classList.add('active');
-        dt.draw();
-      });
-    });
-  });
-
-  function confirmDelete(id){
-    Swal.fire({
-      title:'Yakin ingin menghapus?',
-      text:'Data tidak dapat dikembalikan!',
-      icon:'warning',
-      showCancelButton:true,
-      confirmButtonColor:'#d33',
-      cancelButtonText:'Batal',
-      confirmButtonText:'Ya, hapus!'
-    }).then((r)=>{
-      if(r.isConfirmed){
-        const f=document.createElement('form');
-        f.method='POST';
-        f.action='/requestpembelian/destroy/'+id;
-        const csrf = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-        f.innerHTML=`<input type="hidden" name="_token" value="${csrf}">
-                     <input type="hidden" name="_method" value="DELETE">`;
-        document.body.appendChild(f);
-        f.submit();
-      }
-    });
-  }
-</script>
-
-</body>
-</html>
+  </script>
+@endpush
