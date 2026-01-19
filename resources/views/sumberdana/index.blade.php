@@ -1,18 +1,10 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-  @extends('layouts.app')
-  <meta charset="UTF-8" />
-  <title>Sumber Dana</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="csrf-token" content="{{ csrf_token() }}">
+{{-- resources/views/sumberdana/index.blade.php --}}
+@extends('layouts.panel')
 
-  <!-- Fonts & Icons -->
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet"/>
+@section('title','Sumber Dana')
 
-  <!-- DataTables -->
+@push('styles')
+  {{-- DataTables CSS --}}
   <link rel="stylesheet" href="https://cdn.datatables.net/2.2.2/css/dataTables.bootstrap5.css">
 
   <style>
@@ -33,84 +25,6 @@
       --shadow:0 10px 30px rgba(15,23,42,.08);
       --shadow2:0 18px 40px rgba(15,23,42,.10);
     }
-
-    *{ box-sizing:border-box }
-    body{
-      margin:0;
-      background:var(--bg);
-      font-family:'Inter',system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
-      color:var(--ink);
-    }
-
-    /* Topbar */
-    .topbar{
-      position:sticky; top:0; z-index:1030;
-      background:linear-gradient(135deg,var(--brand-700),var(--brand));
-      color:#fff;
-      border-bottom:1px solid rgba(255,255,255,.18);
-      height:56px;
-    }
-    .brand{
-      display:flex;align-items:center;gap:10px;
-      font-weight:800;
-      letter-spacing:.2px;
-    }
-    .brand-badge{
-      font-size:.72rem; font-weight:800;
-      padding:.22rem .55rem; border-radius:999px;
-      background:rgba(255,255,255,.16);
-      border:1px solid rgba(255,255,255,.22);
-      white-space:nowrap;
-    }
-
-    /* Layout */
-    .app{ display:flex; min-height:calc(100vh - 56px); }
-    .sidebar{
-      width:260px;
-      background:var(--card);
-      border-right:1px solid var(--line);
-      padding:14px;
-      position:sticky; top:56px;
-      height:calc(100vh - 56px);
-      overflow:auto;
-    }
-
-    .menu-title{
-      font-size:.72rem;
-      letter-spacing:.08em;
-      color:var(--ink-600);
-      text-transform:uppercase;
-      margin:8px 0;
-      font-weight:700;
-    }
-
-    .nav-link-custom{
-      display:flex; align-items:center; gap:10px;
-      padding:9px 10px;
-      border-radius:14px;
-      text-decoration:none;
-      color:var(--ink);
-      font-weight:600;
-      font-size:.92rem;
-      line-height:1;
-      transition:.18s;
-      white-space:nowrap;
-    }
-    .nav-link-custom i{ font-size:1.05rem; }
-
-    .nav-link-custom:hover{
-      background:var(--brand-50);
-      color:var(--brand-700);
-      transform:translateX(2px);
-    }
-    .nav-link-custom.active{
-      background:linear-gradient(135deg,var(--brand-700),var(--brand));
-      color:#fff;
-      box-shadow:0 16px 28px rgba(2,6,23,.12);
-      font-weight:700;
-    }
-
-    .content{ flex:1; padding:18px 18px 22px; }
 
     /* HERO ala dashboard */
     .hero{
@@ -238,228 +152,130 @@
     }
     .table-striped > tbody > tr:nth-of-type(odd){ background:#fcfcfd; }
     .table-modern tbody tr:hover{ background:var(--brand-50); transition:.12s; }
-
-    /* Mobile */
-    .backdrop{
-      display:none;
-      position:fixed;
-      inset:0;
-      background:rgba(15,23,42,.38);
-      z-index:1035;
-    }
-    .backdrop.show{ display:block; }
-
-    @media(max-width:991px){
-      .sidebar{
-        position:fixed;
-        left:-290px;
-        top:56px;
-        height:calc(100vh - 56px);
-        z-index:1040;
-        transition:left .2s;
-      }
-      .sidebar.open{ left:0; }
-      .content{ padding:14px; }
-    }
   </style>
-</head>
+@endpush
 
-<body>
+@section('content')
 
-<!-- TOPBAR -->
-<nav class="navbar topbar">
-  <div class="container-fluid">
-    <button class="btn btn-outline-light d-lg-none me-2" id="sidebarToggle">
-      <i class="bi bi-list"></i>
-    </button>
+  {{-- meta csrf tetap aman karena panel sudah include csrf? tapi kamu pakai form + @csrf, jadi aman. --}}
 
-    <div class="brand">
-      <span>STAS-RG</span>
-      <span class="brand-badge">{{ Auth::user()->role === 'admin' ? 'ADMIN' : 'PENELITI' }}</span>
-    </div>
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-inner">
+      <div class="hero-left">
+        <h1 class="title">Sumber Dana</h1>
+        <p class="sub">Kelola daftar sumber & jenis pendanaan.</p>
+      </div>
 
-    <div class="ms-auto">@include('navbar')</div>
-  </div>
-</nav>
-
-<div class="app">
-
-  <!-- SIDEBAR -->
-  <aside class="sidebar" id="appSidebar">
-    <div class="menu-title">Menu</div>
-
-    <a class="nav-link-custom {{ request()->routeIs('dashboard') ? 'active' : '' }}" href="{{ route('dashboard') }}">
-      <i class="bi bi-speedometer2"></i> Dashboard
-    </a>
-
-    <a class="nav-link-custom {{ request()->routeIs('project.*') ? 'active' : '' }}" href="{{ route('project.index') }}">
-      <i class="bi bi-kanban"></i> Project
-    </a>
-
-    <a class="nav-link-custom {{ request()->routeIs('requestpembelian.*') ? 'active' : '' }}" href="{{ route('requestpembelian.index') }}">
-      <i class="bi bi-bag-check"></i> Request Pembelian
-    </a>
-
-    @if(Auth::user()->role == 'admin')
-      <div class="menu-title mt-3">Administrasi</div>
-
-      <a class="nav-link-custom {{ request()->routeIs('sumberdana.*') ? 'active' : '' }}" href="{{ route('sumberdana.index') }}">
-        <i class="bi bi-cash-coin"></i> Sumber Dana
-      </a>
-
-      <a class="nav-link-custom {{ request()->routeIs('kas.*') ? 'active' : '' }}" href="{{ route('kas.index') }}">
-        <i class="bi bi-wallet2"></i> Kas
-      </a>
-
-      <a class="nav-link-custom {{ request()->routeIs('pencatatan_keuangan') ? 'active' : '' }}" href="{{ route('pencatatan_keuangan') }}">
-        <i class="bi bi-journal-text"></i> Pencatatan Keuangan
-      </a>
-
-      <a class="nav-link-custom {{ request()->routeIs('laporan_keuangan') ? 'active' : '' }}" href="{{ route('laporan_keuangan') }}">
-        <i class="bi bi-graph-up"></i> Laporan Keuangan
-      </a>
-
-      <a class="nav-link-custom {{ request()->routeIs('users.*') ? 'active' : '' }}" href="{{ route('users.index') }}">
-        <i class="bi bi-people"></i> Management User
-      </a>
-    @endif
-  </aside>
-
-  <div class="backdrop" id="backdrop"></div>
-
-  <!-- CONTENT -->
-  <main class="content">
-
-    <!-- HERO -->
-    <section class="hero">
-      <div class="hero-inner">
-        <div class="hero-left">
-          <h1 class="title">Sumber Dana</h1>
-          <p class="sub">Kelola daftar sumber & jenis pendanaan.</p>
+      <div class="tools-row">
+        <div class="tools-left">
+          <a href="{{ route('sumberdana.create') }}" class="btn btn-brand">
+            <i class="bi bi-plus-lg"></i> Input Sumber Dana
+          </a>
         </div>
 
-        <div class="tools-row">
-          <div class="tools-left">
-            <a href="{{ route('sumberdana.create') }}" class="btn btn-brand">
-              <i class="bi bi-plus-lg"></i> Input Sumber Dana
-            </a>
-          </div>
-
-          <div class="tools-right">
-            <a
-              href="https://drive.google.com/file/d/1NicpoYzDkSk64F3HfVEDWt1tpk0WvrlI/view?usp=sharing"
-              target="_blank"
-              rel="noopener"
-              class="btn btn-soft"
-              title="Buka Manual Book"
-            >
-              <i class="bi bi-journal-bookmark"></i> Manual Book
-            </a>
-          </div>
+        <div class="tools-right">
+          <a
+            href="https://drive.google.com/file/d/1NicpoYzDkSk64F3HfVEDWt1tpk0WvrlI/view?usp=sharing"
+            target="_blank"
+            rel="noopener"
+            class="btn btn-soft"
+            title="Buka Manual Book"
+          >
+            <i class="bi bi-journal-bookmark"></i> Manual Book
+          </a>
         </div>
       </div>
-    </section>
+    </div>
+  </section>
 
-    <!-- Notif -->
-    @if ($message = Session::get('success'))
-      <div class="alert alert-success mt-3 mb-0">{{ $message }}</div>
-    @endif
-    @if ($message = Session::get('error'))
-      <div class="alert alert-danger mt-3 mb-0">{{ $message }}</div>
-    @endif
+  <!-- Notif -->
+  @if ($message = Session::get('success'))
+    <div class="alert alert-success mt-3 mb-0">{{ $message }}</div>
+  @endif
+  @if ($message = Session::get('error'))
+    <div class="alert alert-danger mt-3 mb-0">{{ $message }}</div>
+  @endif
 
-    <!-- TABLE -->
-    <div class="table-wrap">
-      <div class="table-responsive">
-        <table id="table" class="table table-modern table-striped align-middle">
-          <thead>
+  <!-- TABLE -->
+  <div class="table-wrap">
+    <div class="table-responsive">
+      <table id="table" class="table table-modern table-striped align-middle">
+        <thead>
+          <tr>
+            <th class="text-start" style="min-width:260px">Nama Sumber Dana</th>
+            <th class="text-center" style="min-width:200px">Jenis Pendanaan</th>
+            <th class="text-center" style="min-width:140px">Aksi</th>
+          </tr>
+        </thead>
+        <tbody>
+          @foreach ($sumberdana as $r)
             <tr>
-              <th class="text-start" style="min-width:260px">Nama Sumber Dana</th>
-              <th class="text-center" style="min-width:200px">Jenis Pendanaan</th>
-              <th class="text-center" style="min-width:140px">Aksi</th>
+              <td class="text-start">{{ $r->nama_sumber_dana }}</td>
+              <td class="text-center">{{ Str::title($r->jenis_pendanaan) }}</td>
+              <td class="text-center">
+                <div class="d-flex justify-content-center gap-2">
+                  <a href="{{ route('sumberdana.edit', $r->id) }}" class="btn btn-warning btn-sm" data-bs-toggle="tooltip" title="Edit">
+                    <i class="bi bi-pencil-square"></i>
+                  </a>
+
+                  <form action="{{ route('sumberdana.destroy', $r->id) }}" method="POST" class="d-inline" data-id="{{ $r->id }}">
+                    @csrf @method('DELETE')
+                    <button type="button" class="btn btn-danger btn-sm" onclick="confirmDelete({{ $r->id }})" data-bs-toggle="tooltip" title="Hapus">
+                      <i class="bi bi-trash-fill"></i>
+                    </button>
+                  </form>
+                </div>
+              </td>
             </tr>
-          </thead>
-          <tbody>
-            @foreach ($sumberdana as $r)
-              <tr>
-                <td class="text-start">{{ $r->nama_sumber_dana }}</td>
-                <td class="text-center">{{ Str::title($r->jenis_pendanaan) }}</td>
-                <td class="text-center">
-                  <div class="d-flex justify-content-center gap-2">
-                    <a href="{{ route('sumberdana.edit', $r->id) }}" class="btn btn-warning btn-sm" data-bs-toggle="tooltip" title="Edit">
-                      <i class="bi bi-pencil-square"></i>
-                    </a>
-
-                    <form action="{{ route('sumberdana.destroy', $r->id) }}" method="POST" class="d-inline" data-id="{{ $r->id }}">
-                      @csrf @method('DELETE')
-                      <button type="button" class="btn btn-danger btn-sm" onclick="confirmDelete({{ $r->id }})" data-bs-toggle="tooltip" title="Hapus">
-                        <i class="bi bi-trash-fill"></i>
-                      </button>
-                    </form>
-                  </div>
-                </td>
-              </tr>
-            @endforeach
-          </tbody>
-        </table>
-      </div>
+          @endforeach
+        </tbody>
+      </table>
     </div>
+  </div>
 
-  </main>
-</div>
+@endsection
 
-<!-- Scripts -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<script src="https://code.jquery.com/jquery-3.7.1.js"></script>
-<script src="https://cdn.datatables.net/2.2.2/js/dataTables.js"></script>
-<script src="https://cdn.datatables.net/2.2.2/js/dataTables.bootstrap5.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+@push('scripts')
+  {{-- jQuery + DataTables + SweetAlert (Bootstrap JS sudah ada di panel) --}}
+  <script src="https://code.jquery.com/jquery-3.7.1.js"></script>
+  <script src="https://cdn.datatables.net/2.2.2/js/dataTables.js"></script>
+  <script src="https://cdn.datatables.net/2.2.2/js/dataTables.bootstrap5.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-<script>
-  // sidebar mobile toggle
-  const sidebar = document.getElementById('appSidebar');
-  const toggleBtn = document.getElementById('sidebarToggle');
-  const backdrop = document.getElementById('backdrop');
-
-  const openSidebar = ()=>{ sidebar.classList.add('open'); backdrop.classList.add('show'); }
-  const closeSidebar = ()=>{ sidebar.classList.remove('open'); backdrop.classList.remove('show'); }
-
-  toggleBtn?.addEventListener('click', ()=> sidebar.classList.contains('open') ? closeSidebar() : openSidebar());
-  backdrop?.addEventListener('click', closeSidebar);
-
-  $(function(){
-    new DataTable('#table', {
-      paging:true, searching:true, ordering:true, info:true,
-      language:{
-        search:"Cari:",
-        lengthMenu:"Tampil _MENU_ data",
-        info:"Menampilkan _START_–_END_ dari _TOTAL_ data",
-        paginate:{previous:"‹",next:"›"}
-      },
-      columnDefs:[
-        { targets:[1,2], className:'text-center' },
-        { targets:[0], className:'text-start' },
-      ]
+  <script>
+    $(function(){
+      new DataTable('#table', {
+        paging:true, searching:true, ordering:true, info:true,
+        language:{
+          search:"Cari:",
+          lengthMenu:"Tampil _MENU_ data",
+          info:"Menampilkan _START_–_END_ dari _TOTAL_ data",
+          paginate:{previous:"‹",next:"›"}
+        },
+        columnDefs:[
+          { targets:[1,2], className:'text-center' },
+          { targets:[0], className:'text-start' },
+        ]
+      });
     });
-  });
 
-  // SweetAlert Delete
-  function confirmDelete(id){
-    Swal.fire({
-      title:'Hapus data ini?',
-      text:'Tindakan ini tidak dapat dibatalkan.',
-      icon:'warning',
-      showCancelButton:true,
-      confirmButtonColor:'#d33',
-      cancelButtonText:'Batal',
-      confirmButtonText:'Ya, hapus'
-    }).then((r)=>{
-      if(r.isConfirmed){
-        const form = document.querySelector(`form[data-id="${id}"]`);
-        form?.submit();
-      }
-    });
-  }
-</script>
-</body>
-</html>
+    // SweetAlert Delete
+    function confirmDelete(id){
+      Swal.fire({
+        title:'Hapus data ini?',
+        text:'Tindakan ini tidak dapat dibatalkan.',
+        icon:'warning',
+        showCancelButton:true,
+        confirmButtonColor:'#d33',
+        cancelButtonText:'Batal',
+        confirmButtonText:'Ya, hapus'
+      }).then((r)=>{
+        if(r.isConfirmed){
+          const form = document.querySelector(`form[data-id="${id}"]`);
+          form?.submit();
+        }
+      });
+    }
+  </script>
+@endpush

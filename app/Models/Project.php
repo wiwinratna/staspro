@@ -21,9 +21,22 @@ class Project extends Model
         'deskripsi',
         'file_proposal',
         'file_rab',
-        'kategori_pendanaan',
         'id_sumber_dana',
-        'realisasi_anggaran',
+
+        // status lama
+        'status',
+        'closed_at',
+        'closed_by',
+
+        // ✅ workflow baru
+        'workflow_status',
+        'ketua_id',
+        'submitted_at',
+        'approved_at',
+        'funded_at',
+        'finalized_at',
+
+        // audit
         'user_id_created',
         'user_id_updated',
     ];
@@ -47,4 +60,14 @@ class Project extends Model
     {
         return $this->hasMany(RequestpembelianHeader::class)->onDelete('cascade');
     }
+
+    public function funding()
+    {
+        return $this->hasMany(\App\Models\ProjectFunding::class, 'project_id');
+    }
+    public function ketua(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'ketua_id');
+    }
+
 }

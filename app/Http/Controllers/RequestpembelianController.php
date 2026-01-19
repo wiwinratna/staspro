@@ -23,9 +23,11 @@ class RequestpembelianController extends Controller
             ->select('a.id', 'a.no_request', 'b.nama_project', 'c.nama_barang', 'c.total_harga', 'a.status_request');
 
         // ✅ kalau bukan admin, tampilkan hanya yang dibuat user tersebut
-        if (Auth::user()->role != 'admin') {
+        // ✅ hanya PENELITI yang dibatasi data milik sendiri
+        if (Auth::user()->role === 'peneliti') {
             $q->where('a.user_id_created', Auth::id());
         }
+
 
         $request_pembelian = $q->get();
 
@@ -91,6 +93,7 @@ class RequestpembelianController extends Controller
                 'no_request'      => 'REQ' . now()->format('YmdHis'),
                 'tgl_request'     => $request->tgl_request,
                 'id_project'      => $request->id_project,
+                'status_request'  => 'submit_request',
                 'user_id_created' => $user->id,
                 'user_id_updated' => $user->id,
             ]);
@@ -155,9 +158,11 @@ class RequestpembelianController extends Controller
         $request_pembelian = RequestpembelianHeader::findOrFail($id);
 
         // ✅ kalau bukan admin, cuma boleh buka detail miliknya sendiri
-        if (Auth::user()->role != 'admin' && $request_pembelian->user_id_created != Auth::id()) {
+        if (!in_array(Auth::user()->role, ['admin','bendahara'])
+            && $request_pembelian->user_id_created != Auth::id()) {
             abort(403, 'Akses ditolak');
         }
+
 
         $detail  = RequestpembelianDetail::where('id_request_pembelian_header', $id)->get();
         $project = Project::all();
