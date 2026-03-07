@@ -15,6 +15,7 @@ use App\Http\Controllers\KasTransactionController;
 use App\Http\Controllers\BendaharaDashboardController;
 use App\Http\Controllers\ProjectFundingController;
 use App\Http\Controllers\PengajuanController;
+use App\Http\Controllers\PengajuanTransaksiController;
 
 /*
 |--------------------------------------------------------------------------
@@ -157,6 +158,7 @@ Route::middleware('auth')->group(function () {
         ->name('requestpembelian.pengajuanulang');
 
 
+
     /*
     |--------------------------------------------------------------------------
     | Sumber Dana
@@ -175,6 +177,36 @@ Route::middleware('auth')->group(function () {
     Route::post('sumberdana/detail/store', [SumberdanaController::class, 'storedetail'])->name('sumberdana.storedetail');
     Route::get('sumberdana/detail/destroy/{id}', [SumberdanaController::class, 'destroydetail'])->name('sumberdana.destroydetail');
     Route::post('sumberdana/detail/update/{id}', [SumberdanaController::class, 'updatesubkategori'])->name('sumberdana.updatesubkategori');
+
+        /*
+    |--------------------------------------------------------------------------
+    | Pengajuan Transaksi (Pengajuan Dana + Reimbursement)
+    |--------------------------------------------------------------------------
+    */
+    Route::prefix('pengajuan-transaksi')->name('pengajuan_transaksi.')->group(function () {
+        Route::get('/', [PengajuanTransaksiController::class, 'index'])->name('index');
+
+        // create
+        Route::get('/create/pengajuan', [PengajuanTransaksiController::class, 'createPengajuan'])->name('create_pengajuan');
+        Route::post('/store/pengajuan', [PengajuanTransaksiController::class, 'storePengajuan'])->name('store_pengajuan');
+
+        Route::get('/create/reimbursement', [PengajuanTransaksiController::class, 'createReimbursement'])->name('create_reimbursement');
+        Route::post('/store/reimbursement', [PengajuanTransaksiController::class, 'storeReimbursement'])->name('store_reimbursement');
+
+        // detail
+        Route::get('/{id}', [PengajuanTransaksiController::class, 'show'])->name('show');
+
+        // action
+        Route::post('/{id}/approve', [PengajuanTransaksiController::class, 'approve'])->name('approve');
+        Route::post('/{id}/reject', [PengajuanTransaksiController::class, 'reject'])->name('reject');
+
+        Route::post('/{id}/upload-bukti', [PengajuanTransaksiController::class, 'uploadBukti'])->name('upload_bukti');
+        Route::post('/{id}/finalize', [PengajuanTransaksiController::class, 'finalize'])->name('finalize');
+
+        // JSON: subkategori by project (buat dropdown)
+        Route::get('/subkategori/{project}', [PengajuanTransaksiController::class, 'subkategori'])->name('subkategori');
+    });
+
 
 
     /*

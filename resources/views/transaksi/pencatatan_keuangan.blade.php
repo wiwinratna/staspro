@@ -260,12 +260,21 @@
             @php
               $tim  = $transaksi->project->nama_project ?? 'Tidak Ada';
               $sub  = $transaksi->subKategoriPendanaan->nama
-                     ?? (($transaksi->jenis_transaksi === 'pemasukan') ? 'Dana Cair' : 'Tidak Ada');
+                    ?? (($transaksi->jenis_transaksi === 'pemasukan') ? 'Dana Cair' : 'Tidak Ada');
               $desk = $transaksi->deskripsi_transaksi ?? '-';
-              $isDanaCair = $transaksi->jenis_transaksi === 'pemasukan'
-                            && is_string($desk)
-                            && str_contains($desk, '[FUNDING#');
+
+              // ✅ Deteksi sumber transaksi (AUTO vs MANUAL) via marker deskripsi
+              $isFunding = is_string($desk) && str_contains($desk, '[FUNDING#');
+              $isReqBuy  = is_string($desk) && str_contains($desk, '[REQBUY#');
+              $isReqTrx  = is_string($desk) && str_contains($desk, '[REQTRX#');
+
+              $isAuto = $isFunding || $isReqBuy || $isReqTrx;
+
+              $autoLabel = $isFunding ? 'DANA CAIR'
+                        : ($isReqBuy ? 'REQUEST BELI'
+                        : ($isReqTrx ? 'PENGAJUAN TRX' : null));
             @endphp
+
 
             <tr data-jenis="{{ strtolower($transaksi->jenis_transaksi ?? 'pengeluaran') }}">
               <td>{{ $index + 1 }}</td>
@@ -286,9 +295,11 @@
               <td title="{{ $sub }}">
                 <div class="clamp-2 fw-semibold">
                   {{ $sub }}
-                  @if($isDanaCair)
-                    <span class="badge bg-success-subtle text-success ms-2" style="font-weight:900;">AUTO</span>
-                  @endif
+                    @if($isAuto)
+                      <span class="badge bg-success-subtle text-success ms-2" style="font-weight:900;">
+                        AUTO{{ $autoLabel ? ' • '.$autoLabel : '' }}
+                      </span>
+                    @endif
                 </div>
 
                 <a class="link-detail" href="#" data-bs-toggle="modal" data-bs-target="#modalDetail{{ $transaksi->id }}">
@@ -330,7 +341,7 @@
               </td>
 
               <td>
-                @if($isDanaCair)
+                @if($isAuto)
                   <span class="text-muted" style="font-weight:800;">-</span>
                 @else
                   <div class="d-flex gap-1">
@@ -347,6 +358,7 @@
                     </form>
                   </div>
                 @endif
+
               </td>
             </tr>
 

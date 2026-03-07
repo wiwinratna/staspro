@@ -186,6 +186,49 @@
         <i class="bi bi-bag-check"></i> Request Pembelian
       </a>
 
+      {{-- PENGAJUAN TRANSAKSI --}}
+      <div class="menu-title mt-3">Transaksi</div>
+
+      <a class="nav-link-custom d-flex justify-content-between align-items-center"
+        data-bs-toggle="collapse"
+        href="#menuPengajuanTransaksi"
+        role="button"
+        aria-expanded="{{ request()->routeIs('pengajuan_transaksi.*') ? 'true' : 'false' }}"
+        aria-controls="menuPengajuanTransaksi">
+
+          <span>
+              <i class="bi bi-receipt"></i> Pengajuan Transaksi
+          </span>
+          <i class="bi bi-chevron-down"></i>
+      </a>
+
+      <div class="collapse {{ request()->routeIs('pengajuan_transaksi.*') ? 'show' : '' }}"
+          id="menuPengajuanTransaksi">
+
+          <div class="ms-3 mt-2 d-grid gap-1">
+
+              {{-- LIST --}}
+              <a class="nav-link-custom {{ request()->routeIs('pengajuan_transaksi.index') ? 'active' : '' }}"
+                href="{{ route('pengajuan_transaksi.index') }}">
+                  <i class="bi bi-list-ul"></i> Daftar Pengajuan
+              </a>
+
+              {{-- CREATE PENGAJUAN --}}
+              <a class="nav-link-custom {{ request()->routeIs('pengajuan_transaksi.create_pengajuan') ? 'active' : '' }}"
+                href="{{ route('pengajuan_transaksi.create_pengajuan') }}">
+                  <i class="bi bi-cash-coin"></i> Pengajuan Dana
+              </a>
+
+              {{-- CREATE REIMBURSEMENT --}}
+              <a class="nav-link-custom {{ request()->routeIs('pengajuan_transaksi.create_reimbursement') ? 'active' : '' }}"
+                href="{{ route('pengajuan_transaksi.create_reimbursement') }}">
+                  <i class="bi bi-arrow-repeat"></i> Reimbursement
+              </a>
+
+          </div>
+      </div>
+
+
       @if(in_array(Auth::user()->role, ['admin','bendahara']))
         <div class="menu-title mt-3">Keuangan</div>
 
@@ -216,7 +259,14 @@
           <i class="bi bi-people"></i> Management User
         </a>
       @endif
+
+      {{-- Profile Pengguna --}}
+      <div class="menu-title mt-3">Akun</div>
+      <a class="nav-link-custom {{ request()->routeIs($dashRoute) ? 'active' : '' }}" href="{{ route($dashRoute) }}">
+        <i class="bi bi-speedometer2"></i> Profile Pengguna
+      </a>
     </aside>
+
 
     <div class="backdrop" id="backdrop"></div>
 
@@ -225,7 +275,7 @@
         @yield('content')
       </div>
     </main>
-  </div> {{-- ✅ PENTING: PENUTUP .app (di file kamu tadi belum ada) --}}
+  </div> 
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <script>

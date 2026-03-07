@@ -430,7 +430,7 @@ class RequestpembelianController extends Controller
                             'project_id'             => $header->id_project,
                             'sub_kategori_pendanaan' => $detail->id_subkategori_sumberdana ?? null,
                             'jenis_transaksi'        => 'pengeluaran',
-                            'deskripsi_transaksi'    => 'Pembelian: ' . $detail->nama_barang,
+                            'deskripsi_transaksi'    => "[REQBUY#{$header->id}] Pembelian: " . $detail->nama_barang,
                             'jumlah_transaksi'       => $totalNominal,
                             'metode_pembayaran'      => 'Transfer',
                             'bukti_transaksi'        => $detail->bukti_bayar ?? null,
