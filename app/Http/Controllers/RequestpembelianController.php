@@ -12,15 +12,27 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class RequestpembelianController extends Controller
 {
     public function index()
     {
+        $hasTalanganHeaderCols = Schema::hasColumn('request_pembelian_header', 'is_talangan')
+            && Schema::hasColumn('request_pembelian_header', 'status_alokasi');
+
+        $selects = ['a.id', 'a.no_request', 'b.nama_project', 'c.nama_barang', 'c.total_harga', 'a.status_request'];
+        if ($hasTalanganHeaderCols) {
+            $selects[] = 'a.is_talangan';
+            $selects[] = 'a.status_alokasi';
+        }
+
         $q = DB::table('request_pembelian_header as a')
             ->leftJoin('project as b', 'a.id_project', '=', 'b.id')
             ->leftJoin(DB::raw("(SELECT id_request_pembelian_header, GROUP_CONCAT(CONCAT(kuantitas, ' x ', nama_barang)) as nama_barang, SUM(harga * kuantitas) as total_harga FROM request_pembelian_detail GROUP BY id_request_pembelian_header) as c"), 'a.id', '=', 'c.id_request_pembelian_header')
-            ->select('a.id', 'a.no_request', 'b.nama_project', 'c.nama_barang', 'c.total_harga', 'a.status_request');
+            ->select($selects);
 
         // ✅ kalau bukan admin, tampilkan hanya yang dibuat user tersebut
         // ✅ hanya PENELITI yang dibatasi data milik sendiri
@@ -38,19 +50,94 @@ class RequestpembelianController extends Controller
     {
         $user = auth()->user();
 
-        // ✅ Peneliti: hanya project AKTIF yang dia tergabung (detail_project)
-        $project = \App\Models\Project::query()
-            ->where('status', 'aktif')
-            ->whereIn('id', function ($sub) use ($user) {
-                $sub->select('id_project')
-                    ->from('detail_project')
-                    ->where('id_user', $user->id);
-            })
-            ->orderByDesc('tahun')
-            ->orderBy('nama_project')
-            ->get(['id', 'nama_project']);
+        if ($user->role === 'admin') {
+            $project = \App\Models\Project::query()
+                ->where('status', 'aktif')
+                ->orderByDesc('tahun')
+                ->orderBy('nama_project')
+                ->get(['id', 'nama_project']);
+        } else {
+            // ✅ Peneliti: hanya project AKTIF yang dia tergabung (detail_project)
+            $project = \App\Models\Project::query()
+                ->where('status', 'aktif')
+                ->whereIn('id', function ($sub) use ($user) {
+                    $sub->select('id_project')
+                        ->from('detail_project')
+                        ->where('id_user', $user->id);
+                })
+                ->orderByDesc('tahun')
+                ->orderBy('nama_project')
+                ->get(['id', 'nama_project']);
+        }
 
         return view('requestpembelian.create', compact('project'));
+    }
+
+    public function track()
+    {
+        if (Auth::user()->role === 'peneliti') {
+            return redirect()->route('requestpembelian.index')
+                ->with('info', 'Tracking paket komponen bisa dilihat di halaman detail pengajuan.');
+        }
+
+        $q = DB::table('request_pembelian_detail as d')
+            ->join('request_pembelian_header as h', 'd.id_request_pembelian_header', '=', 'h.id')
+            ->leftJoin('project as p', 'h.id_project', '=', 'p.id')
+            ->select(
+                'd.id as detail_id',
+                'h.id',
+                'h.no_request',
+                'h.tgl_request',
+                'h.status_request',
+                'h.updated_at',
+                'p.nama_project',
+                'd.nama_barang',
+                'd.kuantitas',
+                'd.harga',
+                DB::raw('(COALESCE(d.kuantitas,0) * COALESCE(d.harga,0)) as total_perkiraan'),
+                DB::raw('COALESCE(d.total_invoice,0) as total_invoice'),
+                DB::raw('COALESCE(d.is_sampai,0) as is_sampai'),
+                DB::raw('COALESCE(d.is_pelaporan,0) as is_pelaporan')
+            )
+            ->whereIn('h.status_request', ['approve_request', 'submit_payment', 'approve_payment', 'done'])
+            ->orderByDesc('h.id')
+            ->orderBy('d.id');
+
+        $tracks = $q->get();
+
+        return view('requestpembelian.track', compact('tracks'));
+    }
+
+    public function markSampai(string $id)
+    {
+        if (!in_array(Auth::user()->role, ['admin', 'bendahara'], true)) {
+            return back()->with('error', 'Hanya admin/bendahara yang bisa update status sampai.');
+        }
+
+        $detail = RequestpembelianDetail::findOrFail($id);
+        $detail->is_sampai = 1;
+        $detail->user_id_updated = Auth::id();
+        $detail->save();
+
+        return back()->with('success', 'Status item berhasil ditandai sudah sampai.');
+    }
+
+    public function markPelaporan(string $id)
+    {
+        if (!in_array(Auth::user()->role, ['admin', 'bendahara'], true)) {
+            return back()->with('error', 'Hanya admin/bendahara yang bisa update status pelaporan.');
+        }
+
+        $detail = RequestpembelianDetail::findOrFail($id);
+        if (!(bool) $detail->is_sampai) {
+            return back()->with('error', 'Item harus ditandai sudah sampai dulu sebelum pelaporan.');
+        }
+
+        $detail->is_pelaporan = 1;
+        $detail->user_id_updated = Auth::id();
+        $detail->save();
+
+        return back()->with('success', 'Status item berhasil ditandai sudah pelaporan.');
     }
 
     public function store(Request $request)
@@ -110,7 +197,7 @@ class RequestpembelianController extends Controller
 
     public function edit(string $id)
     {
-        $request_pembelian = RequestpembelianHeader::find($id);
+        $request_pembelian = RequestpembelianHeader::findOrFail($id);
         $detail            = RequestpembelianDetail::where('id_request_pembelian_header', $id)->get();
         $project           = Project::all();
 
@@ -222,75 +309,52 @@ class RequestpembelianController extends Controller
         return view('requestpembelian.addbukti', ['detail' => $detail]);
     }
 
-    // ✅ FIX UTAMA: upload bukti boleh satu-satu, status berubah hanya jika SEMUA sudah upload
+    // Upload invoice per item (oleh admin/bendahara)
     public function storebukti(Request $request, string $id)
     {
-        // validasi request + file
         $request->validate([
             'id_request_pembelian_header' => 'required|exists:request_pembelian_header,id',
-            'bukti_bayar' => 'required|image|mimes:jpeg,png,jpg|max:2048',
+            'bukti_bayar' => 'required|file|mimes:jpg,jpeg,png,pdf|max:5120',
         ]);
 
         $headerId = $request->id_request_pembelian_header;
         $header   = RequestpembelianHeader::findOrFail($headerId);
 
-        // admin tidak boleh upload
-        if (Auth::user()->role === 'admin') {
+        if (!in_array(Auth::user()->role, ['admin', 'bendahara'], true)) {
             return redirect()
                 ->route('requestpembelian.detail', $headerId)
-                ->with('error', 'Admin tidak diperbolehkan mengunggah bukti pembayaran.');
+                ->with('error', 'Hanya admin/bendahara yang bisa mengunggah invoice.');
         }
 
-        // status yang mengizinkan upload (approve_request / reject_payment / submit_payment)
-        if (!in_array($header->status_request, ['approve_request', 'reject_payment', 'submit_payment'])) {
+        if ($header->status_request === 'reject_request') {
             return redirect()
                 ->route('requestpembelian.detail', $headerId)
-                ->with('error', 'Bukti bayar hanya bisa diupload setelah Approve Request atau saat Reject Payment.');
+                ->with('error', 'Upload invoice tidak tersedia saat status ditolak.');
         }
 
         try {
-            // hapus file lama (kalau upload ulang per item)
             $detail = RequestpembelianDetail::findOrFail($id);
-            if ($detail->bukti_bayar && File::exists('bukti_bayar/' . $detail->bukti_bayar)) {
-                File::delete('bukti_bayar/' . $detail->bukti_bayar);
+
+            if (!empty($detail->invoice_pembelian) && Storage::disk('public')->exists($detail->invoice_pembelian)) {
+                Storage::disk('public')->delete($detail->invoice_pembelian);
             }
 
-            // upload file
-            $bukti_bayar = $request->file('bukti_bayar');
-            $filename_buktibayar = time() . '_' . $id . '.' . $bukti_bayar->getClientOriginalExtension();
-            $bukti_bayar->move('bukti_bayar', $filename_buktibayar);
+            $path = $request->file('bukti_bayar')->store('request_pembelian/invoice_item', 'public');
 
-            // update detail bukti
             RequestpembelianDetail::where('id', $id)->update([
-                'bukti_bayar'     => $filename_buktibayar,
+                'invoice_pembelian' => $path,
                 'user_id_updated' => Auth::id(),
                 'updated_at'      => now(),
             ]);
 
-            // 🔥 cek apakah semua detail sudah ada bukti
-            $totalItem = RequestpembelianDetail::where('id_request_pembelian_header', $headerId)->count();
-            $uploaded  = RequestpembelianDetail::where('id_request_pembelian_header', $headerId)
-                ->whereNotNull('bukti_bayar')
-                ->where('bukti_bayar', '!=', '')
-                ->count();
-
-            // kalau semua sudah upload → baru jadi submit_payment
-            if ($totalItem > 0 && $uploaded === $totalItem) {
-                $header->status_request    = 'submit_payment';
-                $header->keterangan_reject = null;
-                $header->user_id_updated   = Auth::id();
-                $header->updated_at        = now();
-                $header->save();
-            }
-
             return redirect()
                 ->route('requestpembelian.detail', $headerId)
-                ->with('success', "Bukti berhasil diunggah ($uploaded / $totalItem)");
+                ->with('success', 'Invoice item berhasil diunggah.');
 
         } catch (\Exception $e) {
             return redirect()
                 ->route('requestpembelian.detail', $headerId)
-                ->with('error', 'Bukti Pembayaran gagal diunggah: ' . $e->getMessage());
+                ->with('error', 'Invoice item gagal diunggah: ' . $e->getMessage());
         }
     }
 
@@ -398,7 +462,13 @@ class RequestpembelianController extends Controller
         $validated = $request->validate([
             'status_request' => 'required',
             'id_request_pembelian_header' => 'required|exists:request_pembelian_header,id',
+            'is_talangan' => 'nullable|boolean',
             'keterangan_reject' => 'nullable|string|max:500',
+            'biaya_admin_transfer' => 'nullable|numeric|min:0',
+            'nominal_final_total' => 'nullable|numeric|min:0',
+            'nominal_penambahan' => 'nullable|numeric|min:0',
+            'nominal_pengurangan' => 'nullable|numeric|min:0',
+            'bukti_transfer' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:5120',
         ]);
 
         Log::info('Status request yang diterima: ' . $request->status_request);
@@ -408,6 +478,27 @@ class RequestpembelianController extends Controller
 
             if ($request->status_request == 'approve_payment') {
                 Log::info('ID Request Pembelian: ' . $header->id);
+
+                if ($request->hasFile('bukti_transfer')) {
+                    if (!empty($header->bukti_transfer) && Storage::disk('public')->exists($header->bukti_transfer)) {
+                        Storage::disk('public')->delete($header->bukti_transfer);
+                    }
+                    $header->bukti_transfer = $request->file('bukti_transfer')->store('request_pembelian/bukti_transfer', 'public');
+                }
+
+                $header->biaya_admin_transfer = (float)($request->biaya_admin_transfer ?? 0);
+                $hasTalanganHeaderCols = Schema::hasColumn('request_pembelian_header', 'is_talangan');
+                if ($hasTalanganHeaderCols && $request->has('is_talangan')) {
+                    $header->is_talangan = (bool) $request->boolean('is_talangan');
+                    if (Schema::hasColumn('request_pembelian_header', 'status_alokasi') && $header->is_talangan && empty($header->status_alokasi)) {
+                        $header->status_alokasi = 'belum';
+                    }
+                }
+                $header->nominal_final_total = $request->filled('nominal_final_total') ? (float)$request->nominal_final_total : null;
+                $header->nominal_penambahan = (float)($request->nominal_penambahan ?? 0);
+                $header->nominal_pengurangan = (float)($request->nominal_pengurangan ?? 0);
+                $header->keterangan_penambahan = null;
+                $header->keterangan_pengurangan = null;
 
                 // Ubah status jadi done
                 $header->status_request = 'done';
@@ -421,11 +512,12 @@ class RequestpembelianController extends Controller
                 if (!$existing) {
                     Log::info('Membuat pencatatan keuangan baru untuk request ID: ' . $header->id);
                     $details = RequestpembelianDetail::where('id_request_pembelian_header', $header->id)->get();
+                    $hasTalanganColumns = Schema::hasColumn('pencatatan_keuangan', 'is_talangan');
 
                     foreach ($details as $detail) {
-                        $totalNominal = $detail->kuantitas * $detail->harga;
+                        $totalNominal = (float) ($detail->total_invoice ?? ($detail->kuantitas * $detail->harga));
 
-                        PencatatanKeuangan::create([
+                        $ledgerData = [
                             'tanggal'                => $header->tgl_request,
                             'project_id'             => $header->id_project,
                             'sub_kategori_pendanaan' => $detail->id_subkategori_sumberdana ?? null,
@@ -433,9 +525,17 @@ class RequestpembelianController extends Controller
                             'deskripsi_transaksi'    => "[REQBUY#{$header->id}] Pembelian: " . $detail->nama_barang,
                             'jumlah_transaksi'       => $totalNominal,
                             'metode_pembayaran'      => 'Transfer',
-                            'bukti_transaksi'        => $detail->bukti_bayar ?? null,
+                            'bukti_transaksi'        => $header->bukti_transfer ?? $detail->invoice_pembelian ?? null,
                             'request_pembelian_id'   => $header->id,
-                        ]);
+                        ];
+                        if ($hasTalanganColumns) {
+                            $ledgerData['is_talangan'] = (bool) ($header->is_talangan ?? false);
+                            $ledgerData['talangan_ref_type'] = (bool) ($header->is_talangan ?? false) ? 'request_pembelian' : null;
+                            $ledgerData['talangan_ref_id'] = (bool) ($header->is_talangan ?? false) ? $header->id : null;
+                            $ledgerData['is_reclass'] = false;
+                            $ledgerData['reclass_group_id'] = null;
+                        }
+                        PencatatanKeuangan::create($ledgerData);
 
                         if ($detail->id_subkategori_sumberdana) {
                             $detailSubkategori = DetailSubkategori::where('id_subkategori_sumberdana', $detail->id_subkategori_sumberdana)
@@ -447,6 +547,29 @@ class RequestpembelianController extends Controller
                                 $detailSubkategori->save();
                             }
                         }
+                    }
+
+                    $biayaAdmin = (float) ($header->biaya_admin_transfer ?? 0);
+                    if ($biayaAdmin > 0) {
+                        $adminLedgerData = [
+                            'tanggal'                => $header->tgl_request,
+                            'project_id'             => $header->id_project,
+                            'sub_kategori_pendanaan' => null,
+                            'jenis_transaksi'        => 'pengeluaran',
+                            'deskripsi_transaksi'    => "[REQBUY#{$header->id}] Biaya Admin Transfer",
+                            'jumlah_transaksi'       => $biayaAdmin,
+                            'metode_pembayaran'      => 'Transfer',
+                            'bukti_transaksi'        => $header->bukti_transfer ?? null,
+                            'request_pembelian_id'   => $header->id,
+                        ];
+                        if ($hasTalanganColumns) {
+                            $adminLedgerData['is_talangan'] = (bool) ($header->is_talangan ?? false);
+                            $adminLedgerData['talangan_ref_type'] = (bool) ($header->is_talangan ?? false) ? 'request_pembelian' : null;
+                            $adminLedgerData['talangan_ref_id'] = (bool) ($header->is_talangan ?? false) ? $header->id : null;
+                            $adminLedgerData['is_reclass'] = false;
+                            $adminLedgerData['reclass_group_id'] = null;
+                        }
+                        PencatatanKeuangan::create($adminLedgerData);
                     }
                 }
             } else {
@@ -469,6 +592,334 @@ class RequestpembelianController extends Controller
             Log::error('Error: ' . $e->getMessage());
             return redirect()->route('requestpembelian.index')->with('error', 'Gagal mengubah status: ' . $e->getMessage());
         }
+    }
+
+    public function storeInvoiceItem(Request $request, string $id)
+    {
+        $request->validate([
+            'invoice_pembelian' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:5120|required_without:total_invoice',
+            'total_invoice' => 'nullable|numeric|min:0|required_without:invoice_pembelian',
+        ]);
+
+        $detail = RequestpembelianDetail::findOrFail($id);
+        $header = RequestpembelianHeader::findOrFail($detail->id_request_pembelian_header);
+
+        if (!in_array(Auth::user()->role, ['admin', 'bendahara'], true)) {
+            return redirect()->route('requestpembelian.detail', $header->id)
+                ->with('error', 'Hanya admin/bendahara yang bisa upload invoice item.');
+        }
+
+        if (!in_array($header->status_request, ['submit_request', 'approve_request', 'reject_payment', 'submit_payment', 'approve_payment', 'done'], true)) {
+            return redirect()->route('requestpembelian.detail', $header->id)
+                ->with('error', 'Invoice item hanya bisa diunggah saat proses pembelian.');
+        }
+
+        if ($request->hasFile('invoice_pembelian')) {
+            if (!empty($detail->invoice_pembelian) && Storage::disk('public')->exists($detail->invoice_pembelian)) {
+                Storage::disk('public')->delete($detail->invoice_pembelian);
+            }
+            $path = $request->file('invoice_pembelian')->store('request_pembelian/invoice_item', 'public');
+            $detail->invoice_pembelian = $path;
+        }
+
+        if ($request->filled('total_invoice')) {
+            if (!Schema::hasColumn('request_pembelian_detail', 'total_invoice')) {
+                return redirect()->route('requestpembelian.detail', $header->id)
+                    ->with('error', "Kolom total_invoice belum ada. Jalankan 'php artisan migrate' terlebih dahulu.");
+            }
+            $detail->total_invoice = (float) $request->total_invoice;
+        }
+        $detail->user_id_updated = Auth::id();
+        $detail->save();
+
+        return redirect()->route('requestpembelian.detail', $header->id)
+            ->with('success', 'Invoice per item berhasil diunggah.');
+    }
+
+    public function storeInvoiceBulk(Request $request, string $id)
+    {
+        $request->validate([
+            'total_invoice' => 'nullable|array',
+            'total_invoice.*' => 'nullable|numeric|min:0',
+            'is_talangan' => 'nullable|boolean',
+            'biaya_admin_transfer' => 'nullable|numeric|min:0',
+            'status_request' => 'nullable|string',
+            'keterangan_reject' => 'nullable|string|max:500',
+            'bukti_transfer' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:5120',
+        ]);
+
+        $header = RequestpembelianHeader::findOrFail($id);
+
+        if (!in_array(Auth::user()->role, ['admin', 'bendahara'], true)) {
+            return redirect()->route('requestpembelian.detail', $header->id)
+                ->with('error', 'Hanya admin/bendahara yang bisa upload invoice item.');
+        }
+
+        if (!in_array($header->status_request, ['submit_request', 'approve_request', 'reject_payment', 'submit_payment', 'approve_payment', 'done'], true)) {
+            return redirect()->route('requestpembelian.detail', $header->id)
+                ->with('error', 'Invoice item hanya bisa diunggah saat proses pembelian.');
+        }
+
+        $totals = $request->input('total_invoice', []);
+        $hasAnyTotal = collect($totals)->contains(function ($v) {
+            return $v !== null && $v !== '';
+        });
+        $hasStatus = $request->filled('status_request');
+        $hasBuktiTransfer = $request->hasFile('bukti_transfer');
+        $hasBiayaAdmin = $request->filled('biaya_admin_transfer');
+        $hasTalanganHeaderCol = Schema::hasColumn('request_pembelian_header', 'is_talangan');
+        $requestedTalangan = (bool) $request->boolean('is_talangan');
+        $hasTalanganChange = $hasTalanganHeaderCol
+            ? ($requestedTalangan !== (bool) ($header->is_talangan ?? false))
+            : false;
+
+        if (!$hasAnyTotal && !$hasStatus && !$hasBuktiTransfer && !$hasBiayaAdmin && !$hasTalanganChange) {
+            return redirect()->route('requestpembelian.detail', $header->id)
+                ->with('error', 'Belum ada perubahan yang disubmit.');
+        }
+
+        $details = RequestpembelianDetail::where('id_request_pembelian_header', $header->id)->get();
+        $hasTotalInvoiceColumn = Schema::hasColumn('request_pembelian_detail', 'total_invoice');
+
+        foreach ($details as $detail) {
+            $isChanged = false;
+            $detailId = (string) $detail->id;
+
+            if (array_key_exists($detailId, $totals) && $totals[$detailId] !== '' && $totals[$detailId] !== null) {
+                if (!$hasTotalInvoiceColumn) {
+                    return redirect()->route('requestpembelian.detail', $header->id)
+                        ->with('error', "Kolom total_invoice belum ada. Jalankan 'php artisan migrate' terlebih dahulu.");
+                }
+                $detail->total_invoice = (float) $totals[$detailId];
+                $isChanged = true;
+            }
+
+            if ($isChanged) {
+                $detail->user_id_updated = Auth::id();
+                $detail->save();
+            }
+        }
+
+        if ($request->filled('biaya_admin_transfer')) {
+            $header->biaya_admin_transfer = (float) $request->biaya_admin_transfer;
+        }
+
+        if ($hasTalanganChange) {
+            $header->is_talangan = $requestedTalangan;
+            if (Schema::hasColumn('request_pembelian_header', 'status_alokasi') && $requestedTalangan && empty($header->status_alokasi)) {
+                $header->status_alokasi = 'belum';
+            }
+            if (!$requestedTalangan) {
+                if (Schema::hasColumn('request_pembelian_header', 'status_alokasi')) {
+                    $header->status_alokasi = 'belum';
+                }
+                if (Schema::hasColumn('request_pembelian_header', 'project_id_alokasi_final')) {
+                    $header->project_id_alokasi_final = null;
+                }
+                if (Schema::hasColumn('request_pembelian_header', 'tanggal_alokasi_final')) {
+                    $header->tanggal_alokasi_final = null;
+                }
+                if (Schema::hasColumn('request_pembelian_header', 'catatan_alokasi')) {
+                    $header->catatan_alokasi = null;
+                }
+            }
+        }
+
+        if ($request->hasFile('bukti_transfer')) {
+            if (!empty($header->bukti_transfer) && Storage::disk('public')->exists($header->bukti_transfer)) {
+                Storage::disk('public')->delete($header->bukti_transfer);
+            }
+            $header->bukti_transfer = $request->file('bukti_transfer')->store('request_pembelian/bukti_transfer', 'public');
+        }
+
+        if ($request->filled('status_request')) {
+            $statusRequest = $request->status_request;
+
+            if ($statusRequest === 'approve_payment') {
+                $hasTalanganHeaderCols = Schema::hasColumn('request_pembelian_header', 'is_talangan');
+                if ($hasTalanganHeaderCols && $request->has('is_talangan')) {
+                    $header->is_talangan = (bool) $request->boolean('is_talangan');
+                }
+                if (Schema::hasColumn('request_pembelian_header', 'status_alokasi')
+                    && (bool) ($header->is_talangan ?? false)
+                    && empty($header->status_alokasi)) {
+                    $header->status_alokasi = 'belum';
+                }
+                $header->nominal_final_total = null;
+                $header->nominal_penambahan = 0;
+                $header->nominal_pengurangan = 0;
+                $header->keterangan_penambahan = null;
+                $header->keterangan_pengurangan = null;
+                $header->status_request = 'done';
+                $header->keterangan_reject = null;
+
+                $existing = PencatatanKeuangan::where('request_pembelian_id', $header->id)->exists();
+                if (!$existing) {
+                    $detailRows = RequestpembelianDetail::where('id_request_pembelian_header', $header->id)->get();
+                    $hasTalanganColumns = Schema::hasColumn('pencatatan_keuangan', 'is_talangan');
+                    foreach ($detailRows as $detail) {
+                        $totalNominal = (float) ($detail->total_invoice ?? ($detail->kuantitas * $detail->harga));
+
+                        $ledgerData = [
+                            'tanggal'                => $header->tgl_request,
+                            'project_id'             => $header->id_project,
+                            'sub_kategori_pendanaan' => $detail->id_subkategori_sumberdana ?? null,
+                            'jenis_transaksi'        => 'pengeluaran',
+                            'deskripsi_transaksi'    => "[REQBUY#{$header->id}] Pembelian: " . $detail->nama_barang,
+                            'jumlah_transaksi'       => $totalNominal,
+                            'metode_pembayaran'      => 'Transfer',
+                            'bukti_transaksi'        => $header->bukti_transfer ?? $detail->invoice_pembelian ?? null,
+                            'request_pembelian_id'   => $header->id,
+                        ];
+                        if ($hasTalanganColumns) {
+                            $ledgerData['is_talangan'] = (bool) ($header->is_talangan ?? false);
+                            $ledgerData['talangan_ref_type'] = (bool) ($header->is_talangan ?? false) ? 'request_pembelian' : null;
+                            $ledgerData['talangan_ref_id'] = (bool) ($header->is_talangan ?? false) ? $header->id : null;
+                            $ledgerData['is_reclass'] = false;
+                            $ledgerData['reclass_group_id'] = null;
+                        }
+                        PencatatanKeuangan::create($ledgerData);
+
+                        if ($detail->id_subkategori_sumberdana) {
+                            $detailSubkategori = DetailSubkategori::where('id_subkategori_sumberdana', $detail->id_subkategori_sumberdana)
+                                ->where('id_project', $header->id_project)
+                                ->first();
+
+                            if ($detailSubkategori) {
+                                $detailSubkategori->realisasi_anggaran = ($detailSubkategori->realisasi_anggaran ?? 0) + $totalNominal;
+                                $detailSubkategori->save();
+                            }
+                        }
+                    }
+
+                    $biayaAdmin = (float) ($header->biaya_admin_transfer ?? 0);
+                    if ($biayaAdmin > 0) {
+                        $adminLedgerData = [
+                            'tanggal'                => $header->tgl_request,
+                            'project_id'             => $header->id_project,
+                            'sub_kategori_pendanaan' => null,
+                            'jenis_transaksi'        => 'pengeluaran',
+                            'deskripsi_transaksi'    => "[REQBUY#{$header->id}] Biaya Admin Transfer",
+                            'jumlah_transaksi'       => $biayaAdmin,
+                            'metode_pembayaran'      => 'Transfer',
+                            'bukti_transaksi'        => $header->bukti_transfer ?? null,
+                            'request_pembelian_id'   => $header->id,
+                        ];
+                        if ($hasTalanganColumns) {
+                            $adminLedgerData['is_talangan'] = (bool) ($header->is_talangan ?? false);
+                            $adminLedgerData['talangan_ref_type'] = (bool) ($header->is_talangan ?? false) ? 'request_pembelian' : null;
+                            $adminLedgerData['talangan_ref_id'] = (bool) ($header->is_talangan ?? false) ? $header->id : null;
+                            $adminLedgerData['is_reclass'] = false;
+                            $adminLedgerData['reclass_group_id'] = null;
+                        }
+                        PencatatanKeuangan::create($adminLedgerData);
+                    }
+                }
+            } else {
+                $header->status_request = $statusRequest;
+                if ($statusRequest === 'reject_request' || $statusRequest === 'reject_payment') {
+                    $header->keterangan_reject = $request->keterangan_reject;
+                } else {
+                    $header->keterangan_reject = null;
+                }
+            }
+        }
+
+        $header->user_id_updated = Auth::id();
+        $header->updated_at = now();
+        $header->save();
+
+        return redirect()->route('requestpembelian.detail', $header->id)
+            ->with('success', 'Data berhasil disimpan.');
+    }
+
+    public function talanganIndex()
+    {
+        if (!in_array(Auth::user()->role, ['admin', 'bendahara'], true)) {
+            abort(403, 'Unauthorized');
+        }
+
+        if (!Schema::hasColumn('request_pembelian_header', 'is_talangan')) {
+            return redirect()->route('requestpembelian.index')
+                ->with('error', "Fitur talangan belum aktif. Jalankan 'php artisan migrate'.");
+        }
+
+        $rows = DB::table('request_pembelian_header as h')
+            ->leftJoin('project as p', 'h.id_project', '=', 'p.id')
+            ->leftJoin('project as pf', 'h.project_id_alokasi_final', '=', 'pf.id')
+            ->where('h.status_request', 'done')
+            ->where('h.is_talangan', 1)
+            ->select(
+                'h.id',
+                'h.no_request',
+                'h.tgl_request',
+                'h.biaya_admin_transfer',
+                'h.status_alokasi',
+                'h.project_id_alokasi_final',
+                'h.tanggal_alokasi_final',
+                'h.catatan_alokasi',
+                'p.nama_project as nama_project_awal',
+                'pf.nama_project as nama_project_alokasi',
+                DB::raw('(SELECT COALESCE(SUM(COALESCE(d.total_invoice, (d.kuantitas * d.harga))),0) FROM request_pembelian_detail d WHERE d.id_request_pembelian_header = h.id) as total_invoice')
+            )
+            ->orderByDesc('h.id')
+            ->get();
+
+        $projects = Project::query()
+            ->where('status', 'aktif')
+            ->orderBy('nama_project')
+            ->get(['id', 'nama_project']);
+
+        return view('requestpembelian.talangan', compact('rows', 'projects'));
+    }
+
+    public function talanganAllocate(Request $request, string $id)
+    {
+        if (!in_array(Auth::user()->role, ['admin', 'bendahara'], true)) {
+            abort(403, 'Unauthorized');
+        }
+
+        if (!Schema::hasColumn('request_pembelian_header', 'is_talangan')) {
+            return back()->with('error', "Fitur talangan belum aktif. Jalankan 'php artisan migrate'.");
+        }
+
+        $validated = $request->validate([
+            'project_id_alokasi_final' => 'required|exists:project,id',
+            'tanggal_alokasi_final' => 'required|date',
+            'catatan_alokasi' => 'nullable|string|max:500',
+        ]);
+
+        $header = RequestpembelianHeader::findOrFail($id);
+        if (!(bool) ($header->is_talangan ?? false)) {
+            return back()->with('error', 'Request ini bukan transaksi talangan.');
+        }
+        if (($header->status_request ?? '') !== 'done') {
+            return back()->with('error', 'Hanya request dengan status selesai yang bisa dialokasikan.');
+        }
+
+        DB::transaction(function () use ($header, $validated) {
+            $targetProjectId = (int) $validated['project_id_alokasi_final'];
+            $reclassGroupId = 'RECLASS-REQBUY-' . $header->id . '-' . Str::uuid()->toString();
+
+            $ledgerUpdate = ['project_id' => $targetProjectId];
+            if (Schema::hasColumn('pencatatan_keuangan', 'is_talangan')) {
+                $ledgerUpdate['is_talangan'] = false;
+                $ledgerUpdate['is_reclass'] = true;
+                $ledgerUpdate['reclass_group_id'] = $reclassGroupId;
+            }
+
+            PencatatanKeuangan::where('request_pembelian_id', $header->id)->update($ledgerUpdate);
+
+            $header->project_id_alokasi_final = $targetProjectId;
+            $header->tanggal_alokasi_final = $validated['tanggal_alokasi_final'];
+            $header->catatan_alokasi = $validated['catatan_alokasi'] ?? null;
+            $header->status_alokasi = 'sudah';
+            $header->user_id_updated = Auth::id();
+            $header->updated_at = now();
+            $header->save();
+        });
+
+        return back()->with('success', 'Talangan berhasil dialokasikan ke project final.');
     }
 
     public function pengajuanulang(string $id)

@@ -43,19 +43,6 @@
   .hero-title{ font-size:1.65rem; font-weight:900; margin:0; letter-spacing:-.2px; color:var(--ink); }
   .hero-sub{ margin:6px 0 0; color:var(--ink-600); font-weight:600; }
 
-  .tabs{ margin-top:12px; display:flex; gap:8px; flex-wrap:wrap; }
-  .tab-btn{
-    height:36px; display:inline-flex; align-items:center; gap:8px;
-    padding:0 14px; border-radius:999px; font-weight:900; text-decoration:none;
-    border:1px solid rgba(226,232,240,.95); background:#fff; color:var(--ink);
-    box-shadow:0 12px 24px rgba(15,23,42,.06); transition:.15s; white-space:nowrap;
-  }
-  .tab-btn:hover{ background:var(--brand-50); color:var(--brand-700); transform:translateY(-1px); }
-  .tab-btn.active{
-    background:linear-gradient(135deg,var(--brand-700),var(--brand));
-    color:#fff; border-color:transparent; box-shadow:0 16px 28px rgba(22,163,74,.18);
-  }
-
   .tools-row{
     margin-top:14px; display:flex; align-items:center; justify-content:space-between;
     gap:12px; flex-wrap:wrap;
@@ -147,15 +134,6 @@
   <div class="hero-inner">
     <h1 class="hero-title">Pengajuan Saya</h1>
     <p class="hero-sub">Pantau status pengajuan project sebelum benar-benar aktif.</p>
-
-    <div class="tabs">
-      <a href="{{ route('project.index') }}" class="tab-btn">
-        <i class="bi bi-kanban"></i> Project
-      </a>
-      <a href="{{ route('pengajuan.saya') }}" class="tab-btn active">
-        <i class="bi bi-clipboard-check"></i> Pengajuan Saya
-      </a>
-    </div>
 
     <div class="tools-row">
       <div class="tools-left">

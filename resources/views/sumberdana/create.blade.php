@@ -292,43 +292,7 @@
   <div class="app">
     <!-- SIDEBAR -->
     <aside class="sidebar" id="appSidebar">
-      <div class="menu-title">Menu</div>
-
-      <a class="nav-link-custom {{ request()->routeIs('dashboard') ? 'active' : '' }}" href="{{ route('dashboard') }}">
-        <i class="bi bi-speedometer2"></i> Dashboard
-      </a>
-
-      <a class="nav-link-custom {{ request()->routeIs('project.*') ? 'active' : '' }}" href="{{ route('project.index') }}">
-        <i class="bi bi-kanban"></i> Project
-      </a>
-
-      <a class="nav-link-custom {{ request()->routeIs('requestpembelian.*') ? 'active' : '' }}" href="{{ route('requestpembelian.index') }}">
-        <i class="bi bi-bag-check"></i> Request Pembelian
-      </a>
-
-      @if (Auth::user()->role == 'admin')
-        <div class="menu-title mt-3">Administrasi</div>
-
-        <a class="nav-link-custom {{ request()->routeIs('sumberdana.*') ? 'active' : '' }}" href="{{ route('sumberdana.index') }}">
-          <i class="bi bi-cash-coin"></i> Sumber Dana
-        </a>
-
-        <a class="nav-link-custom {{ request()->routeIs('kas.*') ? 'active' : '' }}" href="{{ route('kas.index') }}">
-          <i class="bi bi-wallet2"></i> Kas
-        </a>
-
-        <a class="nav-link-custom {{ request()->routeIs('pencatatan_keuangan') ? 'active' : '' }}" href="{{ route('pencatatan_keuangan') }}">
-          <i class="bi bi-journal-text"></i> Pencatatan Keuangan
-        </a>
-
-        <a class="nav-link-custom {{ request()->routeIs('laporan_keuangan') ? 'active' : '' }}" href="{{ route('laporan_keuangan') }}">
-          <i class="bi bi-graph-up"></i> Laporan Keuangan
-        </a>
-
-        <a class="nav-link-custom {{ request()->routeIs('users.*') ? 'active' : '' }}" href="{{ route('users.index') }}">
-          <i class="bi bi-people"></i> Management User
-        </a>
-      @endif
+      @include('layouts.sidebar-menu')
     </aside>
 
     <div class="backdrop" id="backdrop"></div>

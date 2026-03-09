@@ -5,7 +5,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="csrf-token" content="{{ csrf_token() }}">
-  <title>Upload Bukti Pembayaran</title>
+  <title>Upload Invoice Item</title>
 
   <!-- Fonts & Icons -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -98,7 +98,7 @@
   // ambil header (kalau controller belum kirim)
   $header = $header ?? \App\Models\RequestpembelianHeader::find($detail->id_request_pembelian_header);
 
-  $isAdmin = Auth::user()->role === 'admin';
+  $isApprover = in_array(Auth::user()->role, ['admin','bendahara'], true);
 
   // normalisasi status
   $statusHeaderRaw = $header->status_request ?? '';
@@ -106,7 +106,7 @@
   $statusHeader = str_replace(' ', '_', $statusHeader);
 
   // ✅ FIX: izinkan upload juga saat submit_payment (biar bisa nyicil upload semua item)
-  $allowUpload = in_array($statusHeader, ['approve_request','reject_payment','submit_payment']);
+  $allowUpload = $isApprover && $statusHeader !== 'reject_request';
 @endphp
 
 <!-- TOPBAR -->
@@ -124,32 +124,8 @@
 
   <!-- SIDEBAR -->
   <aside class="sidebar" id="appSidebar">
-    <div class="menu-title">Menu</div>
-
-    <a class="nav-link-custom" href="{{ route('dashboard') }}">
-      <i class="bi bi-speedometer2"></i> Dashboard
-    </a>
-
-    <a class="nav-link-custom" href="{{ route('project.index') }}">
-      <i class="bi bi-kanban"></i> Project
-    </a>
-
-    <a class="nav-link-custom active" href="{{ route('requestpembelian.index') }}">
-      <i class="bi bi-bag-check"></i> Request Pembelian
-    </a>
-
-    @if($isAdmin)
-      <a class="nav-link-custom {{ request()->routeIs('kas.*') ? 'active' : '' }}" href="{{ route('kas.index') }}">
-        <i class="bi bi-wallet2"></i> Kas
-      </a>
-
-      <div class="menu-title mt-3">Administrasi</div>
-      <a class="nav-link-custom" href="{{ route('sumberdana.index') }}"><i class="bi bi-cash-coin"></i> Sumber Dana</a>
-      <a class="nav-link-custom" href="{{ route('pencatatan_keuangan') }}"><i class="bi bi-journal-text"></i> Pencatatan Keuangan</a>
-      <a class="nav-link-custom" href="{{ route('laporan_keuangan') }}"><i class="bi bi-graph-up"></i> Laporan Keuangan</a>
-      <a class="nav-link-custom" href="{{ route('users.index') }}"><i class="bi bi-people"></i> Management User</a>
-    @endif
-  </aside>
+      @include('layouts.sidebar-menu')
+    </aside>
 
   <div class="backdrop" id="backdrop"></div>
 
@@ -158,9 +134,9 @@
 
     <div class="d-flex justify-content-between align-items-end flex-wrap gap-2">
       <div>
-        <div class="page-title">Upload Bukti Pembayaran</div>
+        <div class="page-title">Upload Invoice Item</div>
         <div class="page-sub">
-          Upload bukti bayar bisa saat <b>Approve Request</b>, <b>Reject Payment</b>, atau <b>Submit Payment</b> (melengkapi / perbaiki satu-satu).
+          Upload invoice item dilakukan oleh admin/bendahara untuk komponen ini.
         </div>
       </div>
 
@@ -204,7 +180,7 @@
 
         @elseif(!$allowUpload)
           <div class="alert alert-warning mb-0">
-            Bukti bayar belum bisa diunggah. Status harus <b>approve_request</b>, <b>reject_payment</b>, atau <b>submit_payment</b>.
+            Upload invoice tidak tersedia untuk status saat ini.
           </div>
 
         @else
@@ -214,13 +190,13 @@
             <input type="hidden" name="id_request_pembelian_header" value="{{ $detail->id_request_pembelian_header }}">
 
             <div class="mb-3">
-              <label class="form-label fw-bold" for="bukti_bayar">Bukti Bayar</label>
-              <input type="file" class="form-control" id="bukti_bayar" name="bukti_bayar" accept="image/*" required>
-              <div class="form-text">Format: JPG/PNG. Maks 2MB.</div>
+              <label class="form-label fw-bold" for="bukti_bayar">File Invoice</label>
+              <input type="file" class="form-control" id="bukti_bayar" name="bukti_bayar" accept=".jpg,.jpeg,.png,.pdf" required>
+              <div class="form-text">Format: JPG/JPEG/PNG/PDF. Maks 5MB.</div>
             </div>
 
             <button type="submit" class="btn btn-brand">
-              <i class="bi bi-upload me-1"></i> Submit Bukti
+              <i class="bi bi-upload me-1"></i> Submit Invoice
             </button>
           </form>
         @endif

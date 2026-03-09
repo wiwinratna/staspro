@@ -15,14 +15,19 @@ return new class extends Migration
             $table->id();
             $table->string('nama');
             $table->string('nama_form');
-            $table->unsignedBigInteger('id_sumberdana');
-            $table->unsignedBigInteger('user_id_created');
-            $table->unsignedBigInteger('user_id_updated');
+            $table->foreignId('id_sumberdana')
+                ->constrained('sumber_dana')
+                ->cascadeOnUpdate()
+                ->restrictOnDelete();
+            $table->foreignId('user_id_created')
+                ->constrained('users')
+                ->cascadeOnUpdate()
+                ->restrictOnDelete();
+            $table->foreignId('user_id_updated')
+                ->constrained('users')
+                ->cascadeOnUpdate()
+                ->restrictOnDelete();
             $table->timestamps();
-
-            $table->foreign('id_sumberdana')->references('id')->on('sumber_dana');
-            $table->foreign('user_id_created')->references('id')->on('users');
-            $table->foreign('user_id_updated')->references('id')->on('users');
         });
     }
 
@@ -31,11 +36,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('subkategori_sumberdana', function (Blueprint $table) {
-            $table->dropForeign(['id_sumberdana']);
-            $table->dropForeign(['user_id_created']);
-            $table->dropForeign(['user_id_updated']);
-        });
         Schema::dropIfExists('subkategori_sumberdana');
     }
 };

@@ -8,12 +8,26 @@ return new class extends Migration
 {
     public function up(): void
     {
-        // workflow_status SUDAH ADA -> jangan ditambah lagi
-        // Tambah kolom lain hanya jika belum ada
+        if (!Schema::hasColumn('project', 'workflow_status')) {
+            Schema::table('project', function (Blueprint $table) {
+                $table->enum('workflow_status', ['submitted', 'approved', 'rejected', 'funded', 'finalized'])
+                    ->default('submitted');
+            });
+        }
+
+        $ketuaAfter = null;
+        if (Schema::hasColumn('project', 'workflow_status')) {
+            $ketuaAfter = 'workflow_status';
+        } elseif (Schema::hasColumn('project', 'status')) {
+            $ketuaAfter = 'status';
+        }
 
         if (!Schema::hasColumn('project', 'ketua_id')) {
-            Schema::table('project', function (Blueprint $table) {
-                $table->unsignedBigInteger('ketua_id')->nullable()->after('workflow_status');
+            Schema::table('project', function (Blueprint $table) use ($ketuaAfter) {
+                $column = $table->unsignedBigInteger('ketua_id')->nullable();
+                if ($ketuaAfter !== null) {
+                    $column->after($ketuaAfter);
+                }
             });
         }
 
@@ -44,15 +58,12 @@ return new class extends Migration
 
     public function down(): void
     {
-        // Drop kolom kalau ada (aman)
-        Schema::table('project', function (Blueprint $table) {
-            $drops = [];
-
-            foreach (['ketua_id','submitted_at','approved_at','funded_at','finalized_at'] as $col) {
-                if (Schema::hasColumn('project', $col)) $drops[] = $col;
+        foreach (['ketua_id', 'submitted_at', 'approved_at', 'funded_at', 'finalized_at', 'workflow_status'] as $col) {
+            if (Schema::hasColumn('project', $col)) {
+                Schema::table('project', function (Blueprint $table) use ($col) {
+                    $table->dropColumn($col);
+                });
             }
-
-            if (!empty($drops)) $table->dropColumn($drops);
-        });
+        }
     }
 };

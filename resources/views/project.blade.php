@@ -46,35 +46,6 @@
     font-weight:600;
   }
 
-  /* Tabs (Project / Pengajuan) */
-  .tabs{
-    margin-top:12px;
-    display:flex;
-    gap:8px;
-    flex-wrap:wrap;
-  }
-  .tab-btn{
-    height:36px;
-    display:inline-flex; align-items:center; gap:8px;
-    padding:0 14px;
-    border-radius:999px;
-    font-weight:900;
-    text-decoration:none;
-    border:1px solid rgba(226,232,240,.95);
-    background:#fff;
-    color:#0f172a;
-    box-shadow:0 12px 24px rgba(15,23,42,.06);
-    transition:.15s;
-    white-space:nowrap;
-  }
-  .tab-btn:hover{ background:#ecfdf5; color:#15803d; transform:translateY(-1px); }
-  .tab-btn.active{
-    background:linear-gradient(135deg,#15803d,#16a34a);
-    color:#fff;
-    border-color:transparent;
-    box-shadow:0 16px 28px rgba(22,163,74,.18);
-  }
-
   /* Tools */
   .tools-row{
     margin-top:14px;
@@ -322,25 +293,6 @@
             Daftar project aktif & arsip + pantau pengajuan kamu di sini.
           @endif
         </p>
-
-        {{-- Tabs: Project / Pengajuan --}}
-        <div class="tabs">
-          <a href="{{ route('project.index') }}" class="tab-btn active">
-            <i class="bi bi-kanban"></i> Project
-          </a>
-
-          @if(Auth::user()->role === 'peneliti')
-            <a href="{{ route('pengajuan.saya') }}" class="tab-btn">
-              <i class="bi bi-clipboard-check"></i> Pengajuan Saya
-            </a>
-          @endif
-
-          @if(in_array(Auth::user()->role, ['admin','bendahara']))
-            <a href="{{ route('pengajuan.masuk') }}" class="tab-btn">
-              <i class="bi bi-inbox"></i> Pengajuan Masuk
-            </a>
-          @endif
-        </div>
 
         <div class="tools-row">
           <div class="tools-left">

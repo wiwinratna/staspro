@@ -48,34 +48,6 @@
     font-weight:600;
   }
 
-  .tabs{
-    margin-top:12px;
-    display:flex;
-    gap:8px;
-    flex-wrap:wrap;
-  }
-  .tab-btn{
-    height:36px;
-    display:inline-flex; align-items:center; gap:8px;
-    padding:0 14px;
-    border-radius:999px;
-    font-weight:900;
-    text-decoration:none;
-    border:1px solid rgba(226,232,240,.95);
-    background:#fff;
-    color:#0f172a;
-    box-shadow:0 12px 24px rgba(15,23,42,.06);
-    transition:.15s;
-    white-space:nowrap;
-  }
-  .tab-btn:hover{ background:#ecfdf5; color:#15803d; transform:translateY(-1px); }
-  .tab-btn.active{
-    background:linear-gradient(135deg,#15803d,#16a34a);
-    color:#fff;
-    border-color:transparent;
-    box-shadow:0 16px 28px rgba(22,163,74,.18);
-  }
-
   .tools-row{
     margin-top:14px;
     display:flex;
@@ -136,18 +108,41 @@
   }
   .btn-manual:hover{ background:#ecfdf5; color:#15803d; transform:translateY(-1px); }
 
+  .btn-apply{
+    height:38px;
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    border-radius:999px;
+    font-weight:900;
+    padding:0 14px;
+    background:linear-gradient(135deg,#15803d,#16a34a);
+    border:0;
+    color:#fff;
+    text-decoration:none;
+    box-shadow:0 16px 28px rgba(22,163,74,.18);
+    white-space:nowrap;
+  }
+  .btn-apply:hover{ filter:brightness(.98); transform:translateY(-1px); color:#fff; }
+
   @media(max-width:991.98px){
     .search-wrap{ width:100%; }
     .tools-right{ width:100%; margin-left:0; justify-content:flex-start; }
+  }
+
+  .kpi-grid{
+    display:grid;
+    grid-template-columns: repeat(5, minmax(150px, 1fr));
+    gap:10px;
   }
 
   /* KPI MINI (klikable) */
   .kpi-mini{
     background:#fff;
     border:1px solid rgba(226,232,240,.95);
-    border-radius:16px;
-    padding:12px 14px;
-    box-shadow:0 10px 26px rgba(15,23,42,.05);
+    border-radius:12px;
+    padding:9px 11px;
+    box-shadow:0 8px 18px rgba(15,23,42,.05);
     width:100%;
     cursor:pointer;
     transition:.15s;
@@ -162,21 +157,30 @@
   .kpi-mini .label{
     color:#475569;
     font-weight:900;
-    font-size:.78rem;
+    font-size:.7rem;
     text-transform:uppercase;
     letter-spacing:.06em;
   }
   .kpi-mini .val{
-    font-size:1.35rem;
+    font-size:1.1rem;
     font-weight:900;
-    margin-top:4px;
+    margin-top:2px;
     color:#0f172a;
+    line-height:1.2;
   }
   .kpi-mini .hint{
-    margin-top:6px;
-    font-size:.75rem;
+    margin-top:3px;
+    font-size:.67rem;
     color:#64748b;
-    font-weight:700;
+    font-weight:800;
+    line-height:1.2;
+  }
+
+  @media(max-width:1199.98px){
+    .kpi-grid{ grid-template-columns: repeat(3, minmax(150px, 1fr)); }
+  }
+  @media(max-width:767.98px){
+    .kpi-grid{ grid-template-columns: repeat(2, minmax(140px, 1fr)); }
   }
 
   .table-card{
@@ -258,21 +262,18 @@
         <h1 class="title">Pengajuan Masuk</h1>
         <p class="sub">Kelola pengajuan project dari peneliti: approve dan finalize.</p>
 
-        <div class="tabs">
-          <a href="{{ route('project.index') }}" class="tab-btn">
-            <i class="bi bi-kanban"></i> Project
-          </a>
-          <a href="{{ route('pengajuan.masuk') }}" class="tab-btn active">
-            <i class="bi bi-inbox"></i> Pengajuan Masuk
-          </a>
-        </div>
-
         <div class="tools-row">
           <div class="tools-left">
             <div class="search-wrap">
               <i class="bi bi-search"></i>
               <input id="searchPengajuan" class="search-input" placeholder="Cari pengajuan (nama / tahun / status)">
             </div>
+
+            @if(Auth::user()->role === 'admin')
+              <a href="{{ route('project.create') }}" class="btn-apply">
+                <i class="bi bi-plus-lg"></i> Input Project
+              </a>
+            @endif
           </div>
 
           <div class="tools-right">
@@ -299,45 +300,35 @@
   <div class="alert alert-danger">{{ $message }}</div>
 @endif
 
-<section class="row g-3 mt-2">
-  <div class="col-md-3 d-flex">
-    <div class="kpi-mini kpi-filter active" data-filter="all">
+<section class="kpi-grid mt-2">
+  <div class="kpi-mini kpi-filter active" data-filter="all">
       <div class="label">All</div>
       <div class="val">{{ $rows->count() }}</div>
       <div class="hint">Klik untuk tampilkan semua</div>
-    </div>
   </div>
 
-  <div class="col-md-3 d-flex">
-    <div class="kpi-mini kpi-filter" data-filter="submitted">
+  <div class="kpi-mini kpi-filter" data-filter="submitted">
       <div class="label">Submitted</div>
       <div class="val">{{ $countSubmitted ?? 0 }}</div>
       <div class="hint">Klik untuk filter submitted</div>
-    </div>
   </div>
 
-  <div class="col-md-3 d-flex">
-    <div class="kpi-mini kpi-filter" data-filter="approved">
+  <div class="kpi-mini kpi-filter" data-filter="approved">
       <div class="label">Approved</div>
       <div class="val">{{ $countApproved ?? 0 }}</div>
       <div class="hint">Menunggu dana cair</div>
-    </div>
   </div>
 
-  <div class="col-md-3 d-flex">
-    <div class="kpi-mini kpi-filter" data-filter="funded">
+  <div class="kpi-mini kpi-filter" data-filter="funded">
       <div class="label">Dana Cair</div>
       <div class="val">{{ $countFunded ?? 0 }}</div>
       <div class="hint">Menunggu set ulang RAB</div>
-    </div>
   </div>
 
-  <div class="col-md-3 d-flex">
-    <div class="kpi-mini kpi-filter" data-filter="finalized">
+  <div class="kpi-mini kpi-filter" data-filter="finalized">
       <div class="label">Finalized</div>
       <div class="val">{{ $countFinalized ?? 0 }}</div>
       <div class="hint">Sudah final</div>
-    </div>
   </div>
 </section>
 

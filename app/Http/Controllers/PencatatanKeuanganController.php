@@ -6,9 +6,12 @@ use App\Models\PencatatanKeuangan;
 use App\Models\Project;
 use App\Models\SubkategoriSumberdana;
 use App\Models\DetailSubkategori;
+use App\Models\RequestpembelianHeader;
+use App\Models\RequestpembelianDetail;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use App\Exports\LaporanExport;
 use Maatwebsite\Excel\Facades\Excel;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -99,12 +102,101 @@ class PencatatanKeuanganController extends Controller
         }
     }
 
+    /**
+     * Sinkron otomatis request pembelian DONE ke pencatatan_keuangan:
+     * - nominal item pakai total_invoice (fallback estimasi jika kosong)
+     * - tambah 1 baris biaya admin transfer (jika ada)
+     */
+    private function syncRequestPembelianFinalized(): void
+    {
+        $hasHeaderTalanganCols = Schema::hasColumn('request_pembelian_header', 'project_id_alokasi_final')
+            && Schema::hasColumn('request_pembelian_header', 'status_alokasi')
+            && Schema::hasColumn('request_pembelian_header', 'is_talangan');
+
+        $headerColumns = ['id', 'id_project', 'tgl_request', 'bukti_transfer', 'biaya_admin_transfer'];
+        if ($hasHeaderTalanganCols) {
+            $headerColumns[] = 'project_id_alokasi_final';
+            $headerColumns[] = 'status_alokasi';
+            $headerColumns[] = 'is_talangan';
+        }
+
+        $headers = RequestpembelianHeader::query()
+            ->where('status_request', 'done')
+            ->get($headerColumns);
+
+        foreach ($headers as $header) {
+            DB::transaction(function () use ($header) {
+                $hasTalanganColumns = Schema::hasColumn('pencatatan_keuangan', 'is_talangan');
+                PencatatanKeuangan::where('request_pembelian_id', $header->id)
+                    ->where('deskripsi_transaksi', 'like', "[REQBUY#{$header->id}]%")
+                    ->delete();
+
+                $details = RequestpembelianDetail::query()
+                    ->where('id_request_pembelian_header', $header->id)
+                    ->get(['nama_barang', 'id_subkategori_sumberdana', 'kuantitas', 'harga', 'total_invoice', 'invoice_pembelian']);
+
+                foreach ($details as $detail) {
+                    $nominalFix = (float) ($detail->total_invoice ?? ((float) $detail->kuantitas * (float) $detail->harga));
+                    $isAllocated = (($header->status_alokasi ?? 'belum') === 'sudah') && !empty($header->project_id_alokasi_final);
+                    $effectiveProjectId = $isAllocated ? (int) $header->project_id_alokasi_final : (int) $header->id_project;
+                    $isTalanganAktif = (bool) ($header->is_talangan ?? false) && !$isAllocated;
+                    $reclassGroupId = $isAllocated ? ('RECLASS-REQBUY-' . $header->id) : null;
+
+                    PencatatanKeuangan::create([
+                        'tanggal'                => $header->tgl_request ?? now()->toDateString(),
+                        'project_id'             => $effectiveProjectId,
+                        'sub_kategori_pendanaan' => $detail->id_subkategori_sumberdana ?: null,
+                        'jenis_transaksi'        => 'pengeluaran',
+                        'deskripsi_transaksi'    => "[REQBUY#{$header->id}] Pembelian: {$detail->nama_barang}",
+                        'jumlah_transaksi'       => $nominalFix,
+                        'metode_pembayaran'      => 'Transfer',
+                        'bukti_transaksi'        => $header->bukti_transfer ?? $detail->invoice_pembelian ?? null,
+                        'request_pembelian_id'   => $header->id,
+                    ] + ($hasTalanganColumns ? [
+                        'is_talangan'            => $isTalanganAktif,
+                        'talangan_ref_type'      => $isTalanganAktif ? 'request_pembelian' : null,
+                        'talangan_ref_id'        => $isTalanganAktif ? $header->id : null,
+                        'is_reclass'             => $isAllocated,
+                        'reclass_group_id'       => $reclassGroupId,
+                    ] : []));
+                }
+
+                $biayaAdmin = (float) ($header->biaya_admin_transfer ?? 0);
+                if ($biayaAdmin > 0) {
+                    $isAllocated = (($header->status_alokasi ?? 'belum') === 'sudah') && !empty($header->project_id_alokasi_final);
+                    $effectiveProjectId = $isAllocated ? (int) $header->project_id_alokasi_final : (int) $header->id_project;
+                    $isTalanganAktif = (bool) ($header->is_talangan ?? false) && !$isAllocated;
+                    $reclassGroupId = $isAllocated ? ('RECLASS-REQBUY-' . $header->id) : null;
+
+                    PencatatanKeuangan::create([
+                        'tanggal'                => $header->tgl_request ?? now()->toDateString(),
+                        'project_id'             => $effectiveProjectId,
+                        'sub_kategori_pendanaan' => null,
+                        'jenis_transaksi'        => 'pengeluaran',
+                        'deskripsi_transaksi'    => "[REQBUY#{$header->id}] Biaya Admin Transfer",
+                        'jumlah_transaksi'       => $biayaAdmin,
+                        'metode_pembayaran'      => 'Transfer',
+                        'bukti_transaksi'        => $header->bukti_transfer ?? null,
+                        'request_pembelian_id'   => $header->id,
+                    ] + ($hasTalanganColumns ? [
+                        'is_talangan'            => $isTalanganAktif,
+                        'talangan_ref_type'      => $isTalanganAktif ? 'request_pembelian' : null,
+                        'talangan_ref_id'        => $isTalanganAktif ? $header->id : null,
+                        'is_reclass'             => $isAllocated,
+                        'reclass_group_id'       => $reclassGroupId,
+                    ] : []));
+                }
+            });
+        }
+    }
+
 public function index()
 {
     if (in_array(auth()->user()->role, ['admin','bendahara'])) {
 
         // ✅ sync dana cair tetap jalan (boleh untuk bendahara juga)
         $this->syncDanaCairFinalized();
+        $this->syncRequestPembelianFinalized();
 
         $pencatatanKeuangans = PencatatanKeuangan::with(['project', 'subKategoriPendanaan', 'requestPembelian'])->get();
 
@@ -118,6 +210,8 @@ public function index()
 
     public function filterTransaksi(Request $request)
     {
+        $this->syncRequestPembelianFinalized();
+
         $startDate = Carbon::parse($request->input('start_date'))->startOfDay();
         $endDate = Carbon::parse($request->input('end_date'))->endOfDay();
 
@@ -411,6 +505,8 @@ public function index()
 
     public function laporanKeuangan(Request $request)
     {
+        $this->syncRequestPembelianFinalized();
+
         $projects = Project::all();
         $query = PencatatanKeuangan::query();
 
@@ -459,6 +555,8 @@ public function index()
 
     public function export(Request $request, $format)
     {
+        $this->syncRequestPembelianFinalized();
+
         $query = PencatatanKeuangan::with(['project', 'sumberDana']);
         $filterInfo = [];
 

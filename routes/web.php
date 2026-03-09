@@ -94,6 +94,8 @@ Route::middleware('auth')->group(function () {
         ->name('project.downloadproposal');
     Route::get('/project/download_rab/{id}', [ProjectController::class, 'download_rab'])
         ->name('project.downloadrab');
+    Route::get('/project/{project}/detail-pembelian/export', [ProjectController::class, 'exportDetailPembelianExcel'])
+        ->name('project.detail_pembelian.export');
 
     Route::get('/project/sumberdana/{id}', [ProjectController::class, 'getSubkategori'])
         ->name('project.get_subkategori');
@@ -120,15 +122,22 @@ Route::middleware('auth')->group(function () {
 
     /*
     |--------------------------------------------------------------------------
-    | Request Pembelian
+    | Pengajuan Komponen
     |--------------------------------------------------------------------------
     */
     Route::get('/requestpembelian', [RequestpembelianController::class, 'index'])->name('requestpembelian.index');
+    Route::get('/requestpembelian/track', [RequestpembelianController::class, 'track'])->name('requestpembelian.track');
+    Route::post('/requestpembelian/track/{id}/sampai', [RequestpembelianController::class, 'markSampai'])->name('requestpembelian.track.sampai');
+    Route::post('/requestpembelian/track/{id}/pelaporan', [RequestpembelianController::class, 'markPelaporan'])->name('requestpembelian.track.pelaporan');
     Route::get('/requestpembelian/create', [RequestpembelianController::class, 'create'])->name('requestpembelian.create');
     Route::post('/requestpembelian', [RequestpembelianController::class, 'store'])->name('requestpembelian.store');
 
-    Route::get('/requestpembelian/{id}', [RequestpembelianController::class, 'edit'])->name('requestpembelian.edit');
-    Route::post('/requestpembelian/{id}', [RequestpembelianController::class, 'update'])->name('requestpembelian.update');
+    Route::get('/requestpembelian/{id}', [RequestpembelianController::class, 'edit'])
+        ->whereNumber('id')
+        ->name('requestpembelian.edit');
+    Route::post('/requestpembelian/{id}', [RequestpembelianController::class, 'update'])
+        ->whereNumber('id')
+        ->name('requestpembelian.update');
 
     Route::delete('/requestpembelian/destroy/{id}', [RequestpembelianController::class, 'destroy'])
         ->name('requestpembelian.destroy');
@@ -145,6 +154,14 @@ Route::middleware('auth')->group(function () {
         ->name('requestpembelian.addbukti');
     Route::post('/requestpembelian/detail/bukti/{id}', [RequestpembelianController::class, 'storebukti'])
         ->name('requestpembelian.storebukti');
+    Route::post('/requestpembelian/detail/invoice/{id}', [RequestpembelianController::class, 'storeInvoiceItem'])
+        ->name('requestpembelian.storeinvoiceitem');
+    Route::post('/requestpembelian/detail/invoice-bulk/{id}', [RequestpembelianController::class, 'storeInvoiceBulk'])
+        ->name('requestpembelian.storeinvoicebulk');
+    Route::get('/requestpembelian/talangan', [RequestpembelianController::class, 'talanganIndex'])
+        ->name('requestpembelian.talangan.index');
+    Route::post('/requestpembelian/talangan/{id}/alokasi', [RequestpembelianController::class, 'talanganAllocate'])
+        ->name('requestpembelian.talangan.allocate');
 
     Route::get('/requestpembelian/detail/edit/{id}', [RequestpembelianController::class, 'editdetail'])
         ->name('requestpembelian.editdetail');

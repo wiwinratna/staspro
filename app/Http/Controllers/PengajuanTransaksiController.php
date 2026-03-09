@@ -106,14 +106,13 @@ class PengajuanTransaksiController extends Controller
             'id_project' => 'required|integer',
             'id_subkategori_sumberdana' => 'required|integer',
             'deskripsi' => 'required|string',
-            'estimasi_nominal' => 'nullable|numeric|min:0',
+            'estimasi_nominal' => 'required|numeric|min:0',
             'tgl_request' => 'required|date',
 
             'nama_bank' => 'required|string|max:100',
             'no_rekening' => 'required|string|max:50',
 
             'tgl_bukti' => 'required|date',
-            'nominal_realisasi' => 'required|numeric|min:0',
             'bukti_file' => 'required|file|mimes:jpg,jpeg,png,webp|max:5120',
             'metode_pembayaran' => 'nullable|string|max:30',
         ]);
@@ -130,14 +129,15 @@ class PengajuanTransaksiController extends Controller
         $trx->jenis_transaksi = 'pengeluaran';
 
         $trx->deskripsi = $request->deskripsi;
-        $trx->estimasi_nominal = $request->estimasi_nominal ?? 0;
+        $trx->estimasi_nominal = $request->estimasi_nominal;
         $trx->tgl_request = $request->tgl_request;
 
         $trx->nama_bank = $request->nama_bank;
         $trx->no_rekening = $request->no_rekening;
 
         $trx->tgl_bukti = $request->tgl_bukti;
-        $trx->nominal_realisasi = $request->nominal_realisasi;
+        // Reimbursement pakai satu input nominal; simpan juga ke nominal_realisasi biar kompatibel flow existing.
+        $trx->nominal_realisasi = $request->estimasi_nominal;
         $trx->bukti_file = $path;
 
         $trx->metode_pembayaran = $request->metode_pembayaran;

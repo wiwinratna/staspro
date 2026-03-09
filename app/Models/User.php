@@ -20,6 +20,10 @@ class User extends Authenticatable
         'email',
         'password',
         'role',
+        'profile_photo',
+        'jurusan',
+        'fakultas',
+        'nim_nip',
     ];
 
     /**
@@ -37,7 +41,7 @@ class User extends Authenticatable
      *
      * @return array<string, string>
      */
-    public static array $cats = [
+    protected $casts = [
         'email_verified_at' => 'datetime',
         'password'          => 'hashed',
     ];

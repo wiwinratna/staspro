@@ -19,8 +19,7 @@
       --shadow:0 10px 30px rgba(15,23,42,.08);
       --shadow2:0 18px 40px rgba(15,23,42,.10);
 
-      /* boleh tetep fixed 260 dulu biar stabil */
-      --sidebar-w: 260px;
+      --sidebar-w: 308px;
       --topbar-h: 56px;
       --content-max: 1280px;
     }
@@ -32,6 +31,7 @@
       font-family:'Inter',system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
       color:var(--ink);
       font-weight:500;
+      font-size:14px;
     }
 
     .topbar{
@@ -66,7 +66,7 @@
       width: var(--sidebar-w);
       background:var(--card);
       border-right:1px solid var(--line);
-      padding:14px;
+      padding:12px 10px 14px;
 
       position:sticky;
       top:var(--topbar-h);
@@ -77,26 +77,46 @@
     }
 
     .menu-title{
-      font-size:.72rem; letter-spacing:.08em;
+      font-size:.70rem; letter-spacing:.08em;
       color:var(--ink-600); text-transform:uppercase;
-      margin:8px 0; font-weight:700;
+      margin:10px 6px 8px; font-weight:800;
     }
 
     .nav-link-custom{
-      display:flex; align-items:center; gap:10px;
-      padding:9px 10px; border-radius:14px;
+      display:flex; align-items:center; gap:9px;
+      padding:8px 10px; border-radius:10px;
       text-decoration:none; color:var(--ink);
-      font-weight:600; font-size:.92rem; line-height:1;
-      transition:.18s; white-space:nowrap;
+      font-weight:600; font-size:.82rem; line-height:1.25;
+      transition:.16s;
+      white-space:normal;
+      word-break:break-word;
     }
-    .nav-link-custom i{ font-size:1.05rem; }
+    .nav-link-custom .menu-text{
+      min-width:0;
+      overflow-wrap:anywhere;
+      line-height:1.25;
+    }
+    .nav-link-custom i{ font-size:.92rem; }
     .nav-link-custom:hover{
       background:var(--brand-50); color:var(--brand-700);
-      transform:translateX(2px);
+      transform:translateX(1px);
     }
     .nav-link-custom.active{
       background:linear-gradient(135deg,var(--brand-700),var(--brand));
-      color:#fff; box-shadow:0 16px 28px rgba(2,6,23,.12);
+      color:#fff; box-shadow:0 8px 16px rgba(2,6,23,.10);
+    }
+    .nav-link-custom.menu-open{
+      background:#f1f5f9;
+      color:#0f172a;
+      border:1px solid #e2e8f0;
+      box-shadow:none;
+    }
+
+    .sidebar .collapse > div{
+      margin-left:4px !important;
+      margin-top:4px !important;
+      padding-left:4px;
+      border-left:1px solid #e5e7eb;
     }
 
     /* ✅ FIX 2: content jangan bikin overlay layer */
@@ -116,6 +136,39 @@
       min-width: 0;
     }
 
+    /* Global typography biar tidak kebesaran */
+    h1{font-size:1.7rem}
+    h2{font-size:1.45rem}
+    h3{font-size:1.25rem}
+    h4{font-size:1.12rem}
+    h5{font-size:1rem}
+    .card, .table, .form-control, .form-select, .btn{font-size:.88rem}
+
+    /* Konsistensi tombol aksi pada semua tabel */
+    .table th:last-child,
+    .table td:last-child{
+      white-space:nowrap;
+    }
+    .table td .btn,
+    .table td .btn-act,
+    .table td .btn-icon{
+      border-radius:8px !important;
+      min-height:31px;
+      padding:.27rem .56rem;
+      font-size:.78rem;
+      font-weight:700;
+      line-height:1.1;
+      white-space:nowrap;
+    }
+    .table td .action-btns,
+    .table td .actions-wrap{
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      flex-wrap:nowrap !important;
+      white-space:nowrap;
+    }
+
     /* Mobile drawer */
     .backdrop{
       display:none;
@@ -129,7 +182,7 @@
     @media(max-width:991.98px){
       .sidebar{
         position:fixed;
-        left:-290px;
+        left:-320px;
         top:var(--topbar-h);
         height:calc(100vh - var(--topbar-h));
         z-index:1040;
@@ -166,105 +219,7 @@
 
   <div class="app">
     <aside class="sidebar" id="appSidebar">
-      <div class="menu-title">Menu</div>
-
-      @php
-        $dashRoute = Auth::user()->role === 'bendahara'
-          ? 'bendahara.dashboard'
-          : (Auth::user()->role === 'admin' ? 'dashboard' : 'peneliti.dashboard');
-      @endphp
-
-      <a class="nav-link-custom {{ request()->routeIs($dashRoute) ? 'active' : '' }}" href="{{ route($dashRoute) }}">
-        <i class="bi bi-speedometer2"></i> Dashboard
-      </a>
-
-      <a class="nav-link-custom {{ request()->routeIs('project.*') ? 'active' : '' }}" href="{{ route('project.index') }}">
-        <i class="bi bi-kanban"></i> Project
-      </a>
-
-      <a class="nav-link-custom {{ request()->routeIs('requestpembelian.*') ? 'active' : '' }}" href="{{ route('requestpembelian.index') }}">
-        <i class="bi bi-bag-check"></i> Request Pembelian
-      </a>
-
-      {{-- PENGAJUAN TRANSAKSI --}}
-      <div class="menu-title mt-3">Transaksi</div>
-
-      <a class="nav-link-custom d-flex justify-content-between align-items-center"
-        data-bs-toggle="collapse"
-        href="#menuPengajuanTransaksi"
-        role="button"
-        aria-expanded="{{ request()->routeIs('pengajuan_transaksi.*') ? 'true' : 'false' }}"
-        aria-controls="menuPengajuanTransaksi">
-
-          <span>
-              <i class="bi bi-receipt"></i> Pengajuan Transaksi
-          </span>
-          <i class="bi bi-chevron-down"></i>
-      </a>
-
-      <div class="collapse {{ request()->routeIs('pengajuan_transaksi.*') ? 'show' : '' }}"
-          id="menuPengajuanTransaksi">
-
-          <div class="ms-3 mt-2 d-grid gap-1">
-
-              {{-- LIST --}}
-              <a class="nav-link-custom {{ request()->routeIs('pengajuan_transaksi.index') ? 'active' : '' }}"
-                href="{{ route('pengajuan_transaksi.index') }}">
-                  <i class="bi bi-list-ul"></i> Daftar Pengajuan
-              </a>
-
-              {{-- CREATE PENGAJUAN --}}
-              <a class="nav-link-custom {{ request()->routeIs('pengajuan_transaksi.create_pengajuan') ? 'active' : '' }}"
-                href="{{ route('pengajuan_transaksi.create_pengajuan') }}">
-                  <i class="bi bi-cash-coin"></i> Pengajuan Dana
-              </a>
-
-              {{-- CREATE REIMBURSEMENT --}}
-              <a class="nav-link-custom {{ request()->routeIs('pengajuan_transaksi.create_reimbursement') ? 'active' : '' }}"
-                href="{{ route('pengajuan_transaksi.create_reimbursement') }}">
-                  <i class="bi bi-arrow-repeat"></i> Reimbursement
-              </a>
-
-          </div>
-      </div>
-
-
-      @if(in_array(Auth::user()->role, ['admin','bendahara']))
-        <div class="menu-title mt-3">Keuangan</div>
-
-        <a class="nav-link-custom {{ request()->routeIs('sumberdana.*') ? 'active' : '' }}" href="{{ route('sumberdana.index') }}">
-          <i class="bi bi-cash-coin"></i> Sumber Dana
-        </a>
-
-        <a class="nav-link-custom {{ request()->routeIs('funding.*') ? 'active' : '' }}" href="{{ route('funding.index') }}">
-          <i class="bi bi-cash-coin"></i> Dana Cair
-        </a>
-
-        <a class="nav-link-custom {{ request()->routeIs('kas.*') ? 'active' : '' }}" href="{{ route('kas.index') }}">
-          <i class="bi bi-wallet2"></i> Kas
-        </a>
-
-        <a class="nav-link-custom {{ request()->routeIs('pencatatan_keuangan') ? 'active' : '' }}" href="{{ route('pencatatan_keuangan') }}">
-          <i class="bi bi-journal-text"></i> Pencatatan Keuangan
-        </a>
-
-        <a class="nav-link-custom {{ request()->routeIs('laporan_keuangan') ? 'active' : '' }}" href="{{ route('laporan_keuangan') }}">
-          <i class="bi bi-graph-up"></i> Laporan Keuangan
-        </a>
-      @endif
-
-      @if(Auth::user()->role === 'admin')
-        <div class="menu-title mt-3">Administrasi</div>
-        <a class="nav-link-custom {{ request()->routeIs('users.*') ? 'active' : '' }}" href="{{ route('users.index') }}">
-          <i class="bi bi-people"></i> Management User
-        </a>
-      @endif
-
-      {{-- Profile Pengguna --}}
-      <div class="menu-title mt-3">Akun</div>
-      <a class="nav-link-custom {{ request()->routeIs($dashRoute) ? 'active' : '' }}" href="{{ route($dashRoute) }}">
-        <i class="bi bi-speedometer2"></i> Profile Pengguna
-      </a>
+      @include('layouts.sidebar-menu')
     </aside>
 
 

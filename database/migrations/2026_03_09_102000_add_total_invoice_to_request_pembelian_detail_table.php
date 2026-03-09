@@ -6,26 +6,20 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
-    public function up()
+    public function up(): void
     {
-        if (!Schema::hasColumn('request_pembelian_detail', 'bukti_bayar')) {
+        if (!Schema::hasColumn('request_pembelian_detail', 'total_invoice')) {
             Schema::table('request_pembelian_detail', function (Blueprint $table) {
-                $table->string('bukti_bayar')->nullable();
+                $table->decimal('total_invoice', 15, 2)->nullable()->after('invoice_pembelian');
             });
         }
     }
 
-    /**
-     * Reverse the migrations.
-     */
-    public function down()
+    public function down(): void
     {
-        if (Schema::hasColumn('request_pembelian_detail', 'bukti_bayar')) {
+        if (Schema::hasColumn('request_pembelian_detail', 'total_invoice')) {
             Schema::table('request_pembelian_detail', function (Blueprint $table) {
-                $table->dropColumn('bukti_bayar');
+                $table->dropColumn('total_invoice');
             });
         }
     }

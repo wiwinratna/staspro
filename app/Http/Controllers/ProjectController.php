@@ -13,6 +13,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Schema;
 
 use Carbon\Carbon;
 
@@ -174,10 +175,16 @@ class ProjectController extends Controller
                 ->first();
         }
 
+        $hasUserProfilePhotoCol = Schema::hasColumn('users', 'profile_photo');
+        $anggotaSelects = ['u.id', 'u.name'];
+        if ($hasUserProfilePhotoCol) {
+            $anggotaSelects[] = 'u.profile_photo';
+        }
+
         $anggota = DB::table('detail_project as dp')
             ->join('users as u', 'dp.id_user', '=', 'u.id')
             ->where('dp.id_project', $project->id)
-            ->select('u.id', 'u.name')
+            ->select($anggotaSelects)
             ->orderBy('u.name')
             ->get();
 
@@ -192,23 +199,92 @@ class ProjectController extends Controller
             ->select('b.name', 'b.id')
             ->get();
 
-        $total_request_pembelian = DB::table('request_pembelian_detail as a')
-            ->leftJoin('request_pembelian_header as b', 'a.id_request_pembelian_header', '=', 'b.id')
-            ->where('b.id_project', $project->id)
-            ->where('b.status_request', 'done')
-            ->sum(DB::raw('a.kuantitas * a.harga'));
+        $hasTalanganAllocationCols = Schema::hasColumn('request_pembelian_header', 'project_id_alokasi_final')
+            && Schema::hasColumn('request_pembelian_header', 'status_alokasi');
 
-        $detail_request = DB::table('request_pembelian_detail as a')
+        $totalRequestQuery = DB::table('request_pembelian_detail as a')
             ->leftJoin('request_pembelian_header as b', 'a.id_request_pembelian_header', '=', 'b.id')
-            ->where('b.id_project', $project->id)
+            ->where('b.status_request', 'done');
+
+        if ($hasTalanganAllocationCols) {
+            $totalRequestQuery->where(function ($w) use ($project) {
+                $w->where(function ($q) use ($project) {
+                    $q->where('b.id_project', $project->id)
+                        ->where(function ($x) {
+                            $x->whereNull('b.project_id_alokasi_final')
+                                ->orWhere('b.status_alokasi', '!=', 'sudah');
+                        });
+                })->orWhere(function ($q) use ($project) {
+                    $q->where('b.project_id_alokasi_final', $project->id)
+                        ->where('b.status_alokasi', 'sudah');
+                });
+            });
+        } else {
+            $totalRequestQuery->where('b.id_project', $project->id);
+        }
+
+        $total_request_pembelian = $totalRequestQuery->sum(DB::raw('COALESCE(a.total_invoice, (a.kuantitas * a.harga))'));
+
+        $totalBiayaAdminQuery = DB::table('request_pembelian_header')
+            ->where('status_request', 'done');
+
+        if ($hasTalanganAllocationCols) {
+            $totalBiayaAdminQuery->where(function ($w) use ($project) {
+                $w->where(function ($q) use ($project) {
+                    $q->where('id_project', $project->id)
+                        ->where(function ($x) {
+                            $x->whereNull('project_id_alokasi_final')
+                                ->orWhere('status_alokasi', '!=', 'sudah');
+                        });
+                })->orWhere(function ($q) use ($project) {
+                    $q->where('project_id_alokasi_final', $project->id)
+                        ->where('status_alokasi', 'sudah');
+                });
+            });
+        } else {
+            $totalBiayaAdminQuery->where('id_project', $project->id);
+        }
+
+        $total_biaya_admin_dana = (int) $totalBiayaAdminQuery->sum(DB::raw('COALESCE(biaya_admin_transfer, 0)'));
+
+        $detailRequestQuery = DB::table('request_pembelian_detail as a')
+            ->leftJoin('request_pembelian_header as b', 'a.id_request_pembelian_header', '=', 'b.id')
+            ->leftJoin('subkategori_sumberdana as s', 'a.id_subkategori_sumberdana', '=', 's.id')
             ->where('b.status_request', 'done')
             ->select(
+                'b.tgl_request',
+                'b.no_request',
+                'b.biaya_admin_transfer',
                 'a.nama_barang',
                 'a.kuantitas',
                 'a.harga',
-                DB::raw('a.kuantitas * a.harga as total')
+                'a.link_pembelian',
+                'a.total_invoice',
+                DB::raw("COALESCE(s.nama, 'Bahan Habis Pakai dan Peralatan') as subkategori_nama"),
+                DB::raw('COALESCE(a.total_invoice, (a.kuantitas * a.harga)) as total')
             )
-            ->get();
+            ->orderByRaw("COALESCE(s.nama, 'Bahan Habis Pakai dan Peralatan')")
+            ->orderBy('b.tgl_request')
+            ->orderBy('a.id');
+
+        if ($hasTalanganAllocationCols) {
+            $detailRequestQuery->where(function ($w) use ($project) {
+                $w->where(function ($q) use ($project) {
+                    $q->where('b.id_project', $project->id)
+                        ->where(function ($x) {
+                            $x->whereNull('b.project_id_alokasi_final')
+                                ->orWhere('b.status_alokasi', '!=', 'sudah');
+                        });
+                })->orWhere(function ($q) use ($project) {
+                    $q->where('b.project_id_alokasi_final', $project->id)
+                        ->where('b.status_alokasi', 'sudah');
+                });
+            });
+        } else {
+            $detailRequestQuery->where('b.id_project', $project->id);
+        }
+
+        $detail_request = $detailRequestQuery->get();
 
         $detail_dana = DB::table('detail_subkategori as a')
             ->leftJoin('subkategori_sumberdana as b', 'a.id_subkategori_sumberdana', '=', 'b.id')
@@ -220,10 +296,61 @@ class ProjectController extends Controller
                 'a.anggaran_revisi',
                 'a.realisasi_anggaran',
                 'a.id',
+                'a.id_subkategori_sumberdana',
                 'c.jenis_pendanaan',
                 'c.nama_sumber_dana'
             )
             ->get();
+
+        // Realisasi untuk request pembelian harus pakai nilai invoice fix (bukan estimasi).
+        $realisasiRequestQuery = DB::table('request_pembelian_detail as d')
+            ->join('request_pembelian_header as h', 'd.id_request_pembelian_header', '=', 'h.id')
+            ->where('h.status_request', 'done')
+            ->select(
+                'd.id_subkategori_sumberdana',
+                DB::raw('SUM(COALESCE(d.total_invoice, (d.kuantitas * d.harga))) as total_realisasi_invoice')
+            )
+            ->groupBy('d.id_subkategori_sumberdana');
+
+        if ($hasTalanganAllocationCols) {
+            $realisasiRequestQuery->where(function ($w) use ($project) {
+                $w->where(function ($q) use ($project) {
+                    $q->where('h.id_project', $project->id)
+                        ->where(function ($x) {
+                            $x->whereNull('h.project_id_alokasi_final')
+                                ->orWhere('h.status_alokasi', '!=', 'sudah');
+                        });
+                })->orWhere(function ($q) use ($project) {
+                    $q->where('h.project_id_alokasi_final', $project->id)
+                        ->where('h.status_alokasi', 'sudah');
+                });
+            });
+        } else {
+            $realisasiRequestQuery->where('h.id_project', $project->id);
+        }
+
+        $realisasiRequestInvoiceBySubkategori = $realisasiRequestQuery->pluck('total_realisasi_invoice', 'id_subkategori_sumberdana');
+
+        // Tambahkan transaksi manual (di luar request pembelian) agar nilai realisasi tetap utuh.
+        $realisasiManualBySubkategori = DB::table('pencatatan_keuangan')
+            ->where('project_id', $project->id)
+            ->where('jenis_transaksi', 'pengeluaran')
+            ->whereNull('request_pembelian_id')
+            ->whereNotNull('sub_kategori_pendanaan')
+            ->select(
+                'sub_kategori_pendanaan',
+                DB::raw('SUM(COALESCE(jumlah_transaksi, 0)) as total_manual')
+            )
+            ->groupBy('sub_kategori_pendanaan')
+            ->pluck('total_manual', 'sub_kategori_pendanaan');
+
+        $detail_dana = $detail_dana->map(function ($row) use ($realisasiRequestInvoiceBySubkategori, $realisasiManualBySubkategori) {
+            $subkategoriId = (int) ($row->id_subkategori_sumberdana ?? 0);
+            $realisasiRequest = (float) ($realisasiRequestInvoiceBySubkategori[$subkategoriId] ?? 0);
+            $realisasiManual = (float) ($realisasiManualBySubkategori[$subkategoriId] ?? 0);
+            $row->realisasi_anggaran = (int) round($realisasiRequest + $realisasiManual);
+            return $row;
+        });
 
         // NOTE: jenis & nama sumber dana tetap dihitung (biar view kamu aman)
         $jenis_pendanaan = $project->sumberDana
@@ -265,6 +392,7 @@ class ProjectController extends Controller
             'detail_dana' => $detail_dana,
             'detail_request' => $detail_request,
             'total_request_pembelian' => $total_request_pembelian,
+            'total_biaya_admin_dana' => $total_biaya_admin_dana,
             'total_nominal' => $total_nominal,
             'total_realisasi' => $total_realisasi,
             'sumber_dana' => $project->sumberDana ?? $sumber_dana,
@@ -272,6 +400,180 @@ class ProjectController extends Controller
             // ✅ TAMBAHAN INI
             'fundedTotal' => $fundedTotal,
             'hasRabSubmitted' => $hasRabSubmitted,
+        ]);
+    }
+
+    public function exportDetailPembelianExcel(Project $project)
+    {
+        $project = Project::findOrFail($project->id);
+
+        $hasTalanganAllocationCols = Schema::hasColumn('request_pembelian_header', 'project_id_alokasi_final')
+            && Schema::hasColumn('request_pembelian_header', 'status_alokasi');
+
+        $detailRequestQuery = DB::table('request_pembelian_detail as a')
+            ->leftJoin('request_pembelian_header as b', 'a.id_request_pembelian_header', '=', 'b.id')
+            ->leftJoin('subkategori_sumberdana as s', 'a.id_subkategori_sumberdana', '=', 's.id')
+            ->where('b.status_request', 'done')
+            ->select(
+                'b.tgl_request',
+                'b.no_request',
+                'b.biaya_admin_transfer',
+                'a.nama_barang',
+                'a.kuantitas',
+                'a.harga',
+                'a.link_pembelian',
+                'a.total_invoice',
+                DB::raw("COALESCE(s.nama, 'Bahan Habis Pakai dan Peralatan') as subkategori_nama"),
+                DB::raw('COALESCE(a.total_invoice, (a.kuantitas * a.harga)) as total')
+            )
+            ->orderByRaw("COALESCE(s.nama, 'Bahan Habis Pakai dan Peralatan')")
+            ->orderBy('b.tgl_request')
+            ->orderBy('a.id');
+
+        if ($hasTalanganAllocationCols) {
+            $detailRequestQuery->where(function ($w) use ($project) {
+                $w->where(function ($q) use ($project) {
+                    $q->where('b.id_project', $project->id)
+                        ->where(function ($x) {
+                            $x->whereNull('b.project_id_alokasi_final')
+                                ->orWhere('b.status_alokasi', '!=', 'sudah');
+                        });
+                })->orWhere(function ($q) use ($project) {
+                    $q->where('b.project_id_alokasi_final', $project->id)
+                        ->where('b.status_alokasi', 'sudah');
+                });
+            });
+        } else {
+            $detailRequestQuery->where('b.id_project', $project->id);
+        }
+
+        $detailRequest = $detailRequestQuery->get();
+
+        $totalInvoice = 0;
+        $totalBiayaAdmin = 0;
+        $adminByRequest = [];
+        $currentSection = null;
+        $sectionNo = 0;
+        $no = 1;
+
+        $e = fn($v) => htmlspecialchars((string) $v, ENT_QUOTES, 'UTF-8');
+
+        $rowsHtml = '';
+        foreach ($detailRequest as $dr) {
+            $sectionName = $dr->subkategori_nama ?? 'Bahan Habis Pakai dan Peralatan';
+            if ($currentSection !== $sectionName) {
+                $currentSection = $sectionName;
+                $sectionNo++;
+                $sectionPrefix = chr(64 + $sectionNo);
+                $rowsHtml .= '<tr><td colspan="8" style="background:#fff700;font-weight:700;">'
+                    . $e($sectionPrefix . '. ' . $sectionName) . '</td></tr>';
+            }
+
+            $qty = max(1, (int) ($dr->kuantitas ?? 0));
+            $jumlahFix = (int) ($dr->total ?? 0);
+            $hargaSatuanFix = (int) round($jumlahFix / $qty);
+            $totalInvoice += $jumlahFix;
+
+            $tgl = !empty($dr->tgl_request) ? Carbon::parse($dr->tgl_request)->format('d/m/Y') : '-';
+            $link = !empty($dr->link_pembelian) ? $dr->link_pembelian : '-';
+
+            $rowsHtml .= '<tr>'
+                . '<td style="text-align:center;">' . $no++ . '</td>'
+                . '<td style="text-align:center;">' . $e($tgl) . '</td>'
+                . '<td>' . $e($dr->nama_barang ?? '-') . '</td>'
+                . '<td style="text-align:center;">' . $qty . '</td>'
+                . '<td style="text-align:right;">' . number_format($hargaSatuanFix, 0, ',', '.') . '</td>'
+                . '<td style="text-align:center;">item</td>'
+                . '<td style="text-align:right;">' . number_format($jumlahFix, 0, ',', '.') . '</td>'
+                . '<td>' . $e($link) . '</td>'
+                . '</tr>';
+
+            $reqNo = (string) ($dr->no_request ?? '');
+            if ($reqNo !== '') {
+                if (!isset($adminByRequest[$reqNo])) {
+                    $adminByRequest[$reqNo] = [
+                        'date' => $dr->tgl_request ?? null,
+                        'admin' => (int) ($dr->biaya_admin_transfer ?? 0),
+                        'items' => [],
+                    ];
+                    $totalBiayaAdmin += (int) ($dr->biaya_admin_transfer ?? 0);
+                }
+                if (!in_array($dr->nama_barang, $adminByRequest[$reqNo]['items'], true)) {
+                    $adminByRequest[$reqNo]['items'][] = $dr->nama_barang;
+                }
+            }
+        }
+
+        $summaryHtml = ''
+            . '<tr><td colspan="6" style="font-weight:700;">Total Invoice Pembelian</td><td style="text-align:right;font-weight:700;">'
+            . number_format($totalInvoice, 0, ',', '.') . '</td><td></td></tr>'
+            . '<tr><td colspan="6" style="font-weight:700;">Total Biaya Admin</td><td style="text-align:right;font-weight:700;">'
+            . number_format($totalBiayaAdmin, 0, ',', '.') . '</td><td></td></tr>'
+            . '<tr><td colspan="6" style="font-weight:700;">Total Pembelian + Biaya Admin</td><td style="text-align:right;font-weight:700;">'
+            . number_format($totalInvoice + $totalBiayaAdmin, 0, ',', '.') . '</td><td></td></tr>';
+
+        $adminRowsHtml = '';
+        $adminNotes = collect($adminByRequest)->filter(fn($v) => (int) ($v['admin'] ?? 0) > 0);
+        if ($adminNotes->count() > 0) {
+            $n = 1;
+            foreach ($adminNotes as $reqNo => $note) {
+                $tgl = !empty($note['date']) ? Carbon::parse($note['date'])->format('d/m/Y') : '-';
+                $adminRowsHtml .= '<tr>'
+                    . '<td style="text-align:center;">' . $n++ . '</td>'
+                    . '<td style="text-align:center;">' . $e($tgl) . '</td>'
+                    . '<td>' . $e(implode(', ', $note['items'] ?? [])) . '</td>'
+                    . '<td>' . $e($reqNo) . '</td>'
+                    . '<td style="text-align:right;">' . number_format((int) ($note['admin'] ?? 0), 0, ',', '.') . '</td>'
+                    . '</tr>';
+            }
+        }
+
+        $title = 'Detail Pembelian - ' . ($project->nama_project ?? 'Project');
+        $html = '<html><head><meta charset="UTF-8"><style>'
+            . 'body{font-family:Calibri,Arial,sans-serif;font-size:11pt;color:#111;}'
+            . 'h2{margin:0 0 4px 0;} .meta{margin:0 0 12px 0;color:#555;}'
+            . 'table{border-collapse:collapse;width:100%;margin-bottom:14px;}'
+            . 'th,td{border:1px solid #cfd8e3;padding:6px;vertical-align:middle;}'
+            . 'th{background:#eef2f7;text-align:center;font-weight:700;}'
+            . '</style></head><body>'
+            . '<h2>' . $e($title) . '</h2>'
+            . '<div class="meta">Diekspor pada: ' . now()->format('d/m/Y H:i') . '</div>'
+            . '<table>'
+            . '<thead><tr>'
+            . '<th style="width:45px;">No</th>'
+            . '<th style="width:95px;">Tanggal</th>'
+            . '<th>Keterangan (Pembelian)</th>'
+            . '<th style="width:70px;">Volume</th>'
+            . '<th style="width:120px;">Harga Satuan (Rp)</th>'
+            . '<th style="width:70px;">Satuan</th>'
+            . '<th style="width:120px;">Jumlah (Rp)</th>'
+            . '<th style="width:180px;">Link Evidence</th>'
+            . '</tr></thead><tbody>'
+            . ($rowsHtml !== '' ? $rowsHtml : '<tr><td colspan="8" style="text-align:center;">Belum ada request pembelian.</td></tr>')
+            . $summaryHtml
+            . '</tbody></table>';
+
+        if ($adminRowsHtml !== '') {
+            $html .= '<table><thead><tr>'
+                . '<th style="width:45px;">No</th>'
+                . '<th style="width:95px;">Tanggal</th>'
+                . '<th>Item Terkait</th>'
+                . '<th style="width:180px;">No Request</th>'
+                . '<th style="width:120px;">Biaya Admin (Rp)</th>'
+                . '</tr></thead><tbody>'
+                . $adminRowsHtml
+                . '</tbody></table>';
+        }
+
+        $html .= '</body></html>';
+
+        $filenameSafe = preg_replace('/[^A-Za-z0-9_\-]/', '_', (string) ($project->nama_project ?? 'project'));
+        $filename = 'detail_pembelian_' . $filenameSafe . '_' . now()->format('Ymd_His') . '.xls';
+
+        return response($html, 200, [
+            'Content-Type' => 'application/vnd.ms-excel; charset=UTF-8',
+            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+            'Cache-Control' => 'max-age=0',
         ]);
     }
 

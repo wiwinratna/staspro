@@ -117,8 +117,8 @@
         </div>
 
         <div class="col-md-4">
-          <div class="label">Estimasi Nominal</div>
-          <input type="number" name="estimasi_nominal" class="form-control field" value="{{ old('estimasi_nominal') }}">
+          <div class="label">Nominal *</div>
+          <input type="number" name="estimasi_nominal" class="form-control field" value="{{ old('estimasi_nominal') }}" required>
         </div>
 
         <div class="col-md-4">
@@ -148,11 +148,6 @@
         <div class="col-md-4">
           <div class="label">Tanggal Bukti *</div>
           <input type="date" name="tgl_bukti" class="form-control field" value="{{ old('tgl_bukti') }}" required>
-        </div>
-
-        <div class="col-md-4">
-          <div class="label">Nominal Realisasi *</div>
-          <input type="number" name="nominal_realisasi" class="form-control field" value="{{ old('nominal_realisasi') }}" required>
         </div>
 
         <div class="col-md-4">

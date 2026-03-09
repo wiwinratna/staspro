@@ -11,9 +11,11 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::table('request_pembelian_header', function (Blueprint $table) {
-            $table->text('keterangan_reject')->nullable()->after('status_request');
-        });
+        if (!Schema::hasColumn('request_pembelian_header', 'keterangan_reject')) {
+            Schema::table('request_pembelian_header', function (Blueprint $table) {
+                $table->text('keterangan_reject')->nullable()->after('status_request');
+            });
+        }
     }
 
     /**
@@ -21,8 +23,10 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::table('request_pembelian_header', function (Blueprint $table) {
-            $table->dropColumn('keterangan_reject');
-        });
+        if (Schema::hasColumn('request_pembelian_header', 'keterangan_reject')) {
+            Schema::table('request_pembelian_header', function (Blueprint $table) {
+                $table->dropColumn('keterangan_reject');
+            });
+        }
     }
 };

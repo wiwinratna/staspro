@@ -201,6 +201,14 @@
   }
   .member-inner{position:relative; z-index:2}
   .member-name{font-weight:900; font-size:1.02rem; margin:0}
+  .member-head-row{display:flex;align-items:center;gap:10px}
+  .member-avatar{
+    width:44px;height:44px;border-radius:999px;overflow:hidden;
+    border:2px solid #e2e8f0;background:#f8fafc;
+    display:flex;align-items:center;justify-content:center;flex:0 0 44px;
+  }
+  .member-avatar img{width:100%;height:100%;object-fit:cover}
+  .member-avatar-fallback{font-weight:900;color:#334155;font-size:.96rem}
   .member-meta{margin-top:8px; display:flex; gap:8px; flex-wrap:wrap}
   .pill-badge{
     border-radius:999px; padding:7px 10px; font-weight:900; font-size:.78rem;
@@ -340,52 +348,8 @@
 <div class="app">
   <!-- Sidebar -->
   <aside class="sidebar" id="appSidebar">
-    <div class="menu-title">Menu</div>
-
-    <a class="nav-link-custom {{ request()->routeIs('dashboard') ? 'active' : '' }}" href="{{ route('dashboard') }}">
-      <i class="bi bi-speedometer2"></i> Dashboard
-    </a>
-
-    <a class="nav-link-custom {{ request()->routeIs('project.*') ? 'active' : '' }}" href="{{ route('project.index') }}">
-      <i class="bi bi-kanban"></i> Project
-    </a>
-
-    <a class="nav-link-custom {{ request()->routeIs('requestpembelian.*') ? 'active' : '' }}" href="{{ route('requestpembelian.index') }}">
-      <i class="bi bi-bag-check"></i> Request Pembelian
-    </a>
-
-    @if(in_array($role, ['admin','bendahara']))
-      <div class="menu-title mt-3">Keuangan</div>
-
-      <a class="nav-link-custom {{ request()->routeIs('sumberdana.*') ? 'active' : '' }}" href="{{ route('sumberdana.index') }}">
-        <i class="bi bi-cash-coin"></i> Sumber Dana
-      </a>
-
-      <a class="nav-link-custom {{ request()->routeIs('kas.*') ? 'active' : '' }}" href="{{ route('kas.index') }}">
-        <i class="bi bi-wallet2"></i> Kas
-      </a>
-
-      <a class="nav-link-custom {{ request()->routeIs('pencatatan_keuangan') ? 'active' : '' }}" href="{{ route('pencatatan_keuangan') }}">
-        <i class="bi bi-journal-text"></i> Pencatatan Keuangan
-      </a>
-
-      <a class="nav-link-custom {{ request()->routeIs('laporan_keuangan') ? 'active' : '' }}" href="{{ route('laporan_keuangan') }}">
-        <i class="bi bi-graph-up"></i> Laporan Keuangan
-      </a>
-
-      <a class="nav-link-custom {{ request()->routeIs('funding.*') ? 'active' : '' }}" href="{{ route('funding.index') }}">
-        <i class="bi bi-cash-stack"></i> Dana Cair
-      </a>
-    @endif
-
-    @if($isAdmin)
-      <div class="menu-title mt-3">Administrasi</div>
-
-      <a class="nav-link-custom {{ request()->routeIs('users.*') ? 'active' : '' }}" href="{{ route('users.index') }}">
-        <i class="bi bi-people"></i> Management User
-      </a>
-    @endif
-  </aside>
+      @include('layouts.sidebar-menu')
+    </aside>
 
   <div class="backdrop" id="backdrop"></div>
 
@@ -586,7 +550,7 @@
                 $isTrimmed = count($words) > $wordLimit;
               @endphp
 
-              <p class="mb-2">{{ $snippet }}@if($isTrimmed)…@endif</p>
+              <p class="mb-2">{{ $snippet }}@if($isTrimmed)...@endif</p>
 
               <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mt-3">
                 <h5 class="mb-0">Anggota Tim Riset</h5>
@@ -600,6 +564,35 @@
                   </b>
                 </div>
               </div>
+
+              {{-- Tambah Anggota (dipindah ke atas) --}}
+              @if($isAdmin)
+                <div class="mt-3 mb-2">
+                  <form id="addMemberForm" action="{{ route('detailproject.store') }}" method="POST" class="row g-2 align-items-end">
+                    @csrf
+                    <input type="hidden" name="id_project" value="{{ $project->id }}">
+
+                    <div class="col-md-9">
+                      <label for="id_user" class="form-label mb-1">Tambah Anggota (Search)</label>
+                      <select id="id_user" name="id_user" class="form-select"
+                              placeholder="Ketik nama untuk mencari..." autocomplete="off"
+                              data-url="{{ \Illuminate\Support\Facades\Route::has('users.search') ? route('users.search') : '' }}">
+                        @foreach ($users as $user)
+                          <option value="{{ $user->id }}">{{ $user->name }}</option>
+                        @endforeach
+                      </select>
+                    </div>
+
+                    <div class="col-md-3">
+                      <button type="submit" class="btn btn-success w-100 btn-eq">Tambah</button>
+                    </div>
+
+                    <div class="col-12">
+                      <div class="form-text">Cari nama. Support pencarian server-side jika route <code>users.search</code> tersedia.</div>
+                    </div>
+                  </form>
+                </div>
+              @endif
 
               @if(($anggota ?? collect())->count() === 0)
                 <div class="text-center subtle py-4">Belum ada anggota tim.</div>
@@ -617,7 +610,16 @@
 
                           {{-- Header: Nama + badges --}}
                           <div class="member-head">
-                            <p class="member-name mb-1">{{ $a->name }}</p>
+                            <div class="member-head-row">
+                              <div class="member-avatar">
+                                @if(!empty($a->profile_photo))
+                                  <img src="{{ asset('storage/'.$a->profile_photo) }}" alt="{{ $a->name }}">
+                                @else
+                                  <span class="member-avatar-fallback">{{ strtoupper(substr($a->name ?? 'U', 0, 1)) }}</span>
+                                @endif
+                              </div>
+                              <p class="member-name mb-1">{{ $a->name }}</p>
+                            </div>
                             <div class="member-meta">
                               @if($isKetua)
                                 <span class="pill-badge pill-ketua">
@@ -677,35 +679,6 @@
                 </div>
 
                 <div class="small subtle mt-2">Total: {{ ($anggota ?? collect())->count() }} orang</div>
-              @endif
-
-              {{-- Tambah Anggota --}}
-              @if($isAdmin)
-                <div class="mt-3">
-                  <form id="addMemberForm" action="{{ route('detailproject.store') }}" method="POST" class="row g-2 align-items-end">
-                    @csrf
-                    <input type="hidden" name="id_project" value="{{ $project->id }}">
-
-                    <div class="col-md-9">
-                      <label for="id_user" class="form-label mb-1">Tambah Anggota (Search)</label>
-                      <select id="id_user" name="id_user" class="form-select"
-                              placeholder="Ketik nama untuk mencari…" autocomplete="off"
-                              data-url="{{ \Illuminate\Support\Facades\Route::has('users.search') ? route('users.search') : '' }}">
-                        @foreach ($users as $user)
-                          <option value="{{ $user->id }}">{{ $user->name }}</option>
-                        @endforeach
-                      </select>
-                    </div>
-
-                    <div class="col-md-3">
-                      <button type="submit" class="btn btn-success w-100 btn-eq">Tambah</button>
-                    </div>
-
-                    <div class="col-12">
-                      <div class="form-text">Cari nama. Support pencarian server-side jika route <code>users.search</code> tersedia.</div>
-                    </div>
-                  </form>
-                </div>
               @endif
             </div>
           </div>
@@ -791,6 +764,7 @@
                 $total_awal_local = 0;
                 $total_fix_local  = 0;
                 $total_realisasi_local = 0;
+                $total_biaya_admin_local = (int)($total_biaya_admin_dana ?? 0);
               @endphp
 
               @if($canEditRab)
@@ -881,8 +855,23 @@
                     @endforelse
 
                     @php
-                      $sisaTotal = $total_fix_local - $total_realisasi_local;
+                      $total_realisasi_gabungan = $total_realisasi_local + $total_biaya_admin_local;
+                      $sisaTotal = $total_fix_local - $total_realisasi_gabungan;
                     @endphp
+
+                    <tr>
+                      <td>Biaya Admin Transfer (Gabungan)</td>
+                      <td class="text-end tnum">-</td>
+
+                      @if($canEditRab)
+                        <td class="text-end tnum">-</td>
+                      @else
+                        <td class="text-end tnum">-</td>
+                      @endif
+
+                      <td class="text-end tnum">Rp {{ number_format($total_biaya_admin_local, 0, ',', '.') }}</td>
+                      <td class="text-end tnum">-</td>
+                    </tr>
 
                     <tr class="fw-bold">
                       <td>Total</td>
@@ -894,7 +883,7 @@
                         <td class="text-end tnum">Rp {{ number_format($total_fix_local, 0, ',', '.') }}</td>
                       @endif
 
-                      <td class="text-end tnum">Rp {{ number_format($total_realisasi_local, 0, ',', '.') }}</td>
+                      <td class="text-end tnum">Rp {{ number_format($total_realisasi_gabungan, 0, ',', '.') }}</td>
                       <td class="text-end tnum">Rp {{ number_format($sisaTotal, 0, ',', '.') }}</td>
                     </tr>
                   </tbody>
@@ -906,7 +895,7 @@
               @endif
 
               @php
-                $pct = $total_fix_local > 0 ? round($total_realisasi_local / $total_fix_local * 100) : 0;
+                $pct = $total_fix_local > 0 ? round($total_realisasi_gabungan / $total_fix_local * 100) : 0;
                 $pct = max(0, min(100, $pct));
                 $ratio = $total_fix_local > 0 ? ($sisaTotal / $total_fix_local) : 0;
 
@@ -958,45 +947,142 @@
         <div class="row g-3 mt-1">
           <div class="col-12">
             <div class="card p-3">
+              <div class="d-flex justify-content-end mb-2">
+                <a class="btn btn-success btn-sm" href="{{ route('project.detail_pembelian.export', $project->id) }}">
+                  <i class="bi bi-file-earmark-excel me-1"></i> Export Excel
+                </a>
+              </div>
               <h5 class="text-center">Detail Pembelian</h5>
 
               <div class="table-responsive">
                 <table class="table table-modern table-striped align-middle mt-3" width="100%">
                   <thead>
                     <tr>
-                      <th class="text-center">Nama Barang</th>
-                      <th class="text-center">Kuantitas</th>
-                      <th class="text-center">Harga</th>
-                      <th class="text-center">Total</th>
+                      <th class="text-center">No</th>
+                      <th class="text-center">Tanggal</th>
+                      <th class="text-center">Keterangan (Pembelian)</th>
+                      <th class="text-center">Volume</th>
+                      <th class="text-center">Harga Satuan (Rp)</th>
+                      <th class="text-center">Satuan</th>
+                      <th class="text-center">Jumlah (Rp)</th>
+                      <th class="text-center">Link Evidence</th>
                     </tr>
                   </thead>
                   <tbody>
                     @php $total_request_local = 0; @endphp
+                    @php $total_biaya_admin_local = 0; @endphp
+                    @php $currentSection = null; @endphp
+                    @php $sectionNo = 0; @endphp
+                    @php $adminByRequest = []; @endphp
 
                     @forelse ($detail_request as $dr)
+                      @php $sectionName = $dr->subkategori_nama ?? 'Bahan Habis Pakai dan Peralatan'; @endphp
+                      @if($currentSection !== $sectionName)
+                        @php
+                          $currentSection = $sectionName;
+                          $sectionNo++;
+                          $sectionPrefix = chr(64 + $sectionNo);
+                        @endphp
+                        <tr>
+                          <td colspan="9" style="background:#fff700;font-weight:900;">
+                            {{ $sectionPrefix }}. {{ $sectionName }}
+                          </td>
+                        </tr>
+                      @endif
+                      @php
+                        $qty = max(1, (int)$dr->kuantitas);
+                        $jumlahFix = (int)($dr->total ?? 0);
+                        $hargaSatuanFix = (int) round($jumlahFix / $qty);
+                        $reqNo = (string)($dr->no_request ?? '');
+                        if ($reqNo !== '') {
+                          if (!isset($adminByRequest[$reqNo])) {
+                            $adminByRequest[$reqNo] = [
+                              'date' => $dr->tgl_request ?? null,
+                              'admin' => (int)($dr->biaya_admin_transfer ?? 0),
+                              'items' => [],
+                            ];
+                            $total_biaya_admin_local += (int)($dr->biaya_admin_transfer ?? 0);
+                          }
+                          if (!in_array($dr->nama_barang, $adminByRequest[$reqNo]['items'], true)) {
+                            $adminByRequest[$reqNo]['items'][] = $dr->nama_barang;
+                          }
+                        }
+                      @endphp
                       <tr>
-                        <td class="text-center">{{ $dr->nama_barang }}</td>
-                        <td class="text-center tnum">{{ $dr->kuantitas }}</td>
-                        <td class="text-end tnum">Rp {{ number_format($dr->harga, 0, ',', '.') }}</td>
-                        <td class="text-end tnum">Rp {{ number_format($dr->total, 0, ',', '.') }}</td>
+                        <td class="text-center tnum">{{ $loop->iteration }}</td>
+                        <td class="text-center">{{ !empty($dr->tgl_request) ? \Carbon\Carbon::parse($dr->tgl_request)->format('d/m/Y') : '-' }}</td>
+                        <td>{{ $dr->nama_barang }}</td>
+                        <td class="text-center tnum">{{ $qty }}</td>
+                        <td class="text-end tnum">{{ number_format($hargaSatuanFix, 0, ',', '.') }}</td>
+                        <td class="text-center">item</td>
+                        <td class="text-end tnum">{{ number_format($jumlahFix, 0, ',', '.') }}</td>
+                        <td class="text-center">
+                          @if(!empty($dr->link_pembelian))
+                            <a href="{{ $dr->link_pembelian }}" target="_blank" rel="noreferrer">Lihat Link</a>
+                          @else
+                            -
+                          @endif
+                        </td>
                       </tr>
-                      @php $total_request_local += (int)($dr->total ?? 0); @endphp
+                      @php $total_request_local += $jumlahFix; @endphp
                     @empty
                       <tr>
-                        <td colspan="4" class="text-center subtle py-4">Belum ada request pembelian.</td>
+                        <td colspan="9" class="text-center subtle py-4">Belum ada request pembelian.</td>
                       </tr>
                     @endforelse
 
                     @if (count($detail_request) > 0)
                       @php $totalReqShow = $total_request_local; @endphp
+                      @php $totalFinalShow = $total_request_local + $total_biaya_admin_local; @endphp
                       <tr class="fw-bold">
-                        <td colspan="3">Total Request Pembelian</td>
-                        <td class="text-end tnum">Rp {{ number_format($totalReqShow, 0, ',', '.') }}</td>
+                        <td colspan="6">Total Invoice Pembelian</td>
+                        <td class="text-end tnum">{{ number_format($totalReqShow, 0, ',', '.') }}</td>
+                        <td></td>
+                      </tr>
+                      <tr class="fw-bold">
+                        <td colspan="6">Total Biaya Admin</td>
+                        <td class="text-end tnum">{{ number_format($total_biaya_admin_local, 0, ',', '.') }}</td>
+                        <td></td>
+                      </tr>
+                      <tr class="fw-bold">
+                        <td colspan="6">Total Pembelian + Biaya Admin</td>
+                        <td class="text-end tnum">{{ number_format($totalFinalShow, 0, ',', '.') }}</td>
+                        <td></td>
                       </tr>
                     @endif
                   </tbody>
                 </table>
               </div>
+
+              @php
+                $adminNotes = collect($adminByRequest ?? [])->filter(fn($v) => (int)($v['admin'] ?? 0) > 0);
+              @endphp
+              @if($adminNotes->count() > 0)
+                <div class="table-responsive mt-3">
+                  <table class="table table-modern table-striped align-middle mb-0" width="100%">
+                    <thead>
+                      <tr>
+                        <th class="text-center" style="width:60px">No</th>
+                        <th class="text-center">Tanggal</th>
+                        <th class="text-center">Item Terkait</th>
+                        <th class="text-center">No Request</th>
+                        <th class="text-center">Biaya Admin (Rp)</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      @foreach($adminNotes as $reqNo => $note)
+                        <tr>
+                          <td class="text-center tnum">{{ $loop->iteration }}</td>
+                          <td class="text-center">{{ !empty($note['date']) ? \Carbon\Carbon::parse($note['date'])->format('d/m/Y') : '-' }}</td>
+                          <td>{{ implode(', ', $note['items']) }}</td>
+                          <td class="tnum">{{ $reqNo }}</td>
+                          <td class="text-end tnum">{{ number_format((int)$note['admin'], 0, ',', '.') }}</td>
+                        </tr>
+                      @endforeach
+                    </tbody>
+                  </table>
+                </div>
+              @endif
 
             </div>
           </div>

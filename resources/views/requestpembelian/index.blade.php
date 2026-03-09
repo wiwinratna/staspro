@@ -1,7 +1,7 @@
 {{-- resources/views/requestpembelian/index.blade.php --}}
 @extends('layouts.panel')
 
-@section('title','Request Pembelian')
+@section('title','Daftar Pengajuan Komponen')
 
 @push('styles')
   <!-- DataTables -->
@@ -341,21 +341,21 @@
   <section class="hero">
     <div class="hero-inner">
       <div class="hero-left">
-        <h1 class="title">Request Pembelian</h1>
+        <h1 class="title">Daftar Pengajuan Komponen</h1>
         <p class="sub">
           @if(Auth::user()->role == 'admin')
-            Daftar seluruh pengajuan pembelian beserta statusnya.
+            Daftar seluruh pengajuan komponen beserta statusnya.
           @else
-            Riwayat request pembelian milik kamu.
+            Riwayat pengajuan komponen milik kamu.
           @endif
         </p>
       </div>
 
       <div class="tools-row">
         <div class="tools-left">
-          @if(Auth::user()->role != 'admin')
+          @if(in_array(Auth::user()->role, ['admin','peneliti']))
             <a href="{{ route('requestpembelian.create') }}" class="btn-brand">
-              <i class="bi bi-plus-lg"></i> Input Request Pembelian
+              <i class="bi bi-plus-lg"></i> Create Pengajuan Komponen
             </a>
           @endif
         </div>
@@ -378,66 +378,71 @@
   @if(session('success'))
     <div class="alert alert-success mt-3">{{ session('success') }}</div>
   @endif
+  @if(session('info'))
+    <div class="alert alert-info mt-3">{{ session('info') }}</div>
+  @endif
   @if(session('error'))
     <div class="alert alert-danger mt-3">{{ session('error') }}</div>
   @endif
 
-  <!-- WORKFLOW PANEL -->
-  <div class="panel">
-    <div class="panel-head">
-      <div>
-        <div class="fw-bold">Workflow Status</div>
-        <div class="workflow-hint">
-          Tahap <b>Request</b> untuk pengajuan awal, tahap <b>Payment</b> untuk proses bukti bayar.
-        </div>
-      </div>
-    </div>
-
-    <!-- GLOBAL -->
-    <div class="status-tabs" id="statusTabsGlobal">
-      <button class="tab-btn active" type="button" data-status="">
-        Semua <span class="tab-count" data-count="all">0</span>
-      </button>
-      <button class="tab-btn" type="button" data-status="done">
-        Done <span class="tab-count" data-count="done">0</span>
-      </button>
-    </div>
-
-    <div class="tabs-divider"></div>
-
-    <!-- REQUEST & PAYMENT SEJAJAR -->
-    <div class="stage-grid">
-      <div class="stage-box">
-        <div class="tabs-title mt-0">Tahap Request</div>
-        <div class="status-tabs" id="statusTabsRequest">
-          <button class="tab-btn" type="button" data-status="submit_request">
-            Submit Request <span class="tab-count" data-count="submit_request">0</span>
-          </button>
-          <button class="tab-btn" type="button" data-status="approve_request">
-            Approve Request <span class="tab-count" data-count="approve_request">0</span>
-          </button>
-          <button class="tab-btn" type="button" data-status="reject_request">
-            Reject Request <span class="tab-count" data-count="reject_request">0</span>
-          </button>
+  @if(Auth::user()->role !== 'peneliti')
+    <!-- WORKFLOW PANEL -->
+    <div class="panel">
+      <div class="panel-head">
+        <div>
+          <div class="fw-bold">Status Alur</div>
+          <div class="workflow-hint">
+            Tahap <b>Pengajuan</b> untuk permintaan awal, tahap <b>Proses Pembelian</b> untuk transfer/invoice, lalu <b>Selesai</b>.
+          </div>
         </div>
       </div>
 
-      <div class="stage-box stage-box-right">
-        <div class="tabs-title mt-0">Tahap Payment</div>
-        <div class="status-tabs" id="statusTabsPayment">
-          <button class="tab-btn" type="button" data-status="submit_payment">
-            Submit Payment <span class="tab-count" data-count="submit_payment">0</span>
-          </button>
-          <button class="tab-btn" type="button" data-status="approve_payment">
-            Approve Payment <span class="tab-count" data-count="approve_payment">0</span>
-          </button>
-          <button class="tab-btn" type="button" data-status="reject_payment">
-            Reject Payment <span class="tab-count" data-count="reject_payment">0</span>
-          </button>
+      <!-- GLOBAL -->
+      <div class="status-tabs" id="statusTabsGlobal">
+        <button class="tab-btn active" type="button" data-status="">
+          Semua <span class="tab-count" data-count="all">0</span>
+        </button>
+        <button class="tab-btn" type="button" data-status="done">
+          Selesai <span class="tab-count" data-count="done">0</span>
+        </button>
+      </div>
+
+      <div class="tabs-divider"></div>
+
+      <!-- REQUEST & PAYMENT SEJAJAR -->
+      <div class="stage-grid">
+        <div class="stage-box">
+          <div class="tabs-title mt-0">Tahap Pengajuan</div>
+          <div class="status-tabs" id="statusTabsRequest">
+            <button class="tab-btn" type="button" data-status="submit_request">
+              Dalam Proses Pemesanan <span class="tab-count" data-count="submit_request">0</span>
+            </button>
+            <button class="tab-btn" type="button" data-status="approve_request">
+              Menunggu Verifikasi Final <span class="tab-count" data-count="approve_request">0</span>
+            </button>
+            <button class="tab-btn" type="button" data-status="reject_request">
+              Ditolak <span class="tab-count" data-count="reject_request">0</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="stage-box stage-box-right">
+          <div class="tabs-title mt-0">Tahap Proses Pembelian</div>
+          <div class="status-tabs" id="statusTabsPayment">
+            <button class="tab-btn" type="button" data-status="submit_payment">
+              Menunggu Finalisasi <span class="tab-count" data-count="submit_payment">0</span>
+            </button>
+            <button class="tab-btn" type="button" data-status="approve_payment">
+              Terverifikasi Final <span class="tab-count" data-count="approve_payment">0</span>
+            </button>
+            <button class="tab-btn" type="button" data-status="reject_payment">
+              Perlu Revisi Pembelian <span class="tab-count" data-count="reject_payment">0</span>
+            </button>
+          </div>
         </div>
       </div>
     </div>
-  </div>
+  @endif
 
   <!-- TABLE -->
   <div class="table-wrap">
@@ -463,17 +468,20 @@
             $status = str_replace(' ', '_', $status);
 
             $labelMap = [
-              'submit_request'  => 'Submit Request',
-              'approve_request' => 'Approve Request',
-              'reject_request'  => 'Reject Request',
-              'submit_payment'  => 'Submit Payment',
-              'approve_payment' => 'Approve Payment',
-              'reject_payment'  => 'Reject Payment',
-              'done'            => 'Done',
+              'submit_request'  => 'Dalam Proses Pemesanan',
+              'approve_request' => 'Menunggu Verifikasi Final',
+              'reject_request'  => 'Ditolak',
+              'submit_payment'  => 'Menunggu Finalisasi',
+              'approve_payment' => 'Terverifikasi Final',
+              'reject_payment'  => 'Perlu Revisi Pembelian',
+              'done'            => 'Selesai',
             ];
 
             $badge = 'badge-' . str_replace('_','-',$status);
-            $label = $labelMap[$status] ?? ucwords(str_replace('_',' ', $status));
+            $labelInternal = $labelMap[$status] ?? ucwords(str_replace('_',' ', $status));
+            $label = Auth::user()->role === 'peneliti'
+              ? ($status === 'done' ? 'Sudah Sampai' : 'Dalam Proses Pemesanan')
+              : $labelInternal;
           @endphp
 
           <tr data-status="{{ $status }}">
@@ -490,19 +498,26 @@
 
             <td class="text-center">
               <span class="badge badge-status {{ $badge }}">{{ $label }}</span>
+              @if(!empty(data_get($r, 'is_talangan')))
+                <div class="mt-1">
+                  <span class="badge bg-warning-subtle text-warning-emphasis">
+                    Talangan {{ (data_get($r, 'status_alokasi') ?? 'belum') === 'sudah' ? '• Sudah Alokasi' : '• Belum Alokasi' }}
+                  </span>
+                </div>
+              @endif
             </td>
 
             <td class="text-center">
               <div class="action-btns">
                 <a href="{{ route('requestpembelian.detail',$r->id) }}" class="btn btn-success btn-sm">Detail</a>
 
-                {{-- ADMIN: bisa approve/reject REQUEST saat status submit_request --}}
-                @if(Auth::user()->role === 'admin' && $status === 'submit_request')
+                {{-- ADMIN/BENDAHARA: bisa approve/reject REQUEST saat status submit_request --}}
+                @if(in_array(Auth::user()->role, ['admin','bendahara']) && $status === 'submit_request')
                   <form method="POST" action="{{ route('requestpembelian.changestatus') }}" class="d-inline">
                     @csrf
                     <input type="hidden" name="id_request_pembelian_header" value="{{ $r->id }}">
                     <input type="hidden" name="status_request" value="approve_request">
-                    <button type="submit" class="btn btn-primary btn-sm">Approve</button>
+                    <button type="submit" class="btn btn-primary btn-sm">Verifikasi Final</button>
                   </form>
 
                   <a href="{{ route('requestpembelian.detail',$r->id) }}" class="btn btn-outline-danger btn-sm">
@@ -510,17 +525,17 @@
                   </a>
                 @endif
 
-                {{-- BENDAHARA: bisa approve/reject PAYMENT saat status submit_payment --}}
-                @if(Auth::user()->role === 'bendahara' && $status === 'submit_payment')
+                {{-- ADMIN/BENDAHARA: bisa approve/reject PAYMENT saat status submit_payment --}}
+                @if(in_array(Auth::user()->role, ['admin','bendahara']) && $status === 'submit_payment')
                   <form method="POST" action="{{ route('requestpembelian.changestatus') }}" class="d-inline">
                     @csrf
                     <input type="hidden" name="id_request_pembelian_header" value="{{ $r->id }}">
                     <input type="hidden" name="status_request" value="approve_payment">
-                    <button type="submit" class="btn btn-primary btn-sm">Approve Payment</button>
+                    <button type="submit" class="btn btn-primary btn-sm">Finalisasi Pembelian</button>
                   </form>
 
                   <a href="{{ route('requestpembelian.detail',$r->id) }}" class="btn btn-outline-danger btn-sm">
-                    Reject Payment
+                    Revisi
                   </a>
                 @endif
 

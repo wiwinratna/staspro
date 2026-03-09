@@ -37,13 +37,28 @@
     display:block;
   }
 
-  /* fallback icon kalau default png terlihat "flat" */
-  .nav-avatar.default{
-    object-fit:contain;
-    padding:4px;
-    background:rgba(236,253,245,.9);
+  .nav-avatar-fallback{
+    width:30px;
+    height:30px;
+    border-radius:999px;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    font-size:.82rem;
+    font-weight:800;
+    color:#166534;
+    background:#dcfce7;
+    border:1px solid rgba(22,163,74,.35);
   }
 </style>
+
+@php
+  $user = Auth::user();
+  $photo = $user->profile_photo ?? null;
+  $hasPhoto = !empty($photo);
+  $photoUrl = $hasPhoto ? asset('storage/' . $photo) : null;
+  $initial = strtoupper(substr($user->name ?? 'U', 0, 1));
+@endphp
 
 <div class="dropdown">
   <a href="#"
@@ -53,15 +68,18 @@
      aria-expanded="false">
 
     <span class="nav-avatar-wrap">
-      <img
-        src="{{ Auth::user()->profile_picture
-            ? asset('images/' . Auth::user()->profile_picture)
-            : asset('images/default-profile.png') }}"
-        alt="Profile"
-        class="nav-avatar {{ Auth::user()->profile_picture ? '' : 'default' }}"
-        loading="lazy"
-        onerror="this.onerror=null;this.src='{{ asset('images/default-profile.png') }}';this.classList.add('default');"
-      >
+      @if($hasPhoto)
+        <img
+          src="{{ $photoUrl }}"
+          alt="Profile"
+          class="nav-avatar"
+          loading="lazy"
+          onerror="this.style.display='none'; this.nextElementSibling.style.display='inline-flex';"
+        >
+        <span class="nav-avatar-fallback" style="display:none;">{{ $initial }}</span>
+      @else
+        <span class="nav-avatar-fallback">{{ $initial }}</span>
+      @endif
     </span>
 
     <span class="fw-semibold">{{ Auth::user()->name }}</span>

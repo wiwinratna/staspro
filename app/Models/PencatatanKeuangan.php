@@ -22,6 +22,11 @@ class PencatatanKeuangan extends Model
         'metode_pembayaran',
         'bukti_transaksi',
         'request_pembelian_id',
+        'is_talangan',
+        'talangan_ref_type',
+        'talangan_ref_id',
+        'is_reclass',
+        'reclass_group_id',
     ];
 
     protected $dates = ['tanggal'];
@@ -29,6 +34,8 @@ class PencatatanKeuangan extends Model
     protected $casts = [
         'tanggal' => 'date',
         'jumlah_transaksi' => 'integer',
+        'is_talangan' => 'boolean',
+        'is_reclass' => 'boolean',
     ];
 
     public function sumberDana() {

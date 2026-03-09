@@ -85,15 +85,15 @@
     margin-top:14px;
     box-shadow:var(--shadow);
   }
-  .table-responsive{ max-height:68vh; overflow-y:auto; }
-  .table-modern{ margin:0; font-size:.92rem; table-layout:fixed; width:100%; border-collapse:separate; border-spacing:0; }
+  .table-responsive{ max-height:68vh; overflow-y:auto; overflow-x:auto; }
+  .table-modern{ margin:0; font-size:.92rem; table-layout:auto; width:100%; border-collapse:separate; border-spacing:0; min-width:1180px; }
   .table-modern thead th{
     background:#f8fafc; color:var(--ink-600);
     font-weight:900; text-transform:uppercase; font-size:.72rem; letter-spacing:.08em;
     padding:14px 12px; border-bottom:1px solid rgba(226,232,240,.95);
     position:sticky; top:0; z-index:5; white-space:nowrap;
   }
-  .table-modern tbody td{ padding:14px 12px; vertical-align:middle; border-top:1px solid #eef2f7; overflow:hidden; }
+  .table-modern tbody td{ padding:14px 12px; vertical-align:middle; border-top:1px solid #eef2f7; overflow:visible; }
   .clamp-2{
     display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:2;
     overflow:hidden; word-break:break-word;
@@ -107,6 +107,7 @@
     border:1px solid rgba(226,232,240,.95);
     background:#fff;
     white-space:nowrap;
+    max-width:none;
   }
   .badge-submit{ background:#eff6ff; color:#1d4ed8; border-color:rgba(59,130,246,.25); }
   .badge-approve{ background:#ecfeff; color:#155e75; border-color:rgba(6,182,212,.25); }
@@ -123,6 +124,19 @@
   .btn-act.detail{ border-color:rgba(22,163,74,.25); color:var(--brand-700); background:#f0fdf4; }
   .btn-act.ok{ border-color:rgba(6,182,212,.25); color:#155e75; background:#ecfeff; }
   .btn-act.no{ border-color:rgba(239,68,68,.25); color:#991b1b; background:#fef2f2; }
+
+  .proof-trigger{
+    cursor:pointer !important;
+    position:relative;
+    z-index:2;
+    color:#0f172a !important;
+    border-color:#dbe3ef !important;
+    background:#fff !important;
+  }
+  .proof-trigger:hover{
+    background:#ecfdf5 !important;
+    color:#166534 !important;
+  }
 </style>
 @endpush
 
@@ -181,7 +195,7 @@
             <th style="width:150px">Tanggal</th>
             <th style="width:190px">Tim</th>
             <th style="width:230px">Sub Kategori</th>
-            <th style="width:150px">Tipe</th>
+            <th style="width:220px">Tipe</th>
             <th style="width:140px">Status</th>
             <th class="text-end" style="width:160px">Estimasi</th>
             <th class="text-end" style="width:170px">Disetujui</th>
@@ -269,27 +283,12 @@
 
               <td>
                 @if($hasBukti)
-                  <a href="#" class="btn-soft" style="height:32px;padding:0 10px;border-radius:999px;font-weight:900;"
-                     data-bs-toggle="modal" data-bs-target="#modalBukti{{ $trx->id }}">
+                  <a href="{{ asset('storage/' . $trx->bukti_file) }}"
+                     target="_blank" rel="noopener"
+                     class="btn-soft proof-trigger"
+                     style="height:32px;padding:0 10px;border-radius:999px;font-weight:900;">
                     <i class="bi bi-image"></i> Lihat
                   </a>
-
-                  <div class="modal fade" id="modalBukti{{ $trx->id }}" tabindex="-1" aria-hidden="true">
-                    <div class="modal-dialog modal-dialog-centered">
-                      <div class="modal-content">
-                        <div class="modal-header">
-                          <h5 class="modal-title">Bukti Transaksi</h5>
-                          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                        </div>
-                        <div class="modal-body text-center">
-                          <img src="{{ asset('storage/' . $trx->bukti_file) }}" alt="Bukti" class="img-fluid rounded shadow-sm mb-3">
-                          <a href="{{ asset('storage/' . $trx->bukti_file) }}" class="btn-brand" download>
-                            <i class="bi bi-download"></i> Unduh
-                          </a>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
                 @else
                   <span class="text-muted" style="font-weight:800;">-</span>
                 @endif

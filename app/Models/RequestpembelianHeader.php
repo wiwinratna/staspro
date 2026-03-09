@@ -13,11 +13,29 @@ class RequestpembelianHeader extends Model
         'no_request',
         'tgl_request',
         'status_request',
+        'is_talangan',
+        'status_alokasi',
         'keterangan_reject',
+        'biaya_admin_transfer',
+        'nominal_final_total',
+        'nominal_penambahan',
+        'nominal_pengurangan',
+        'keterangan_penambahan',
+        'keterangan_pengurangan',
+        'bukti_transfer',
+        'invoice_pembelian',
         'id_project',
+        'project_id_alokasi_final',
+        'tanggal_alokasi_final',
+        'catatan_alokasi',
         'user_id_created',
         'user_id_updated',
         'updated_at',
+    ];
+
+    protected $casts = [
+        'is_talangan' => 'boolean',
+        'tanggal_alokasi_final' => 'date',
     ];
 
     public function pencatatanKeuangans()
