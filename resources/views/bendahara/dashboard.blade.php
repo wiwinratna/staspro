@@ -188,8 +188,8 @@
     </div>
 
     <div class="hero-actions">
-      <a href="{{ route('bendahara.verifikasi') }}" class="btn-manual">
-        <i class="bi bi-check2-square"></i> Verifikasi Pembayaran
+      <a href="#" class="btn-manual">
+        <i class="bi bi-book"></i> Manual Book
       </a>
     </div>
   </div>
