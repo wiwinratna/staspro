@@ -288,8 +288,7 @@
 
     <div class="brand">
       <span>STAS-RG</span>
-      <span class="brand-badge">{{ Auth::user()->role === 'admin' ? 'ADMIN' : 'PENELITI' }}</span>
-    </div>
+      </div>
 
     <div class="ms-auto">@include('navbar')</div>
   </div>

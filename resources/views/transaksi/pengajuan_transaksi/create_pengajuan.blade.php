@@ -128,9 +128,21 @@
           <textarea name="deskripsi" class="form-control field" rows="3" placeholder="Tulis detail kebutuhan..." required>{{ old('deskripsi') }}</textarea>
         </div>
 
-        <div class="col-md-4">
-          <div class="label">Estimasi Nominal *</div>
-          <input type="number" name="estimasi_nominal" class="form-control field" value="{{ old('estimasi_nominal') }}" required>
+        <div class="col-md-3">
+          <div class="label">Kuantitas *</div>
+          <input type="number" name="kuantitas" id="kuantitas" class="form-control field" value="{{ old('kuantitas', 1) }}" min="1" required>
+        </div>
+
+        <div class="col-md-3">
+          <div class="label">Harga Satuan (Rp) *</div>
+          <input type="number" name="harga_satuan" id="harga_satuan" class="form-control field" value="{{ old('harga_satuan') }}" min="0" required>
+        </div>
+
+        <div class="col-md-2">
+          <div class="label">Subtotal</div>
+          <div class="field d-flex align-items-center" style="background:#f0fdf4; border-color:#bbf7d0; color:#166534; font-weight:800; height:42px;" id="subtotalDisplay">
+            Rp 0
+          </div>
         </div>
 
         <div class="col-md-4">
@@ -205,6 +217,24 @@
     // init kalau ada old project
     const initProject = project?.value;
     if(initProject) load(initProject);
+  })();
+
+  // ✅ Live subtotal calculation
+  (function(){
+    const qty = document.getElementById('kuantitas');
+    const harga = document.getElementById('harga_satuan');
+    const display = document.getElementById('subtotalDisplay');
+
+    function calc(){
+      const q = parseInt(qty?.value) || 0;
+      const h = parseFloat(harga?.value) || 0;
+      const total = q * h;
+      display.textContent = 'Rp ' + total.toLocaleString('id-ID');
+    }
+
+    qty?.addEventListener('input', calc);
+    harga?.addEventListener('input', calc);
+    calc();
   })();
 </script>
 @endpush

@@ -120,14 +120,11 @@
       border-left:1px solid #e5e7eb;
     }
 
-    /* ✅ FIX 2: content jangan bikin overlay layer */
+    /* ✅ FIX 2: content tanpa z-index agar modal bisa tampil di atas backdrop */
     .content{
       flex: 1 1 auto;
       min-width: 0;
       padding:18px 18px 22px;
-
-      position: relative;
-      z-index: 1;               /* ✅ PENTING (lebih rendah dari sidebar) */
     }
 
     .content-inner{
@@ -192,6 +189,42 @@
       .sidebar.open{ left:0; }
       .content{ padding:14px; }
     }
+    /* ── Global Modal Improvements ── */
+    .modal-backdrop{
+      background:rgba(15,23,42,.32) !important;   /* lebih ringan, tidak terlalu gelap */
+      backdrop-filter:blur(3px) !important;
+    }
+    .modal-backdrop.show{ opacity:1 !important; }
+
+    .modal .modal-content{
+      border:none;
+      border-radius:18px;
+      box-shadow:0 25px 60px rgba(15,23,42,.16), 0 8px 24px rgba(15,23,42,.06);
+      overflow:hidden;
+    }
+    .modal .modal-header{
+      padding:20px 24px 12px;
+      border-bottom:1px solid #f1f5f9;
+    }
+    .modal .modal-header .modal-title{
+      font-weight:800;
+      font-size:1.05rem;
+    }
+    .modal .modal-header .btn-close{
+      opacity:.4;
+      transition:opacity .15s;
+    }
+    .modal .modal-header .btn-close:hover{ opacity:.8; }
+    .modal .modal-body{
+      padding:16px 24px 20px;
+    }
+    .modal .modal-footer{
+      padding:10px 24px 18px;
+      border-top:1px solid #f1f5f9;
+    }
+    .modal.fade .modal-dialog{
+      transition:transform .2s ease-out, opacity .2s ease-out;
+    }
   </style>
 
   @stack('styles')
@@ -206,13 +239,7 @@
 
       <div class="brand">
         <span>STAS-RG</span>
-        <span class="brand-badge">
-          @if(Auth::user()->role === 'admin') ADMIN
-          @elseif(Auth::user()->role === 'bendahara') BENDAHARA
-          @else PENELITI
-          @endif
-        </span>
-      </div>
+        </div>
 
       <div class="ms-auto">@include('navbar')</div>
     </div>

@@ -282,12 +282,12 @@
     .tab-btn[data-status="submit_request"]{ background:#fff7ed; border-color:#fed7aa; color:#9a3412; }
     .tab-btn[data-status="approve_request"]{ background:#eff6ff; border-color:#bfdbfe; color:#1e40af; }
     .tab-btn[data-status="reject_request"]{ background:#fef2f2; border-color:#fecaca; color:#991b1b; }
-
-    .tab-btn[data-status="submit_payment"]{ background:#f5f3ff; border-color:#ddd6fe; color:#5b21b6; }
-    .tab-btn[data-status="approve_payment"]{ background:#ecfdf5; border-color:#bbf7d0; color:#166534; }
-    .tab-btn[data-status="reject_payment"]{ background:#fdf2f8; border-color:#fbcfe8; color:#9d174d; }
-
+    .tab-btn[data-status="cancel"]{ background:#fef2f2; border-color:#d1d5db; color:#6b7280; }
     .tab-btn[data-status="done"]{ background:#eefdfb; border-color:#99f6e4; color:#115e59; }
+    /* legacy compat */
+    .tab-btn[data-status="submit_payment"]{ background:#eff6ff; border-color:#bfdbfe; color:#1e40af; }
+    .tab-btn[data-status="approve_payment"]{ background:#eefdfb; border-color:#99f6e4; color:#115e59; }
+    .tab-btn[data-status="reject_payment"]{ background:#fef2f2; border-color:#fecaca; color:#991b1b; }
 
     .tab-btn.active{
       box-shadow:0 10px 22px rgba(15,23,42,.10);
@@ -363,12 +363,12 @@
     .badge-submit-request { background:#fff7ed; color:#9a3412; border-color:#fed7aa; }
     .badge-approve-request{ background:#eff6ff; color:#1e40af; border-color:#bfdbfe; }
     .badge-reject-request { background:#fef2f2; color:#991b1b; border-color:#fecaca; }
-
-    .badge-submit-payment { background:#f5f3ff; color:#5b21b6; border-color:#ddd6fe; }
-    .badge-approve-payment{ background:#ecfdf5; color:#166534; border-color:#bbf7d0; }
-    .badge-reject-payment { background:#fdf2f8; color:#9d174d; border-color:#fbcfe8; }
-
+    .badge-cancel { background:#fef2f2; color:#6b7280; border-color:#d1d5db; }
     .badge-done{ background:#eefdfb; color:#115e59; border-color:#99f6e4; }
+    /* legacy compat */
+    .badge-submit-payment { background:#eff6ff; color:#1e40af; border-color:#bfdbfe; }
+    .badge-approve-payment{ background:#eefdfb; color:#115e59; border-color:#99f6e4; }
+    .badge-reject-payment { background:#fef2f2; color:#991b1b; border-color:#fecaca; }
 
     /* Action buttons */
     .action-btns{ display:flex; justify-content:center; gap:6px; flex-wrap:wrap; }
@@ -445,25 +445,15 @@
           </button>
           <button class="status-pill" type="button" data-status="submit_request" style="--pill-color:#3b82f6;">
             <span class="pill-dot"></span>
-            <span class="pill-label">Pemesanan</span>
+            <span class="pill-label">Dalam Pemesanan</span>
             <span class="pill-count" data-count="submit_request">0</span>
           </button>
           <button class="status-pill" type="button" data-status="approve_request" style="--pill-color:#06b6d4;">
             <span class="pill-dot"></span>
-            <span class="pill-label">Verifikasi Final</span>
+            <span class="pill-label">Dalam Pembelian</span>
             <span class="pill-count" data-count="approve_request">0</span>
           </button>
-          <button class="status-pill" type="button" data-status="submit_payment" style="--pill-color:#f59e0b;">
-            <span class="pill-dot"></span>
-            <span class="pill-label">Finalisasi</span>
-            <span class="pill-count" data-count="submit_payment">0</span>
-          </button>
-          <button class="status-pill" type="button" data-status="approve_payment" style="--pill-color:#16a34a;">
-            <span class="pill-dot"></span>
-            <span class="pill-label">Terverifikasi</span>
-            <span class="pill-count" data-count="approve_payment">0</span>
-          </button>
-          <button class="status-pill" type="button" data-status="done" style="--pill-color:#334155;">
+          <button class="status-pill" type="button" data-status="done" style="--pill-color:#16a34a;">
             <span class="pill-dot"></span>
             <span class="pill-label">Selesai</span>
             <span class="pill-count" data-count="done">0</span>
@@ -473,10 +463,10 @@
             <span class="pill-label">Ditolak</span>
             <span class="pill-count" data-count="reject_request">0</span>
           </button>
-          <button class="status-pill" type="button" data-status="reject_payment" style="--pill-color:#f97316;">
+          <button class="status-pill" type="button" data-status="cancel" style="--pill-color:#6b7280;">
             <span class="pill-dot"></span>
-            <span class="pill-label">Revisi</span>
-            <span class="pill-count" data-count="reject_payment">0</span>
+            <span class="pill-label">Dibatalkan</span>
+            <span class="pill-count" data-count="cancel">0</span>
           </button>
         </div>
       </div>
@@ -508,19 +498,21 @@
 
             $labelMap = [
               'draft'           => 'Draft',
-              'submit_request'  => 'Dalam Proses Pemesanan',
-              'approve_request' => 'Menunggu Verifikasi Final',
+              'submit_request'  => 'Dalam Pemesanan',
+              'approve_request' => 'Dalam Pembelian',
               'reject_request'  => 'Ditolak',
-              'submit_payment'  => 'Menunggu Finalisasi',
-              'approve_payment' => 'Terverifikasi Final',
-              'reject_payment'  => 'Perlu Revisi Pembelian',
+              'cancel'          => 'Dibatalkan',
               'done'            => 'Selesai',
+              // legacy compat
+              'submit_payment'  => 'Dalam Pembelian',
+              'approve_payment' => 'Selesai',
+              'reject_payment'  => 'Ditolak',
             ];
 
             $badge = 'badge-' . str_replace('_','-',$status);
             $labelInternal = $labelMap[$status] ?? ucwords(str_replace('_',' ', $status));
             $label = (Auth::user()->role === 'peneliti' && $status !== 'draft')
-              ? ($status === 'done' ? 'Sudah Sampai' : 'Dalam Proses Pemesanan')
+              ? ($status === 'done' ? 'Selesai (Sudah Sampai)' : ($status === 'reject_request' ? 'Ditolak' : ($status === 'cancel' ? 'Dibatalkan' : 'Dalam Proses')))
               : $labelInternal;
           @endphp
 
@@ -613,9 +605,7 @@
           draft: 0,
           approve_request: 0,
           reject_request: 0,
-          submit_payment: 0,
-          approve_payment: 0,
-          reject_payment: 0,
+          cancel: 0,
           done: 0,
         };
 

@@ -84,14 +84,15 @@ class PencatatanKeuanganController extends Controller
                 ->where('deskripsi_transaksi', 'like', "%{$marker}%")
                 ->exists();
 
-            if ($exists) continue;
+            if ($exists)
+                continue;
 
             DB::table('pencatatan_keuangan')->insert([
                 'tanggal' => $f->tanggal ?? now()->toDateString(),
                 'project_id' => $f->project_id,
                 'sub_kategori_pendanaan' => null,
                 'jenis_transaksi' => 'pemasukan',
-                'deskripsi_transaksi' => "{$marker} Dana Cair (Auto Finalized) - " . ($f->keterangan ?? '-'),
+                'deskripsi_transaksi' => "{$marker} Dana Cair " . ($f->keterangan ?? '-'),
                 'jumlah_transaksi' => (float) $f->nominal,
                 'metode_pembayaran' => $f->metode_penerimaan ? strtolower($f->metode_penerimaan) : 'transfer bank',
                 'bukti_transaksi' => $f->bukti ?? null,
@@ -143,22 +144,22 @@ class PencatatanKeuanganController extends Controller
                     $reclassGroupId = $isAllocated ? ('RECLASS-REQBUY-' . $header->id) : null;
 
                     PencatatanKeuangan::create([
-                        'tanggal'                => $header->tgl_request ?? now()->toDateString(),
-                        'project_id'             => $effectiveProjectId,
+                        'tanggal' => $header->tgl_request ?? now()->toDateString(),
+                        'project_id' => $effectiveProjectId,
                         'sub_kategori_pendanaan' => $detail->id_subkategori_sumberdana ?: null,
-                        'jenis_transaksi'        => 'pengeluaran',
-                        'deskripsi_transaksi'    => "[REQBUY#{$header->id}] Pembelian: {$detail->nama_barang}",
-                        'jumlah_transaksi'       => $nominalFix,
-                        'metode_pembayaran'      => 'Transfer',
-                        'bukti_transaksi'        => $header->bukti_transfer ?? $detail->invoice_pembelian ?? null,
-                        'request_pembelian_id'   => $header->id,
+                        'jenis_transaksi' => 'pengeluaran',
+                        'deskripsi_transaksi' => "[REQBUY#{$header->id}] Pembelian: {$detail->nama_barang}",
+                        'jumlah_transaksi' => $nominalFix,
+                        'metode_pembayaran' => 'Transfer',
+                        'bukti_transaksi' => $header->bukti_transfer ?? $detail->invoice_pembelian ?? null,
+                        'request_pembelian_id' => $header->id,
                     ] + ($hasTalanganColumns ? [
-                        'is_talangan'            => $isTalanganAktif,
-                        'talangan_ref_type'      => $isTalanganAktif ? 'request_pembelian' : null,
-                        'talangan_ref_id'        => $isTalanganAktif ? $header->id : null,
-                        'is_reclass'             => $isAllocated,
-                        'reclass_group_id'       => $reclassGroupId,
-                    ] : []));
+                            'is_talangan' => $isTalanganAktif,
+                            'talangan_ref_type' => $isTalanganAktif ? 'request_pembelian' : null,
+                            'talangan_ref_id' => $isTalanganAktif ? $header->id : null,
+                            'is_reclass' => $isAllocated,
+                            'reclass_group_id' => $reclassGroupId,
+                        ] : []));
                 }
 
                 $biayaAdmin = (float) ($header->biaya_admin_transfer ?? 0);
@@ -169,44 +170,44 @@ class PencatatanKeuanganController extends Controller
                     $reclassGroupId = $isAllocated ? ('RECLASS-REQBUY-' . $header->id) : null;
 
                     PencatatanKeuangan::create([
-                        'tanggal'                => $header->tgl_request ?? now()->toDateString(),
-                        'project_id'             => $effectiveProjectId,
+                        'tanggal' => $header->tgl_request ?? now()->toDateString(),
+                        'project_id' => $effectiveProjectId,
                         'sub_kategori_pendanaan' => null,
-                        'jenis_transaksi'        => 'pengeluaran',
-                        'deskripsi_transaksi'    => "[REQBUY#{$header->id}] Biaya Admin Transfer",
-                        'jumlah_transaksi'       => $biayaAdmin,
-                        'metode_pembayaran'      => 'Transfer',
-                        'bukti_transaksi'        => $header->bukti_transfer ?? null,
-                        'request_pembelian_id'   => $header->id,
+                        'jenis_transaksi' => 'pengeluaran',
+                        'deskripsi_transaksi' => "[REQBUY#{$header->id}] Biaya Admin Transfer",
+                        'jumlah_transaksi' => $biayaAdmin,
+                        'metode_pembayaran' => 'Transfer',
+                        'bukti_transaksi' => $header->bukti_transfer ?? null,
+                        'request_pembelian_id' => $header->id,
                     ] + ($hasTalanganColumns ? [
-                        'is_talangan'            => $isTalanganAktif,
-                        'talangan_ref_type'      => $isTalanganAktif ? 'request_pembelian' : null,
-                        'talangan_ref_id'        => $isTalanganAktif ? $header->id : null,
-                        'is_reclass'             => $isAllocated,
-                        'reclass_group_id'       => $reclassGroupId,
-                    ] : []));
+                            'is_talangan' => $isTalanganAktif,
+                            'talangan_ref_type' => $isTalanganAktif ? 'request_pembelian' : null,
+                            'talangan_ref_id' => $isTalanganAktif ? $header->id : null,
+                            'is_reclass' => $isAllocated,
+                            'reclass_group_id' => $reclassGroupId,
+                        ] : []));
                 }
             });
         }
     }
 
-public function index()
-{
-    if (in_array(auth()->user()->role, ['admin','bendahara'])) {
+    public function index()
+    {
+        if (in_array(auth()->user()->role, ['admin', 'bendahara'])) {
 
-        // ✅ sync dana cair tetap jalan (boleh untuk bendahara juga)
-        $this->syncDanaCairFinalized();
-        $this->syncRequestPembelianFinalized();
+            // ✅ sync dana cair tetap jalan (boleh untuk bendahara juga)
+            $this->syncDanaCairFinalized();
+            $this->syncRequestPembelianFinalized();
 
-        $pencatatanKeuangans = PencatatanKeuangan::with(['project', 'subKategoriPendanaan', 'requestPembelian'])->get();
+            $pencatatanKeuangans = PencatatanKeuangan::with(['project', 'subKategoriPendanaan', 'requestPembelian'])->get();
 
-        $totalNominalFiltered = $pencatatanKeuangans->sum('jumlah_transaksi');
+            $totalNominalFiltered = $pencatatanKeuangans->sum('jumlah_transaksi');
 
-        return view('transaksi.pencatatan_keuangan', compact('pencatatanKeuangans', 'totalNominalFiltered'));
+            return view('transaksi.pencatatan_keuangan', compact('pencatatanKeuangans', 'totalNominalFiltered'));
+        }
+
+        abort(403, 'Unauthorized');
     }
-
-    abort(403, 'Unauthorized');
-}
 
     public function filterTransaksi(Request $request)
     {
@@ -526,13 +527,13 @@ public function index()
 
         if ($request->filled('start_date') && $request->filled('end_date')) {
             $start = Carbon::parse($request->start_date)->startOfDay()->toDateString();
-            $end   = Carbon::parse($request->end_date)->endOfDay()->toDateString();
+            $end = Carbon::parse($request->end_date)->endOfDay()->toDateString();
             $query->whereBetween('tanggal', [$start, $end]);
         }
 
         $pencatatanKeuangans = $query->get();
 
-        $tanggal_awal  = $request->filled('start_date')
+        $tanggal_awal = $request->filled('start_date')
             ? $request->start_date
             : optional($pencatatanKeuangans->min('tanggal'))->format('Y-m-d');
 
@@ -540,7 +541,7 @@ public function index()
             ? $request->end_date
             : optional($pencatatanKeuangans->max('tanggal'))->format('Y-m-d');
 
-        $totalDebit  = $pencatatanKeuangans->where('jenis_transaksi', 'pemasukan')->sum('jumlah_transaksi');
+        $totalDebit = $pencatatanKeuangans->where('jenis_transaksi', 'pemasukan')->sum('jumlah_transaksi');
         $totalKredit = $pencatatanKeuangans->where('jenis_transaksi', 'pengeluaran')->sum('jumlah_transaksi');
 
         return view('laporan_keuangan', compact(

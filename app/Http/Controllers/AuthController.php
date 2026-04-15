@@ -3,9 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Mail\WelcomeResearcherMail;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Session;
 
 class AuthController extends Controller
@@ -35,6 +37,17 @@ class AuthController extends Controller
                 Auth::logout();
                 return redirect()->route('admin.login')
                     ->with('error', 'Akun Admin/Bendahara harus login lewat panel Admin.');
+            }
+
+            // ✅ Cek apakah profil peneliti sudah lengkap
+            $profileIncomplete = empty($user->jurusan)
+                              || empty($user->fakultas)
+                              || empty($user->nim_nip)
+                              || empty($user->no_telp);
+
+            if ($profileIncomplete) {
+                return redirect()->route('profile.index')
+                    ->with('warning', 'Selamat datang kembali! Silakan lengkapi profil pengguna Anda terlebih dahulu sebelum menggunakan fitur utama.');
             }
 
             return redirect()->route('peneliti.dashboard')
@@ -69,11 +82,20 @@ class AuthController extends Controller
             'role'     => 'peneliti', // DIPAKSA
         ]);
 
+        // Kirim email sambutan ke peneliti baru
+        try {
+            Mail::to($user->email)->send(new WelcomeResearcherMail($user));
+        } catch (\Exception $e) {
+            // Log error tapi jangan gagalkan registrasi
+            \Log::warning('Gagal mengirim email welcome: ' . $e->getMessage());
+        }
+
         Auth::login($user);
         $request->session()->regenerate();
 
-        return redirect()->route('peneliti.dashboard')
-            ->with('success', 'Registrasi berhasil sebagai Peneliti.');
+        // Arahkan ke profil untuk melengkapi data
+        return redirect()->route('profile.index')
+            ->with('welcome', 'Registrasi berhasil! Selamat datang di STASPRO. Silakan lengkapi profil pengguna Anda terlebih dahulu sebelum menggunakan fitur utama.');
     }
 
     // =========================

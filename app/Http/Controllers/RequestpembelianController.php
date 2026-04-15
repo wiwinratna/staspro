@@ -283,6 +283,14 @@ class RequestpembelianController extends Controller
             'id_subkategori_sumberdana' => 'nullable|exists:subkategori_sumberdana,id',
         ]);
 
+        // ✅ Cegah tambah item jika status sudah done
+        $header = RequestpembelianHeader::findOrFail($validated['id_request_pembelian_header']);
+        if (strtolower(str_replace(' ', '_', $header->status_request)) === 'done') {
+            return redirect()
+                ->route('requestpembelian.detail', $header->id)
+                ->with('error', 'Tidak bisa menambah item karena pengajuan sudah selesai.');
+        }
+
         try {
             RequestpembelianDetail::create([
                 'nama_barang'                 => $validated['nama_barang'],
@@ -657,9 +665,9 @@ class RequestpembelianController extends Controller
                 ->with('error', 'Hanya admin/bendahara yang bisa upload invoice item.');
         }
 
-        if (!in_array($header->status_request, ['submit_request', 'approve_request', 'reject_payment', 'submit_payment', 'approve_payment', 'done'], true)) {
+        if (!in_array($header->status_request, ['submit_request', 'approve_request', 'reject_request', 'cancel', 'reject_payment', 'submit_payment', 'approve_payment', 'done'], true)) {
             return redirect()->route('requestpembelian.detail', $header->id)
-                ->with('error', 'Invoice item hanya bisa diunggah saat proses pembelian.');
+                ->with('error', 'Status tidak valid untuk operasi ini.');
         }
 
         $totals = $request->input('total_invoice', []);
@@ -737,7 +745,8 @@ class RequestpembelianController extends Controller
         if ($request->filled('status_request')) {
             $statusRequest = $request->status_request;
 
-            if ($statusRequest === 'approve_payment') {
+            // ✅ Simplified flow: done = Selesai (trigger pencatatan), approve_payment legacy → done
+            if ($statusRequest === 'done' || $statusRequest === 'approve_payment') {
                 $hasTalanganHeaderCols = Schema::hasColumn('request_pembelian_header', 'is_talangan');
                 if ($hasTalanganHeaderCols && $request->has('is_talangan')) {
                     $header->is_talangan = (bool) $request->boolean('is_talangan');
@@ -817,13 +826,21 @@ class RequestpembelianController extends Controller
                         PencatatanKeuangan::create($adminLedgerData);
                     }
                 }
+
+            // ✅ Cancel: tidak masuk pencatatan, simpan alasan
+            } elseif ($statusRequest === 'cancel') {
+                $header->status_request = 'cancel';
+                $header->keterangan_reject = $request->keterangan_reject;
+
+            // ✅ Ditolak
+            } elseif ($statusRequest === 'reject_request') {
+                $header->status_request = 'reject_request';
+                $header->keterangan_reject = $request->keterangan_reject;
+
+            // ✅ Status lainnya (submit_request, approve_request)
             } else {
                 $header->status_request = $statusRequest;
-                if ($statusRequest === 'reject_request' || $statusRequest === 'reject_payment') {
-                    $header->keterangan_reject = $request->keterangan_reject;
-                } else {
-                    $header->keterangan_reject = null;
-                }
+                $header->keterangan_reject = null;
             }
         }
 
@@ -846,7 +863,9 @@ class RequestpembelianController extends Controller
                 ->with('error', "Fitur talangan belum aktif. Jalankan 'php artisan migrate'.");
         }
 
-        $rows = DB::table('request_pembelian_header as h')
+        $rows = collect();
+
+        $reqRows = DB::table('request_pembelian_header as h')
             ->leftJoin('project as p', 'h.id_project', '=', 'p.id')
             ->leftJoin('project as pf', 'h.project_id_alokasi_final', '=', 'pf.id')
             ->where('h.status_request', 'done')
@@ -862,10 +881,40 @@ class RequestpembelianController extends Controller
                 'h.catatan_alokasi',
                 'p.nama_project as nama_project_awal',
                 'pf.nama_project as nama_project_alokasi',
-                DB::raw('(SELECT COALESCE(SUM(COALESCE(d.total_invoice, (d.kuantitas * d.harga))),0) FROM request_pembelian_detail d WHERE d.id_request_pembelian_header = h.id) as total_invoice')
+                DB::raw('(SELECT GROUP_CONCAT(nama_barang SEPARATOR ", ") FROM request_pembelian_detail d WHERE d.id_request_pembelian_header = h.id) as nama_barang'),
+                DB::raw('(SELECT COALESCE(SUM(COALESCE(d.total_invoice, (d.kuantitas * d.harga))),0) FROM request_pembelian_detail d WHERE d.id_request_pembelian_header = h.id) as total_invoice'),
+                DB::raw("'request_pembelian' as source")
             )
-            ->orderByDesc('h.id')
             ->get();
+        
+        $rows = $rows->merge($reqRows);
+
+        if (Schema::hasTable('pengajuan_transaksi_header') && Schema::hasColumn('pengajuan_transaksi_header', 'is_talangan')) {
+            $trxRows = DB::table('pengajuan_transaksi_header as h')
+                ->leftJoin('project as p', 'h.id_project', '=', 'p.id')
+                ->leftJoin('project as pf', 'h.project_id_alokasi_final', '=', 'pf.id')
+                ->where('h.status', 'done')
+                ->where('h.is_talangan', 1)
+                ->select(
+                    'h.id',
+                    DB::raw("COALESCE(h.no_request, CONCAT(UPPER(h.tipe), '-', h.id)) as no_request"),
+                    'h.tgl_request',
+                    'h.biaya_admin as biaya_admin_transfer',
+                    'h.status_alokasi',
+                    'h.project_id_alokasi_final',
+                    'h.tanggal_alokasi_final',
+                    'h.catatan_alokasi',
+                    'p.nama_project as nama_project_awal',
+                    'pf.nama_project as nama_project_alokasi',
+                    'h.deskripsi as nama_barang',
+                    DB::raw('COALESCE(h.nominal_final, (h.kuantitas * h.harga_satuan)) as total_invoice'),
+                    DB::raw("'pengajuan_transaksi' as source")
+                )
+                ->get();
+            $rows = $rows->merge($trxRows);
+        }
+
+        $rows = $rows->sortByDesc('tgl_request')->values();
 
         $projects = Project::query()
             ->where('status', 'aktif')
@@ -891,26 +940,57 @@ class RequestpembelianController extends Controller
             'catatan_alokasi' => 'nullable|string|max:500',
         ]);
 
-        $header = RequestpembelianHeader::findOrFail($id);
-        if (!(bool) ($header->is_talangan ?? false)) {
-            return back()->with('error', 'Request ini bukan transaksi talangan.');
-        }
-        if (($header->status_request ?? '') !== 'done') {
-            return back()->with('error', 'Hanya request dengan status selesai yang bisa dialokasikan.');
-        }
+        $source = $request->input('source', 'request_pembelian');
 
-        DB::transaction(function () use ($header, $validated) {
-            $targetProjectId = (int) $validated['project_id_alokasi_final'];
-            $reclassGroupId = 'RECLASS-REQBUY-' . $header->id . '-' . Str::uuid()->toString();
-
-            $ledgerUpdate = ['project_id' => $targetProjectId];
-            if (Schema::hasColumn('pencatatan_keuangan', 'is_talangan')) {
-                $ledgerUpdate['is_talangan'] = false;
-                $ledgerUpdate['is_reclass'] = true;
-                $ledgerUpdate['reclass_group_id'] = $reclassGroupId;
+        if ($source === 'pengajuan_transaksi') {
+            $header = \App\Models\PengajuanTransaksiHeader::findOrFail($id);
+            if (!(bool) ($header->is_talangan ?? false)) {
+                return back()->with('error', 'Request ini bukan transaksi talangan.');
             }
+            if (($header->status ?? '') !== 'done') {
+                return back()->with('error', 'Hanya request dengan status selesai yang bisa dialokasikan.');
+            }
+        } else {
+            $header = \App\Models\RequestpembelianHeader::findOrFail($id);
+            if (!(bool) ($header->is_talangan ?? false)) {
+                return back()->with('error', 'Request ini bukan transaksi talangan.');
+            }
+            if (($header->status_request ?? '') !== 'done') {
+                return back()->with('error', 'Hanya request dengan status selesai yang bisa dialokasikan.');
+            }
+        }
 
-            PencatatanKeuangan::where('request_pembelian_id', $header->id)->update($ledgerUpdate);
+        DB::transaction(function () use ($header, $validated, $source) {
+            $targetProjectId = (int) $validated['project_id_alokasi_final'];
+
+            if ($source === 'pengajuan_transaksi') {
+                $reclassGroupId = 'RECLASS-PENGAJUAN-' . $header->id . '-' . Str::uuid()->toString();
+
+                $ledgerUpdate = ['project_id' => $targetProjectId];
+                if (Schema::hasColumn('pencatatan_keuangan', 'is_talangan')) {
+                    $ledgerUpdate['is_talangan'] = false;
+                    $ledgerUpdate['is_reclass'] = true;
+                    $ledgerUpdate['reclass_group_id'] = $reclassGroupId;
+                }
+
+                PencatatanKeuangan::where(function($q) use ($header) {
+                    $q->where('talangan_ref_type', 'pengajuan_transaksi')
+                      ->where('talangan_ref_id', $header->id);
+                })->orWhere('id', $header->pencatatan_keuangan_id)
+                ->update($ledgerUpdate);
+
+            } else {
+                $reclassGroupId = 'RECLASS-REQBUY-' . $header->id . '-' . Str::uuid()->toString();
+
+                $ledgerUpdate = ['project_id' => $targetProjectId];
+                if (Schema::hasColumn('pencatatan_keuangan', 'is_talangan')) {
+                    $ledgerUpdate['is_talangan'] = false;
+                    $ledgerUpdate['is_reclass'] = true;
+                    $ledgerUpdate['reclass_group_id'] = $reclassGroupId;
+                }
+
+                PencatatanKeuangan::where('request_pembelian_id', $header->id)->update($ledgerUpdate);
+            }
 
             $header->project_id_alokasi_final = $targetProjectId;
             $header->tanggal_alokasi_final = $validated['tanggal_alokasi_final'];

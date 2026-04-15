@@ -101,9 +101,12 @@
     .st-submit_request{ background:#fff7ed; color:#9a3412; border-color:#fed7aa; }
     .st-approve_request{ background:#eff6ff; color:#1e40af; border-color:#bfdbfe; }
     .st-reject_request{ background:#fef2f2; color:#991b1b; border-color:#fecaca; }
-    .st-submit_payment{ background:#f5f3ff; color:#5b21b6; border-color:#ddd6fe; }
-    .st-reject_payment{ background:#fdf2f8; color:#9d174d; border-color:#fbcfe8; }
+    .st-cancel{ background:#fef2f2; color:#6b7280; border-color:#d1d5db; }
     .st-done{ background:#eefdfb; color:#115e59; border-color:#99f6e4; }
+    /* legacy compat */
+    .st-submit_payment{ background:#fff7ed; color:#9a3412; border-color:#fed7aa; }
+    .st-approve_payment{ background:#eefdfb; color:#115e59; border-color:#99f6e4; }
+    .st-reject_payment{ background:#fef2f2; color:#991b1b; border-color:#fecaca; }
 
     /* Header actions */
     .head-actions{
@@ -204,8 +207,7 @@
 
       <div class="brand">
         <span>STAS-RG • Pengajuan Komponen</span>
-        <span class="brand-badge">{{ Auth::user()->role === 'admin' ? 'ADMIN' : 'PENELITI' }}</span>
-      </div>
+        </div>
 
       <div class="ms-auto">@include('navbar')</div>
     </div>
@@ -218,20 +220,22 @@
 
     $statusLabel = [
       'draft'           => 'Draft / Belum Diajukan',
-      'submit_request'  => 'Dalam Proses Pemesanan',
-      'approve_request' => 'Menunggu Verifikasi Final',
+      'submit_request'  => 'Dalam Pemesanan',
+      'approve_request' => 'Dalam Pembelian',
       'reject_request'  => 'Ditolak',
-      'submit_payment'  => 'Menunggu Finalisasi',
-      'approve_payment' => 'Terverifikasi Final',
-      'reject_payment'  => 'Perlu Revisi Pembelian',
-      'done'            => 'Selesai',
+      'cancel'          => 'Dibatalkan',
+      'done'            => 'Selesai (Sudah Sampai)',
+      // legacy compat
+      'submit_payment'  => 'Dalam Pembelian',
+      'approve_payment' => 'Selesai (Sudah Sampai)',
+      'reject_payment'  => 'Ditolak',
     ][$status] ?? ucwords(str_replace('_',' ', $status));
 
     $statusClass = 'st-'.$status;
 
     $isApprover = in_array(Auth::user()->role, ['admin','bendahara']);
-    $canEditItems = ($isApprover) || in_array($status, ['draft','submit_request','reject_request']);
-    $canProcessByApprover = $isApprover && in_array($status, ['submit_request','approve_request','reject_payment','submit_payment','approve_payment','done']);
+    $canEditItems = !in_array($status, ['done','cancel']) && (($isApprover) || in_array($status, ['draft','submit_request','reject_request']));
+    $canProcessByApprover = $isApprover && !in_array($status, ['draft','done','cancel']);
     $isTalangan = (bool)($request_pembelian->is_talangan ?? false);
     $statusAlokasi = (string)($request_pembelian->status_alokasi ?? 'belum');
 
@@ -380,14 +384,12 @@
               <label class="form-label mb-2 fw-bold text-dark fs-6">Keputusan Status</label>
               <select class="form-select border-success border-opacity-50 py-2 fw-bold text-dark shadow-sm bg-white" id="status_request" name="status_request" form="bulkInvoiceForm" @if(count($detail)==0) disabled @endif>
                 <option value="draft" {{ $status=='draft' ? 'selected' : '' }} disabled>Draft (Peneliti)</option>
-                <option value="submit_request" {{ $status=='submit_request' ? 'selected' : '' }}>Dalam Proses Pemesanan</option>
-                <option value="approve_request" {{ $status=='approve_request' ? 'selected' : '' }}>Menunggu Verifikasi Final</option>
-                <option value="submit_payment" {{ $status=='submit_payment' ? 'selected' : '' }}>Menunggu Finalisasi</option>
-                <option value="approve_payment" {{ $status=='approve_payment' ? 'selected' : '' }}>Terverifikasi Final</option>
-                <option value="done" {{ $status=='done' ? 'selected' : '' }}>Selesai</option>
-                <optgroup label="Revisi / Tolak">
-                  <option value="reject_request"  {{ $status=='reject_request'  ? 'selected' : '' }}>Tolak Pengajuan (Keseluruhan)</option>
-                  <option value="reject_payment"  {{ $status=='reject_payment'  ? 'selected' : '' }}>Perlu Revisi (Tagihan)</option>
+                <option value="submit_request" {{ in_array($status,['submit_request']) ? 'selected' : '' }}>Dalam Pemesanan</option>
+                <option value="approve_request" {{ in_array($status,['approve_request','submit_payment']) ? 'selected' : '' }}>Dalam Pembelian</option>
+                <option value="done" {{ in_array($status,['done','approve_payment']) ? 'selected' : '' }}>Selesai (Sudah Sampai)</option>
+                <optgroup label="Tolak / Batal">
+                  <option value="reject_request" {{ in_array($status,['reject_request','reject_payment']) ? 'selected' : '' }}>Ditolak</option>
+                  <option value="cancel" {{ $status=='cancel' ? 'selected' : '' }}>Dibatalkan</option>
                 </optgroup>
               </select>
             </div>
@@ -395,6 +397,38 @@
             <div class="col-lg-4">
               <label class="form-label mb-2 fw-bold text-dark fs-6">Attachment / Bukti Transfer <small class="text-muted fw-normal" style="font-size:0.75rem;">(Ops.)</small></label>
               <input type="file" class="form-control py-2 shadow-sm bg-white" name="bukti_transfer" accept=".jpg,.jpeg,.png,.pdf" form="bulkInvoiceForm">
+              @if(!empty($request_pembelian->bukti_transfer))
+                <div class="mt-2 d-flex align-items-center gap-2">
+                  <span class="badge bg-success-subtle text-success-emphasis border border-success-subtle rounded-pill px-3 py-2 fw-bold" style="font-size:.75rem;">
+                    <i class="bi bi-check-circle me-1"></i> Bukti tersimpan
+                  </span>
+                  <a href="#" class="text-primary fw-bold" style="font-size:.78rem; text-decoration:none;" data-bs-toggle="modal" data-bs-target="#modalBuktiTransferHeader">
+                    <i class="bi bi-eye me-1"></i>Lihat
+                  </a>
+                  <a href="{{ asset('storage/' . $request_pembelian->bukti_transfer) }}" class="text-muted fw-bold" style="font-size:.78rem; text-decoration:none;" download>
+                    <i class="bi bi-download me-1"></i>Unduh
+                  </a>
+                </div>
+
+                <div class="modal fade" id="modalBuktiTransferHeader" tabindex="-1" aria-hidden="true">
+                  <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+                      <div class="modal-header" style="background:linear-gradient(135deg, rgba(139,92,246,.06), rgba(139,92,246,.02));">
+                        <h5 class="modal-title"><i class="bi bi-image me-2" style="color:#7c3aed;"></i>Bukti Transfer</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                      </div>
+                      <div class="modal-body text-center" style="padding:24px;">
+                        <img src="{{ asset('storage/' . $request_pembelian->bukti_transfer) }}" alt="Bukti Transfer" class="img-fluid rounded shadow-sm mb-3" style="border-radius:14px !important; max-height:400px; object-fit:contain;">
+                        <div class="mt-2">
+                          <a href="{{ asset('storage/' . $request_pembelian->bukti_transfer) }}" class="btn btn-sm btn-success rounded-pill fw-bold px-4" download>
+                            <i class="bi bi-download me-1"></i> Unduh
+                          </a>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              @endif
             </div>
 
             <div class="col-lg-4 pt-1">
@@ -407,12 +441,12 @@
             </div>
 
             <div class="col-lg-12" id="keterangan_reject_wrap">
-              <label class="form-label mb-2 fw-bold text-danger fs-6">Keterangan Penolakan / Revisi</label>
+              <label class="form-label mb-2 fw-bold text-danger fs-6">Keterangan Penolakan / Pembatalan</label>
               <input type="text" class="form-control border-danger border-opacity-50 py-2 shadow-sm bg-white" id="keterangan_reject" name="keterangan_reject"
-                    value="{{ $request_pembelian->keterangan_reject }}" placeholder="Tuliskan detail poin yang perlu direvisi..." form="bulkInvoiceForm">
+                    value="{{ $request_pembelian->keterangan_reject }}" placeholder="Tuliskan alasan penolakan / pembatalan..." form="bulkInvoiceForm">
             </div>
             
-            @if($canProcessByApprover && count($detail) > 0)
+            @if(count($detail) > 0)
             <div class="col-12 mt-4 text-end border-top pt-4 border-success border-opacity-25">
                <button type="submit" class="btn btn-success px-5 py-2 fw-bold fs-6 shadow" form="bulkInvoiceForm">
                  <i class="bi bi-save2-fill me-2"></i> Simpan Status & Nominal Admin
@@ -499,9 +533,29 @@
                                         <td class="actions text-center">
                       <div class="d-flex justify-content-center gap-2">
                         @if(!empty($d->invoice_pembelian))
-                          <a href="{{ asset('storage/'.$d->invoice_pembelian) }}" class="btn btn-success btn-sm px-2 py-1 shadow-sm" title="Lihat Invoice Item" target="_blank" rel="noreferrer">
+                          <a href="#" class="btn btn-success btn-sm px-2 py-1 shadow-sm" title="Lihat Invoice Item"
+                             data-bs-toggle="modal" data-bs-target="#modalInvoice{{ $d->id }}">
                             <i class="bi bi-receipt"></i>
                           </a>
+
+                          <div class="modal fade" id="modalInvoice{{ $d->id }}" tabindex="-1" aria-hidden="true">
+                            <div class="modal-dialog modal-dialog-centered">
+                              <div class="modal-content">
+                                <div class="modal-header" style="background:linear-gradient(135deg, rgba(139,92,246,.06), rgba(139,92,246,.02));">
+                                  <h5 class="modal-title"><i class="bi bi-receipt me-2" style="color:#7c3aed;"></i>Invoice - {{ $d->nama_barang }}</h5>
+                                  <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                </div>
+                                <div class="modal-body text-center" style="padding:24px;">
+                                  <img src="{{ asset('storage/'.$d->invoice_pembelian) }}" alt="Invoice" class="img-fluid rounded shadow-sm mb-3" style="border-radius:14px !important; max-height:400px; object-fit:contain;">
+                                  <div class="mt-2">
+                                    <a href="{{ asset('storage/'.$d->invoice_pembelian) }}" class="btn btn-sm btn-success rounded-pill fw-bold px-4" download>
+                                      <i class="bi bi-download me-1"></i> Unduh
+                                    </a>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
                         @endif
 
                         @if($isApprover && $status !== 'reject_request')
@@ -670,7 +724,7 @@
       const wrap=document.getElementById('keterangan_reject_wrap');
       function toggle(){
         if(!sel || !wrap) return;
-        wrap.style.display=(sel.value==='reject_request'||sel.value==='reject_payment')?'':'none';
+        wrap.style.display=(sel.value==='reject_request'||sel.value==='cancel')?'':'none';
       }
       sel?.addEventListener('change',toggle); toggle();
     })();

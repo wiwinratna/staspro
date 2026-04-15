@@ -293,6 +293,7 @@ class ProjectController extends Controller
                 'a.kuantitas',
                 'a.harga',
                 'a.link_pembelian',
+                'a.invoice_pembelian as file_evidence',
                 'a.total_invoice',
                 DB::raw("COALESCE(s.nama, 'Bahan Habis Pakai dan Peralatan') as subkategori_nama"),
                 DB::raw('COALESCE(a.total_invoice, (a.kuantitas * a.harga)) as total')
@@ -319,6 +320,60 @@ class ProjectController extends Controller
         }
 
         $detail_request = $detailRequestQuery->get();
+
+        // -- PENGAJUAN TRANSAKSI (DANA & REIMBURSEMENT) --
+        if (Schema::hasTable('pengajuan_transaksi_header')) {
+            $pengajuanTrxQuery = DB::table('pengajuan_transaksi_header as a')
+                ->leftJoin('subkategori_sumberdana as s', 'a.id_subkategori_sumberdana', '=', 's.id')
+                ->where('a.status', 'done')
+                ->select(
+                    'a.tgl_request',
+                    DB::raw("CONCAT(UPPER(a.tipe), '-', a.id) as no_request"),
+                    'a.biaya_admin as biaya_admin_transfer',
+                    'a.deskripsi as nama_barang',
+                    'a.kuantitas',
+                    'a.harga_satuan as harga',
+                    DB::raw("NULL as link_pembelian"),
+                    'a.bukti_file as file_evidence',
+                    'a.nominal_final as total_invoice',
+                    DB::raw("COALESCE(s.nama, 'Bahan Habis Pakai dan Peralatan') as subkategori_nama"),
+                    DB::raw('COALESCE(a.nominal_final, (a.kuantitas * a.harga_satuan)) as total')
+                );
+
+            $hasPengajuanTalanganCols = Schema::hasColumn('pengajuan_transaksi_header', 'project_id_alokasi_final')
+                                     && Schema::hasColumn('pengajuan_transaksi_header', 'status_alokasi');
+
+            if ($hasPengajuanTalanganCols) {
+                $pengajuanTrxQuery->where(function ($w) use ($project) {
+                    $w->where(function ($q) use ($project) {
+                        $q->where('a.id_project', $project->id)
+                            ->where(function ($x) {
+                                $x->whereNull('a.project_id_alokasi_final')
+                                    ->orWhere('a.status_alokasi', '!=', 'sudah');
+                            });
+                    })->orWhere(function ($q) use ($project) {
+                        $q->where('a.project_id_alokasi_final', $project->id)
+                            ->where('a.status_alokasi', 'sudah');
+                    });
+                });
+            } else {
+                $pengajuanTrxQuery->where('a.id_project', $project->id);
+            }
+
+            $pengajuanTrx = $pengajuanTrxQuery->get();
+            
+            // Add into total biaya admin explicitly
+            $totalBiayaAdminTrx = $pengajuanTrx->sum('biaya_admin_transfer');
+            $total_biaya_admin_dana += $totalBiayaAdminTrx;
+
+            $detail_request = $detail_request->merge($pengajuanTrx);
+            
+            // Re-sort
+            $detail_request = $detail_request->sortBy([
+                ['subkategori_nama', 'asc'],
+                ['tgl_request', 'asc'],
+            ])->values();
+        }
 
         $detail_dana = DB::table('detail_subkategori as a')
             ->leftJoin('subkategori_sumberdana as b', 'a.id_subkategori_sumberdana', '=', 'b.id')
@@ -456,6 +511,7 @@ class ProjectController extends Controller
                 'a.kuantitas',
                 'a.harga',
                 'a.link_pembelian',
+                'a.invoice_pembelian as file_evidence',
                 'a.total_invoice',
                 DB::raw("COALESCE(s.nama, 'Bahan Habis Pakai dan Peralatan') as subkategori_nama"),
                 DB::raw('COALESCE(a.total_invoice, (a.kuantitas * a.harga)) as total')
@@ -483,6 +539,55 @@ class ProjectController extends Controller
 
         $detailRequest = $detailRequestQuery->get();
 
+        // -- PENGAJUAN TRANSAKSI (DANA & REIMBURSEMENT) --
+        if (Schema::hasTable('pengajuan_transaksi_header')) {
+            $pengajuanTrxQuery = DB::table('pengajuan_transaksi_header as a')
+                ->leftJoin('subkategori_sumberdana as s', 'a.id_subkategori_sumberdana', '=', 's.id')
+                ->where('a.status', 'done')
+                ->select(
+                    'a.tgl_request',
+                    DB::raw("CONCAT(UPPER(a.tipe), '-', a.id) as no_request"),
+                    'a.biaya_admin as biaya_admin_transfer',
+                    'a.deskripsi as nama_barang',
+                    'a.kuantitas',
+                    'a.harga_satuan as harga',
+                    DB::raw("NULL as link_pembelian"),
+                    'a.bukti_file as file_evidence',
+                    'a.nominal_final as total_invoice',
+                    DB::raw("COALESCE(s.nama, 'Bahan Habis Pakai dan Peralatan') as subkategori_nama"),
+                    DB::raw('COALESCE(a.nominal_final, (a.kuantitas * a.harga_satuan)) as total')
+                );
+
+            $hasPengajuanTalanganCols = Schema::hasColumn('pengajuan_transaksi_header', 'project_id_alokasi_final')
+                                     && Schema::hasColumn('pengajuan_transaksi_header', 'status_alokasi');
+
+            if ($hasPengajuanTalanganCols) {
+                $pengajuanTrxQuery->where(function ($w) use ($project) {
+                    $w->where(function ($q) use ($project) {
+                        $q->where('a.id_project', $project->id)
+                            ->where(function ($x) {
+                                $x->whereNull('a.project_id_alokasi_final')
+                                    ->orWhere('a.status_alokasi', '!=', 'sudah');
+                            });
+                    })->orWhere(function ($q) use ($project) {
+                        $q->where('a.project_id_alokasi_final', $project->id)
+                            ->where('a.status_alokasi', 'sudah');
+                    });
+                });
+            } else {
+                $pengajuanTrxQuery->where('a.id_project', $project->id);
+            }
+
+            $pengajuanTrx = $pengajuanTrxQuery->get();
+            $detailRequest = $detailRequest->merge($pengajuanTrx);
+            
+            // Re-sort
+            $detailRequest = $detailRequest->sortBy([
+                ['subkategori_nama', 'asc'],
+                ['tgl_request', 'asc'],
+            ])->values();
+        }
+
         $totalInvoice = 0;
         $totalBiayaAdmin = 0;
         $adminByRequest = [];
@@ -509,7 +614,13 @@ class ProjectController extends Controller
             $totalInvoice += $jumlahFix;
 
             $tgl = !empty($dr->tgl_request) ? Carbon::parse($dr->tgl_request)->format('d/m/Y') : '-';
-            $link = !empty($dr->link_pembelian) ? $dr->link_pembelian : '-';
+            
+            $linkHtml = '-';
+            if (!empty($dr->file_evidence)) {
+                $linkHtml = '<a href="' . $e(asset('storage/' . $dr->file_evidence)) . '" target="_blank">Lihat Nota</a>';
+            } elseif (!empty($dr->link_pembelian)) {
+                $linkHtml = '<a href="' . $e($dr->link_pembelian) . '" target="_blank">Lihat Link</a>';
+            }
 
             $rowsHtml .= '<tr>'
                 . '<td style="text-align:center;">' . $no++ . '</td>'
@@ -519,7 +630,7 @@ class ProjectController extends Controller
                 . '<td style="text-align:right;">' . number_format($hargaSatuanFix, 0, ',', '.') . '</td>'
                 . '<td style="text-align:center;">item</td>'
                 . '<td style="text-align:right;">' . number_format($jumlahFix, 0, ',', '.') . '</td>'
-                . '<td>' . $e($link) . '</td>'
+                . '<td>' . $linkHtml . '</td>'
                 . '</tr>';
 
             $reqNo = (string) ($dr->no_request ?? '');
@@ -539,12 +650,12 @@ class ProjectController extends Controller
         }
 
         $summaryHtml = ''
-            . '<tr><td colspan="6" style="font-weight:700;">Total Invoice Pembelian</td><td style="text-align:right;font-weight:700;">'
-            . number_format($totalInvoice, 0, ',', '.') . '</td><td></td></tr>'
-            . '<tr><td colspan="6" style="font-weight:700;">Total Biaya Admin</td><td style="text-align:right;font-weight:700;">'
-            . number_format($totalBiayaAdmin, 0, ',', '.') . '</td><td></td></tr>'
-            . '<tr><td colspan="6" style="font-weight:700;">Total Pembelian + Biaya Admin</td><td style="text-align:right;font-weight:700;">'
-            . number_format($totalInvoice + $totalBiayaAdmin, 0, ',', '.') . '</td><td></td></tr>';
+            . '<tr style="background:#f8fafc;"><td colspan="6" style="font-weight:700;text-align:right;padding-right:15px;">Total Invoice Pembelian</td><td style="text-align:right;font-weight:700;">'
+            . number_format($totalInvoice, 0, ',', '.') . '</td><td style="background:#fff;"></td></tr>'
+            . '<tr style="background:#f8fafc;"><td colspan="6" style="font-weight:700;text-align:right;padding-right:15px;">Total Biaya Admin</td><td style="text-align:right;font-weight:700;">'
+            . number_format($totalBiayaAdmin, 0, ',', '.') . '</td><td style="background:#fff;"></td></tr>'
+            . '<tr style="background:#e2e8f0;"><td colspan="6" style="font-weight:700;text-align:right;padding-right:15px;">Total Pembelian + Biaya Admin</td><td style="text-align:right;font-weight:700;">'
+            . number_format($totalInvoice + $totalBiayaAdmin, 0, ',', '.') . '</td><td style="background:#fff;"></td></tr>';
 
         $adminRowsHtml = '';
         $adminNotes = collect($adminByRequest)->filter(fn($v) => (int) ($v['admin'] ?? 0) > 0);
@@ -588,7 +699,7 @@ class ProjectController extends Controller
             . '</tbody></table>';
 
         if ($adminRowsHtml !== '') {
-            $html .= '<table><thead><tr>'
+            $html .= '<br><br><table><thead><tr>'
                 . '<th style="width:45px;">No</th>'
                 . '<th style="width:95px;">Tanggal</th>'
                 . '<th>Item Terkait</th>'

@@ -151,13 +151,10 @@
       </p>
 
       <div class="tools-row">
-        <a href="{{ route('pengajuan_transaksi.create_pengajuan') }}" class="btn-brand">
-          <i class="bi bi-plus-lg"></i> Pengajuan Dana
-        </a>
-
         <div class="tools-right">
-          <a href="{{ route('pengajuan_transaksi.create_reimbursement') }}" class="btn-soft">
-            <i class="bi bi-receipt"></i> Reimbursement
+          <a href="https://drive.google.com/file/d/1NicpoYzDkSk64F3HfVEDWt1tpk0WvrlI/view?usp=sharing"
+             target="_blank" rel="noopener" class="btn-soft">
+            <i class="bi bi-journal-bookmark"></i> Manual Book
           </a>
         </div>
       </div>
@@ -283,12 +280,31 @@
                   </a>
 
                   @if($hasBukti)
-                    <a href="{{ asset('storage/' . $trx->bukti_file) }}"
-                       target="_blank" rel="noopener"
+                    <a href="#"
                        class="btn btn-outline-primary btn-sm shadow-sm rounded-pill fw-bold border-1 py-1 px-2 d-inline-flex align-items-center"
-                       style="font-size:0.75rem;" title="Lihat Bukti">
+                       style="font-size:0.75rem;" title="Lihat Bukti"
+                       data-bs-toggle="modal" data-bs-target="#modalBuktiTrx{{ $trx->id }}">
                       <i class="bi bi-image"></i>
                     </a>
+
+                    <div class="modal fade" id="modalBuktiTrx{{ $trx->id }}" tabindex="-1" aria-hidden="true">
+                      <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content">
+                          <div class="modal-header" style="background:linear-gradient(135deg, rgba(139,92,246,.06), rgba(139,92,246,.02));">
+                            <h5 class="modal-title"><i class="bi bi-image me-2" style="color:#7c3aed;"></i>Bukti Transaksi</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                          </div>
+                          <div class="modal-body text-center" style="padding:24px;">
+                            <img src="{{ asset('storage/' . $trx->bukti_file) }}" alt="Bukti" class="img-fluid rounded shadow-sm mb-3" style="border-radius:14px !important; max-height:400px; object-fit:contain;">
+                            <div class="mt-2">
+                              <a href="{{ asset('storage/' . $trx->bukti_file) }}" class="btn btn-sm btn-success rounded-pill fw-bold px-4" download>
+                                <i class="bi bi-download me-1"></i> Unduh
+                              </a>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
                   @else
                     <span class="btn btn-outline-secondary btn-sm rounded-pill fw-bold border-1 py-1 px-2 d-inline-flex align-items-center disabled"
                           style="font-size:0.75rem; opacity:0.5; background-color:#f1f5f9; cursor:not-allowed;" title="Belum ada bukti">
@@ -328,11 +344,13 @@
                 </div>
 
                 {{-- Hidden Forms --}}
-                <form id="formApprove{{ $trx->id }}" action="{{ route('pengajuan_transaksi.approve', $trx->id) }}" method="POST" class="d-none">
+                <form id="formApprove{{ $trx->id }}" action="{{ route('pengajuan_transaksi.approve', $trx->id) }}" method="POST" enctype="multipart/form-data" class="d-none">
                   @csrf
                   <input type="hidden" name="tgl_cair" id="tglCair{{ $trx->id }}">
-                  <input type="hidden" name="nominal_disetujui" id="nominalSetuju{{ $trx->id }}">
+                  <input type="hidden" name="nominal_final" id="nominalFinal{{ $trx->id }}">
+                  <input type="hidden" name="biaya_admin" id="biayaAdmin{{ $trx->id }}">
                   <input type="hidden" name="metode_pembayaran" id="metodeBayar{{ $trx->id }}">
+                  <input type="hidden" name="is_talangan" id="isTalangan{{ $trx->id }}" value="0">
                 </form>
 
                 <form id="formReject{{ $trx->id }}" action="{{ route('pengajuan_transaksi.reject', $trx->id) }}" method="POST" class="d-none">
@@ -370,14 +388,25 @@
           <label class="fw-bold mb-1">Tanggal Cair</label>
           <input type="date" id="sw_tgl" class="form-control mb-2">
 
-          <label class="fw-bold mb-1">Nominal Disetujui</label>
+          <label class="fw-bold mb-1">Nominal Final (yang diberikan)</label>
           <input type="number" id="sw_nom" class="form-control mb-2" placeholder="contoh: 150000">
 
+          <label class="fw-bold mb-1">Biaya Admin Transfer</label>
+          <input type="number" id="sw_admin" class="form-control mb-2" placeholder="0" value="0">
+
           <label class="fw-bold mb-1">Metode Pembayaran</label>
-          <select id="sw_met" class="form-select">
+          <select id="sw_met" class="form-select mb-2">
             <option value="transfer">Transfer</option>
             <option value="cash">Cash</option>
           </select>
+
+          <label class="fw-bold mb-1">Bukti Transfer <small class="text-muted">(Opsional)</small></label>
+          <input type="file" id="sw_bukti" name="bukti_transfer" class="form-control mb-2" accept=".jpg,.jpeg,.png,.pdf">
+
+          <div class="form-check form-switch mt-2">
+            <input class="form-check-input" type="checkbox" id="sw_talangan">
+            <label class="form-check-label fw-bold" for="sw_talangan">Tandai sebagai Talangan</label>
+          </div>
         </div>
       `,
       icon: "question",
@@ -389,11 +418,21 @@
       if(!res.isConfirmed) return;
       const tgl = document.getElementById('sw_tgl').value;
       const nom = document.getElementById('sw_nom').value;
+      const adm = document.getElementById('sw_admin').value;
       const met = document.getElementById('sw_met').value;
+      const talangan = document.getElementById('sw_talangan').checked;
+      const fileInput = document.getElementById('sw_bukti');
 
       document.getElementById('tglCair'+id).value = tgl;
-      document.getElementById('nominalSetuju'+id).value = nom;
+      document.getElementById('nominalFinal'+id).value = nom;
+      document.getElementById('biayaAdmin'+id).value = adm || '0';
       document.getElementById('metodeBayar'+id).value = met;
+      document.getElementById('isTalangan'+id).value = talangan ? '1' : '0';
+
+      if(fileInput && fileInput.files.length > 0) {
+        fileInput.style.display = 'none';
+        document.getElementById('formApprove'+id).appendChild(fileInput);
+      }
 
       document.getElementById('formApprove'+id).submit();
     });

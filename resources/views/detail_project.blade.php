@@ -79,6 +79,13 @@
     background:linear-gradient(135deg,var(--brand-700),var(--brand));
     color:#fff;box-shadow:0 16px 28px rgba(2,6,23,.12);font-weight:700;
   }
+  .nav-tabs .nav-link:hover {
+    color: var(--brand-700);
+    background-color: var(--brand-50);
+  }
+  .btn-wa-hover:hover {
+    transform: scale(1.15) !important;
+  }
 
   .content{flex:1;padding:18px 18px 22px;min-width:0}
   .main-inner{width:100%;max-width:100%}
@@ -333,13 +340,7 @@
 
     <div class="brand">
       <span>STAS-RG</span>
-      <span class="brand-badge">
-        @if($isAdmin) ADMIN
-        @elseif($isBendahara) BENDAHARA
-        @else PENELITI
-        @endif
-      </span>
-    </div>
+      </div>
 
     <div class="ms-auto">@include('navbar')</div>
   </div>
@@ -597,21 +598,38 @@
               @if(($anggota ?? collect())->count() === 0)
                 <div class="text-center subtle py-4">Belum ada anggota tim.</div>
               @else
-                <div class="row g-3 mt-1">
+                <div class="row g-4 mt-3">
                   @foreach($anggota as $a)
                     @php
                       $isKetua = ((int)$a->id === $ketuaId);
                       $isMe = ((int)$a->id === (int)Auth::id());
                     @endphp
 
-                    <div class="col-12 col-md-6 col-xl-4 pt-2 ps-2">
+                    <div class="col-12 col-md-6 col-xl-4">
                       {{-- Modern Grid Card with Dashed Border (Inspired by Ref) --}}
                       <div class="card h-100 position-relative shadow-sm" style="border: 1.5px dashed #dc2626; border-radius: 12px; background: #fff; overflow: visible;">
                         
                         {{-- Absolute Number Badge --}}
-                        <div class="position-absolute d-flex align-items-center justify-content-center text-white fw-bold shadow" style="width: 26px; height: 26px; background: #334155; border-radius: 50%; top: -10px; left: -10px; font-size: 0.8rem; z-index: 2;">
+                        <div class="position-absolute d-flex align-items-center justify-content-center text-white fw-bold shadow" style="width: 26px; height: 26px; background: #334155; border-radius: 50%; top: -10px; left: -8px; font-size: 0.85rem; z-index: 2;">
                           {{ $loop->iteration }}
                         </div>
+
+                          @php
+                            $memberTelp = $a->no_telp ?? '';
+                            $memberWa = $memberTelp;
+                            if (str_starts_with($memberWa, '+')) $memberWa = substr($memberWa, 1);
+                            if (str_starts_with($memberWa, '0')) $memberWa = '62' . substr($memberWa, 1);
+                            if (!str_starts_with($memberWa, '62') && !empty($memberWa)) $memberWa = '62' . $memberWa;
+                          @endphp
+
+                          @if(!empty($memberTelp))
+                            <a href="https://wa.me/{{ $memberWa }}" target="_blank" rel="noopener" 
+                               class="position-absolute d-flex align-items-center justify-content-center text-white shadow btn-wa-hover" 
+                               style="width: 26px; height: 26px; background: #25D366; border-radius: 50%; top: -10px; right: -8px; font-size: 0.85rem; z-index: 2; text-decoration: none; transition: transform 0.2s;"
+                               title="Hubungi via WhatsApp">
+                              <i class="bi bi-whatsapp"></i>
+                            </a>
+                          @endif
 
                         <div class="card-body p-3 d-flex flex-column h-100">
                           
@@ -643,13 +661,6 @@
                           </div>
 
                           {{-- Contact Info Row --}}
-                          @php
-                            $memberTelp = $a->no_telp ?? '';
-                            $memberWa = $memberTelp;
-                            if (str_starts_with($memberWa, '+')) $memberWa = substr($memberWa, 1);
-                            if (str_starts_with($memberWa, '0')) $memberWa = '62' . substr($memberWa, 1);
-                            if (!str_starts_with($memberWa, '62') && !empty($memberWa)) $memberWa = '62' . $memberWa;
-                          @endphp
                           <div class="mb-3" style="font-size: 0.8rem; color: #475569; line-height: 1.5;">
                             <div class="d-flex align-items-center mb-1">
                               <i class="bi bi-envelope text-muted ms-1 me-2" style="font-size: 0.9rem;"></i> {{ $a->email ?? '-' }}
@@ -657,14 +668,6 @@
                             <div class="d-flex align-items-center mb-1">
                               <i class="bi bi-telephone text-muted ms-1 me-2" style="font-size: 0.9rem;"></i> 
                               <span>{{ $memberTelp ?: '-' }}</span>
-                              @if(!empty($memberTelp))
-                                <a href="https://wa.me/{{ $memberWa }}" target="_blank" rel="noopener"
-                                   class="ms-2 d-inline-flex align-items-center justify-content-center shadow-sm"
-                                   style="width:22px; height:22px; border-radius:50%; background:#25D366; color:#fff; text-decoration:none;"
-                                   title="Hubungi via WhatsApp">
-                                  <i class="bi bi-whatsapp" style="font-size:0.7rem;"></i>
-                                </a>
-                              @endif
                             </div>
                             <div class="d-flex align-items-center">
                               <span class="fw-bold text-dark px-1 me-2" style="font-size: 0.75rem;">NIM/NIK:</span> {{ $a->nim_nip ?? '-' }}
@@ -1061,7 +1064,9 @@
                         <td class="text-center">item</td>
                         <td class="text-end tnum">{{ number_format($jumlahFix, 0, ',', '.') }}</td>
                         <td class="text-center">
-                          @if(!empty($dr->link_pembelian))
+                          @if(!empty($dr->file_evidence))
+                            <a href="{{ asset('storage/' . $dr->file_evidence) }}" target="_blank" class="badge bg-success text-white text-decoration-none px-3 py-2 rounded-pill" style="font-weight:700;"><i class="bi bi-receipt"></i> Lihat Nota</a>
+                          @elseif(!empty($dr->link_pembelian))
                             <a href="{{ $dr->link_pembelian }}" target="_blank" rel="noreferrer">Lihat Link</a>
                           @else
                             -
