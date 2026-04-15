@@ -1,4 +1,4 @@
-```blade
+
 @extends('layouts.panel')
 @section('title','Management User')
 
@@ -213,28 +213,69 @@
       <table id="table" class="table table-modern table-striped align-middle">
         <thead>
           <tr>
-            <th>Nama</th>
-            <th>Email</th>
-            <th>Role</th>
-            <th style="width:160px">Aksi</th>
+            <th style="min-width:160px">Nama</th>
+            <th style="min-width:180px">Email</th>
+            <th style="min-width:100px">Role</th>
+            <th style="min-width:120px">NIM/NIP</th>
+            <th style="min-width:160px">No. Telp</th>
+            <th style="min-width:150px">Jurusan</th>
+            <th style="width:160px" class="text-center">Aksi</th>
           </tr>
         </thead>
         <tbody>
           @foreach($users as $user)
+          @php
+            $rawTelp = $user->no_telp ?? '';
+            $waTelp = $rawTelp;
+            if (str_starts_with($waTelp, '+')) $waTelp = substr($waTelp, 1);
+            if (str_starts_with($waTelp, '0')) $waTelp = '62' . substr($waTelp, 1);
+            if (!str_starts_with($waTelp, '62') && !empty($waTelp)) $waTelp = '62' . $waTelp;
+          @endphp
           <tr>
-            <td>{{ $user->name }}</td>
-            <td>{{ $user->email }}</td>
-            <td>{{ ucfirst($user->role) }}</td>
+            <td style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:160px;" title="{{ $user->name }}">
+              <span class="fw-semibold">{{ $user->name }}</span>
+            </td>
+            <td style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:180px; font-size:0.85rem;" title="{{ $user->email }}">
+              {{ $user->email }}
+            </td>
             <td>
-              <div class="d-flex gap-2">
-                <a href="{{ route('users.edit', $user->id) }}" class="btn btn-warning btn-sm" title="Edit">
-                  <i class="bi bi-pencil-square"></i>
+              @php
+                $roleColor = match(strtolower($user->role ?? '')) {
+                  'admin' => 'background:#dbeafe; color:#1e40af; border:1px solid #bfdbfe;',
+                  'bendahara' => 'background:#fef3c7; color:#92400e; border:1px solid #fde68a;',
+                  'peneliti' => 'background:#dcfce7; color:#166534; border:1px solid #bbf7d0;',
+                  default => 'background:#f1f5f9; color:#475569; border:1px solid #e2e8f0;',
+                };
+              @endphp
+              <span class="badge rounded-pill fw-bold" style="{{ $roleColor }} font-size:0.7rem; padding: 4px 10px; white-space:nowrap;">{{ ucfirst($user->role) }}</span>
+            </td>
+            <td style="white-space:nowrap; font-size:0.85rem; color:#334155;">
+              {{ $user->nim_nip ?? '-' }}
+            </td>
+            <td style="white-space:nowrap; font-size:0.85rem; color:#334155;">
+              {{ $rawTelp ?: '-' }}
+            </td>
+            <td style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:150px; font-size:0.82rem; color:#475569;" title="{{ $user->jurusan ?? '-' }}">
+              {{ $user->jurusan ?? '-' }}
+            </td>
+            <td class="text-center">
+              <div class="d-flex gap-1 justify-content-center flex-nowrap">
+                <a href="{{ route('users.edit', $user->id) }}" class="btn btn-warning btn-sm" title="Edit" style="width:30px; height:30px; padding:0; display:inline-flex; align-items:center; justify-content:center;">
+                  <i class="bi bi-pencil-square" style="font-size:0.8rem;"></i>
                 </a>
 
-                <button type="button" class="btn btn-info btn-sm text-white" title="Ubah Password"
-                        onclick="changePassword({{ $user->id }}, '{{ addslashes($user->name) }}')">
-                  <i class="bi bi-key-fill"></i>
-                </button>
+                @if(!empty($rawTelp))
+                  <a href="https://wa.me/{{ $waTelp }}" target="_blank" rel="noopener"
+                     class="btn btn-sm" title="Hubungi via WhatsApp"
+                     style="width:30px; height:30px; padding:0; display:inline-flex; align-items:center; justify-content:center; background:#25D366; border:none; color:#fff; border-radius:6px;">
+                    <i class="bi bi-whatsapp" style="font-size:0.85rem;"></i>
+                  </a>
+                @else
+                  <span class="btn btn-sm disabled" title="No. Telp belum diisi"
+                        style="width:30px; height:30px; padding:0; display:inline-flex; align-items:center; justify-content:center; background:#e2e8f0; border:none; color:#94a3b8; border-radius:6px; cursor:not-allowed;">
+                    <i class="bi bi-whatsapp" style="font-size:0.85rem;"></i>
+                  </span>
+                @endif
 
                 <form action="{{ route('users.destroy', $user->id) }}"
                       method="POST"
@@ -242,8 +283,8 @@
                       onsubmit="return confirmDelete(event,this)">
                   @csrf
                   @method('DELETE')
-                  <button class="btn btn-danger btn-sm" title="Hapus">
-                    <i class="bi bi-trash-fill"></i>
+                  <button class="btn btn-danger btn-sm" title="Hapus" style="width:30px; height:30px; padding:0; display:inline-flex; align-items:center; justify-content:center;">
+                    <i class="bi bi-trash-fill" style="font-size:0.8rem;"></i>
                   </button>
                 </form>
               </div>
@@ -342,4 +383,3 @@
   }
 </script>
 @endpush
-```

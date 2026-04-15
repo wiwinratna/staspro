@@ -97,6 +97,15 @@
                 <label class="form-label">NIM/NIP</label>
                 <input type="text" name="nim_nip" class="form-control" value="{{ old('nim_nip', $user->nim_nip ?? '') }}" placeholder="Isi NIM atau NIP">
               </div>
+              <div class="col-md-6">
+                <label class="form-label">No. Telepon</label>
+                <div class="input-group">
+                  <span class="input-group-text" style="font-size:0.85rem; font-weight:600; background:#f8fafc; border-right:0;">+62</span>
+                  <input type="text" name="no_telp" id="noTelpInput" class="form-control" 
+                         value="{{ old('no_telp', $user->no_telp ?? '') }}" 
+                         placeholder="81234567890" style="border-left:0;">
+                </div>
+              </div>
             </div>
           @endif
 
@@ -137,13 +146,20 @@
           <h5 class="mb-2">Tergabung di Project</h5>
           @if(($projects ?? collect())->count() > 0)
             <ul class="list-group list-group-flush">
-              @foreach($projects as $p)
+              @foreach($projects->take(2) as $p)
                 <li class="list-group-item px-0">
                   <div class="fw-semibold">{{ $p->nama_project }}</div>
-                  <div class="small text-muted">Tahun {{ $p->tahun ?? '-' }} • {{ ucfirst($p->status ?? '-') }}</div>
+                  <div class="small text-muted">Tahun {{ $p->tahun ?? '-' }} &bull; {{ ucfirst($p->status ?? '-') }}</div>
                 </li>
               @endforeach
             </ul>
+            @if($projects->count() > 2)
+              <div class="text-center mt-2">
+                <button type="button" class="btn btn-sm btn-outline-success rounded-pill fw-bold px-4" data-bs-toggle="modal" data-bs-target="#projectListModal" style="font-size:0.8rem;">
+                  <i class="bi bi-list-ul me-1"></i> Lihat Selengkapnya ({{ $projects->count() }})
+                </button>
+              </div>
+            @endif
           @else
             <div class="text-muted">Belum tergabung di project manapun.</div>
           @endif
@@ -152,4 +168,72 @@
     @endif
   </div>
 </div>
+
+{{-- Modal Daftar Project --}}
+@if($isPeneliti && ($projects ?? collect())->count() > 2)
+<div class="modal fade" id="projectListModal" tabindex="-1" aria-labelledby="projectListModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+    <div class="modal-content" style="border-radius: 16px; border: none; overflow: hidden;">
+      <div class="modal-header border-0 pb-0" style="background: linear-gradient(135deg, rgba(22,163,74,.08), rgba(22,163,74,.02));">
+        <h5 class="modal-title fw-bold" id="projectListModalLabel"><i class="bi bi-folder2-open me-2 text-success"></i>Semua Project</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body pt-2">
+        <div class="list-group list-group-flush">
+          @foreach($projects as $idx => $p)
+            <div class="list-group-item px-0 d-flex align-items-start gap-3 border-0" style="border-bottom: 1px solid #f1f5f9 !important;">
+              <div class="d-flex align-items-center justify-content-center text-white fw-bold flex-shrink-0" style="width:32px; height:32px; border-radius:8px; background: {{ ($p->status ?? '') === 'Aktif' ? '#16a34a' : '#94a3b8' }}; font-size:0.8rem;">
+                {{ $idx + 1 }}
+              </div>
+              <div>
+                <div class="fw-semibold text-dark" style="font-size:0.9rem;">{{ $p->nama_project }}</div>
+                <div class="d-flex align-items-center gap-2 mt-1">
+                  <span class="small text-muted"><i class="bi bi-calendar3 me-1"></i>Tahun {{ $p->tahun ?? '-' }}</span>
+                  <span class="badge rounded-pill" style="font-size:0.65rem; padding:3px 8px; {{ ($p->status ?? '') === 'Aktif' ? 'background:#dcfce7; color:#166534;' : 'background:#f1f5f9; color:#64748b;' }}">{{ ucfirst($p->status ?? '-') }}</span>
+                </div>
+              </div>
+            </div>
+          @endforeach
+        </div>
+      </div>
+      <div class="modal-footer border-0 pt-0">
+        <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill fw-bold px-4" data-bs-dismiss="modal">Tutup</button>
+      </div>
+    </div>
+  </div>
+</div>
+@endif
+
 @endsection
+
+@push('scripts')
+<script>
+  // Auto-format nomor telepon: strip leading 0 or +62 prefix for clean storage
+  document.addEventListener('DOMContentLoaded', function() {
+    const telInput = document.getElementById('noTelpInput');
+    if (!telInput) return;
+
+    // On page load: strip existing +62 or 62 prefix for display
+    let initVal = telInput.value.trim();
+    if (initVal.startsWith('+62')) {
+      telInput.value = initVal.substring(3);
+    } else if (initVal.startsWith('62') && initVal.length > 2) {
+      telInput.value = initVal.substring(2);
+    } else if (initVal.startsWith('0')) {
+      telInput.value = initVal.substring(1);
+    }
+
+    // On form submit: prepend +62
+    const form = telInput.closest('form');
+    if (form) {
+      form.addEventListener('submit', function() {
+        let val = telInput.value.trim();
+        if (val && !val.startsWith('+62') && !val.startsWith('62')) {
+          if (val.startsWith('0')) val = val.substring(1);
+          telInput.value = '+62' + val;
+        }
+      });
+    }
+  });
+</script>
+@endpush

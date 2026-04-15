@@ -24,6 +24,7 @@ class User extends Authenticatable
         'jurusan',
         'fakultas',
         'nim_nip',
+        'no_telp',
     ];
 
     /**

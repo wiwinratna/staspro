@@ -643,9 +643,28 @@
                           </div>
 
                           {{-- Contact Info Row --}}
+                          @php
+                            $memberTelp = $a->no_telp ?? '';
+                            $memberWa = $memberTelp;
+                            if (str_starts_with($memberWa, '+')) $memberWa = substr($memberWa, 1);
+                            if (str_starts_with($memberWa, '0')) $memberWa = '62' . substr($memberWa, 1);
+                            if (!str_starts_with($memberWa, '62') && !empty($memberWa)) $memberWa = '62' . $memberWa;
+                          @endphp
                           <div class="mb-3" style="font-size: 0.8rem; color: #475569; line-height: 1.5;">
                             <div class="d-flex align-items-center mb-1">
                               <i class="bi bi-envelope text-muted ms-1 me-2" style="font-size: 0.9rem;"></i> {{ $a->email ?? '-' }}
+                            </div>
+                            <div class="d-flex align-items-center mb-1">
+                              <i class="bi bi-telephone text-muted ms-1 me-2" style="font-size: 0.9rem;"></i> 
+                              <span>{{ $memberTelp ?: '-' }}</span>
+                              @if(!empty($memberTelp))
+                                <a href="https://wa.me/{{ $memberWa }}" target="_blank" rel="noopener"
+                                   class="ms-2 d-inline-flex align-items-center justify-content-center shadow-sm"
+                                   style="width:22px; height:22px; border-radius:50%; background:#25D366; color:#fff; text-decoration:none;"
+                                   title="Hubungi via WhatsApp">
+                                  <i class="bi bi-whatsapp" style="font-size:0.7rem;"></i>
+                                </a>
+                              @endif
                             </div>
                             <div class="d-flex align-items-center">
                               <span class="fw-bold text-dark px-1 me-2" style="font-size: 0.75rem;">NIM/NIK:</span> {{ $a->nim_nip ?? '-' }}

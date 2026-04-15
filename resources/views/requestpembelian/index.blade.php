@@ -184,6 +184,56 @@
       text-align:center;
     }
 
+    /* Status filter pills – clean, readable */
+    .status-pill{
+      display:inline-flex;
+      align-items:center;
+      gap:7px;
+      padding:7px 14px;
+      border-radius:999px;
+      border:1px solid #e2e8f0;
+      background:#fff;
+      color:#334155;
+      font-weight:700;
+      font-size:.82rem;
+      line-height:1;
+      cursor:pointer;
+      transition:all .15s ease;
+      white-space:nowrap;
+      --pill-color:#64748b;
+    }
+    .status-pill:hover{
+      border-color:var(--pill-color);
+      background:color-mix(in srgb, var(--pill-color) 6%, #fff);
+      transform:translateY(-1px);
+    }
+    .status-pill.active{
+      background:var(--pill-color);
+      border-color:var(--pill-color);
+      color:#fff;
+      box-shadow:0 4px 12px color-mix(in srgb, var(--pill-color) 35%, transparent);
+    }
+    .status-pill.active .pill-dot{ background:#fff; }
+    .status-pill.active .pill-count{ background:rgba(255,255,255,.25); color:#fff; }
+
+    .pill-dot{
+      width:8px; height:8px;
+      border-radius:50%;
+      background:var(--pill-color);
+      flex-shrink:0;
+    }
+    .pill-label{ letter-spacing:-.01em; }
+    .pill-count{
+      font-size:.7rem;
+      font-weight:800;
+      min-width:22px;
+      text-align:center;
+      padding:2px 6px;
+      border-radius:999px;
+      background:#f1f5f9;
+      color:#475569;
+    }
+
     .tabs-title{
       margin-top:12px;
       font-weight:900;
@@ -191,11 +241,6 @@
       color:var(--ink-600);
       text-transform:uppercase;
       letter-spacing:.06em;
-    }
-    .tabs-divider{
-      height:1px;
-      background:var(--line);
-      margin:12px 0;
     }
 
     /* Stage: Request & Payment sejajar */
@@ -394,29 +439,44 @@
         <div class="fw-bold fs-6 mb-3 text-dark"><i class="bi bi-funnel-fill me-2 text-primary"></i>Filter Status Pengajuan</div>
         
         <div class="d-flex flex-wrap gap-2" id="statusTabsGlobal">
-          <button class="btn btn-outline-secondary btn-sm rounded-pill fw-bold tab-btn active px-3" type="button" data-status="">
-            Semua <span class="badge bg-secondary ms-1 tab-count" data-count="all">0</span>
+          <button class="status-pill active" type="button" data-status="">
+            <span class="pill-label">Semua</span>
+            <span class="pill-count" data-count="all">0</span>
           </button>
-          <button class="btn btn-outline-primary btn-sm rounded-pill fw-bold tab-btn px-3" type="button" data-status="submit_request">
-            Pemesanan <span class="badge bg-primary ms-1 tab-count" data-count="submit_request">0</span>
+          <button class="status-pill" type="button" data-status="submit_request" style="--pill-color:#3b82f6;">
+            <span class="pill-dot"></span>
+            <span class="pill-label">Pemesanan</span>
+            <span class="pill-count" data-count="submit_request">0</span>
           </button>
-          <button class="btn btn-outline-info btn-sm rounded-pill fw-bold tab-btn px-3" type="button" data-status="approve_request">
-            Verifikasi Final <span class="badge bg-info text-dark ms-1 tab-count" data-count="approve_request">0</span>
+          <button class="status-pill" type="button" data-status="approve_request" style="--pill-color:#06b6d4;">
+            <span class="pill-dot"></span>
+            <span class="pill-label">Verifikasi Final</span>
+            <span class="pill-count" data-count="approve_request">0</span>
           </button>
-          <button class="btn btn-outline-warning btn-sm rounded-pill fw-bold tab-btn px-3" type="button" data-status="submit_payment">
-            Finalisasi <span class="badge bg-warning text-dark ms-1 tab-count" data-count="submit_payment">0</span>
+          <button class="status-pill" type="button" data-status="submit_payment" style="--pill-color:#f59e0b;">
+            <span class="pill-dot"></span>
+            <span class="pill-label">Finalisasi</span>
+            <span class="pill-count" data-count="submit_payment">0</span>
           </button>
-          <button class="btn btn-outline-success btn-sm rounded-pill fw-bold tab-btn px-3" type="button" data-status="approve_payment">
-            Terverifikasi <span class="badge bg-success ms-1 tab-count" data-count="approve_payment">0</span>
+          <button class="status-pill" type="button" data-status="approve_payment" style="--pill-color:#16a34a;">
+            <span class="pill-dot"></span>
+            <span class="pill-label">Terverifikasi</span>
+            <span class="pill-count" data-count="approve_payment">0</span>
           </button>
-          <button class="btn btn-outline-dark btn-sm rounded-pill fw-bold tab-btn px-3" type="button" data-status="done">
-            Selesai <span class="badge bg-dark ms-1 tab-count" data-count="done">0</span>
+          <button class="status-pill" type="button" data-status="done" style="--pill-color:#334155;">
+            <span class="pill-dot"></span>
+            <span class="pill-label">Selesai</span>
+            <span class="pill-count" data-count="done">0</span>
           </button>
-          <button class="btn btn-outline-danger btn-sm rounded-pill fw-bold tab-btn px-3" type="button" data-status="reject_request">
-            Ditolak <span class="badge bg-danger ms-1 tab-count" data-count="reject_request">0</span>
+          <button class="status-pill" type="button" data-status="reject_request" style="--pill-color:#ef4444;">
+            <span class="pill-dot"></span>
+            <span class="pill-label">Ditolak</span>
+            <span class="pill-count" data-count="reject_request">0</span>
           </button>
-          <button class="btn btn-outline-danger btn-sm rounded-pill fw-bold tab-btn px-3" type="button" data-status="reject_payment">
-            Revisi <span class="badge bg-danger ms-1 tab-count" data-count="reject_payment">0</span>
+          <button class="status-pill" type="button" data-status="reject_payment" style="--pill-color:#f97316;">
+            <span class="pill-dot"></span>
+            <span class="pill-label">Revisi</span>
+            <span class="pill-count" data-count="reject_payment">0</span>
           </button>
         </div>
       </div>
@@ -537,7 +597,7 @@
 
       // Filter by active tab (active bisa dari group mana pun)
       $.fn.dataTable.ext.search.push(function(settings, data, dataIndex){
-        const active = document.querySelector('.tab-btn.active');
+        const active = document.querySelector('.status-pill.active');
         const targetStatus = active ? active.getAttribute('data-status') : '';
         if(!targetStatus) return true;
 
@@ -577,9 +637,9 @@
       dt.on('draw', updateCounts);
 
       // Click tab => aktifin satu tab global (bukan per group)
-      document.querySelectorAll('.tab-btn').forEach(btn=>{
+      document.querySelectorAll('.status-pill').forEach(btn=>{
         btn.addEventListener('click', ()=>{
-          document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+          document.querySelectorAll('.status-pill').forEach(b=>b.classList.remove('active'));
           btn.classList.add('active');
           dt.draw();
         });

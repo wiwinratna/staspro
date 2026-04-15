@@ -54,6 +54,9 @@ class ProfileController extends Controller
             if (Schema::hasColumn('users', 'nim_nip')) {
                 $rules['nim_nip'] = 'nullable|string|max:50';
             }
+            if (Schema::hasColumn('users', 'no_telp')) {
+                $rules['no_telp'] = 'nullable|string|max:20';
+            }
             if (Schema::hasColumn('users', 'profile_photo')) {
                 $rules['profile_photo'] = 'nullable|image|mimes:jpg,jpeg,png|max:3072';
             }
@@ -73,6 +76,9 @@ class ProfileController extends Controller
             }
             if (Schema::hasColumn('users', 'nim_nip')) {
                 $user->nim_nip = $validated['nim_nip'] ?? null;
+            }
+            if (Schema::hasColumn('users', 'no_telp')) {
+                $user->no_telp = $validated['no_telp'] ?? null;
             }
 
             if ($request->hasFile('profile_photo') && Schema::hasColumn('users', 'profile_photo')) {

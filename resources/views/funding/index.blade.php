@@ -212,13 +212,6 @@
         <h1 class="title">Funding</h1>
         <p class="sub">Pencatatan dana cair (masuk) per project.</p>
       </div>
-
-      <div class="hero-actions">
-        {{-- tombolnya dibikin nuansa pill dashboard (tanpa ubah route) --}}
-        <a href="{{ route('funding.create') }}" class="btn-pill btn-add">
-          <i class="bi bi-plus-circle"></i> Input Dana Cair
-        </a>
-      </div>
     </div>
   </section>
 
@@ -333,7 +326,12 @@
   <section class="list-card mt-3">
     <div class="list-head">
       <h3 class="list-title"><i class="bi bi-list-ul"></i> Riwayat Dana Cair</h3>
-      <span class="chip green"><i class="bi bi-collection"></i> Total: {{ $rows->total() }}</span>
+      <div class="d-flex align-items-center gap-2">
+        <span class="chip green"><i class="bi bi-collection"></i> Total: {{ $rows->total() }}</span>
+        <a href="{{ route('funding.create') }}" class="btn-pill btn-add" style="font-size:0.85rem; height:32px;">
+          <i class="bi bi-plus-circle"></i> Input Dana Cair
+        </a>
+      </div>
     </div>
 
     <div class="list-body">

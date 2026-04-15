@@ -198,9 +198,21 @@ class ProjectController extends Controller
         }
 
         $hasUserProfilePhotoCol = Schema::hasColumn('users', 'profile_photo');
-        $anggotaSelects = ['u.id', 'u.name'];
+        $anggotaSelects = ['u.id', 'u.name', 'u.email', 'u.role'];
         if ($hasUserProfilePhotoCol) {
             $anggotaSelects[] = 'u.profile_photo';
+        }
+        if (Schema::hasColumn('users', 'nim_nip')) {
+            $anggotaSelects[] = 'u.nim_nip';
+        }
+        if (Schema::hasColumn('users', 'no_telp')) {
+            $anggotaSelects[] = 'u.no_telp';
+        }
+        if (Schema::hasColumn('users', 'jurusan')) {
+            $anggotaSelects[] = 'u.jurusan';
+        }
+        if (Schema::hasColumn('users', 'fakultas')) {
+            $anggotaSelects[] = 'u.fakultas';
         }
 
         $anggota = DB::table('detail_project as dp')
