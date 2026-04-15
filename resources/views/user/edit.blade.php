@@ -207,21 +207,70 @@
 
           <div class="col-md-6">
             <label for="name" class="form-label">Nama</label>
-            <input type="text" id="name" name="name" value="{{ $user->name }}" class="form-control" required>
+            <input type="text" id="name" name="name" value="{{ old('name', $user->name) }}" class="form-control" required>
           </div>
 
           <div class="col-md-6">
             <label for="email" class="form-label">Email</label>
-            <input type="email" id="email" name="email" value="{{ $user->email }}" class="form-control" required>
+            <input type="email" id="email" name="email" value="{{ old('email', $user->email) }}" class="form-control" required>
           </div>
 
           <div class="col-md-6">
             <label for="role" class="form-label">Role</label>
             <select class="form-select" id="role" name="role" required>
-              <option value="admin" {{ $user->role == 'admin' ? 'selected' : '' }}>Admin</option>
-              <option value="peneliti" {{ $user->role == 'peneliti' ? 'selected' : '' }}>Peneliti</option>
+              <option value="admin" {{ old('role', $user->role) == 'admin' ? 'selected' : '' }}>Admin</option>
+              <option value="peneliti" {{ old('role', $user->role) == 'peneliti' ? 'selected' : '' }}>Peneliti</option>
+              <option value="bendahara" {{ old('role', $user->role) == 'bendahara' ? 'selected' : '' }}>Bendahara</option>
             </select>
           </div>
+
+          <div class="col-md-6"></div>
+
+          <div class="col-12">
+            <hr class="my-1">
+            <p class="form-label" style="color:var(--ink-600);font-weight:700;font-size:.85rem;margin:8px 0 0;">
+              <i class="bi bi-shield-lock me-1"></i> Ubah Password
+              <span style="font-weight:500;color:#94a3b8;"> — kosongkan jika tidak ingin mengubah</span>
+            </p>
+          </div>
+
+          <div class="col-md-6">
+            <label for="password" class="form-label">Password Baru</label>
+            <div class="input-group">
+              <input type="password" id="password" name="password" class="form-control"
+                     placeholder="Minimal 6 karakter" minlength="6"
+                     style="border-top-right-radius:0;border-bottom-right-radius:0;">
+              <button type="button" class="btn btn-outline-secondary" onclick="togglePw('password', this)"
+                      style="border-top-right-radius:14px;border-bottom-right-radius:14px;border-color:rgba(226,232,240,.95);">
+                <i class="bi bi-eye"></i>
+              </button>
+            </div>
+          </div>
+
+          <div class="col-md-6">
+            <label for="password_confirmation" class="form-label">Konfirmasi Password Baru</label>
+            <div class="input-group">
+              <input type="password" id="password_confirmation" name="password_confirmation" class="form-control"
+                     placeholder="Ketik ulang password baru" minlength="6"
+                     style="border-top-right-radius:0;border-bottom-right-radius:0;">
+              <button type="button" class="btn btn-outline-secondary" onclick="togglePw('password_confirmation', this)"
+                      style="border-top-right-radius:14px;border-bottom-right-radius:14px;border-color:rgba(226,232,240,.95);">
+                <i class="bi bi-eye"></i>
+              </button>
+            </div>
+          </div>
+
+          @if ($errors->any())
+            <div class="col-12">
+              <div class="alert alert-danger mb-0">
+                <ul class="mb-0">
+                  @foreach ($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                  @endforeach
+                </ul>
+              </div>
+            </div>
+          @endif
 
           <div class="col-12 d-flex gap-2 mt-2">
             <button type="submit" class="btn-brand">
@@ -253,6 +302,18 @@
 
   toggleBtn?.addEventListener('click', ()=> sidebar.classList.contains('open') ? closeSidebar() : openSidebar());
   backdrop?.addEventListener('click', closeSidebar);
+
+  function togglePw(id, btn){
+    const inp = document.getElementById(id);
+    const icon = btn.querySelector('i');
+    if(inp.type === 'password'){
+      inp.type = 'text';
+      icon.classList.replace('bi-eye','bi-eye-slash');
+    } else {
+      inp.type = 'password';
+      icon.classList.replace('bi-eye-slash','bi-eye');
+    }
+  }
 
   @if (session('success'))
     Swal.fire({ icon:'success', title:'Sukses', text:'{{ session('success') }}', timer:2000, showConfirmButton:false });

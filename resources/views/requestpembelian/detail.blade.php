@@ -97,6 +97,7 @@
       font-size:.78rem; font-weight:800; border-radius:999px;
       padding:.35rem .7rem; border:1px solid transparent; white-space:nowrap;
     }
+    .st-draft{ background:#f1f5f9; color:#475569; border-color:#cbd5e1; }
     .st-submit_request{ background:#fff7ed; color:#9a3412; border-color:#fed7aa; }
     .st-approve_request{ background:#eff6ff; color:#1e40af; border-color:#bfdbfe; }
     .st-reject_request{ background:#fef2f2; color:#991b1b; border-color:#fecaca; }
@@ -170,6 +171,17 @@
       padding:.5rem .55rem;
     }
 
+    /* Tambahan Redesign */
+    .summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; }
+    .summary-item { padding: 14px 18px; border-radius: 16px; background: #fff; border: 1px solid var(--line); box-shadow: 0 4px 12px rgba(0,0,0,.02); }
+    .summary-item.highlight { background: linear-gradient(135deg, rgba(22,163,74,.05), rgba(22,163,74,.01)); border-color: rgba(22,163,74,.2); }
+    .summary-label { font-size: 0.72rem; font-weight: 800; color: var(--ink-600); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 6px; }
+    .summary-value { font-size: 1.15rem; font-weight: 900; color: var(--ink); line-height: 1.2; }
+    
+    .action-section { background: var(--card); border: 1px solid var(--line); border-radius: 20px; padding: 22px; margin-bottom: 20px; box-shadow: 0 8px 24px rgba(15,23,42,.04); }
+    .action-section.admin-mode { border: 2px solid rgba(22,163,74,.4); background: #fdfcf9; }
+    .section-title { font-size: 1.15rem; font-weight: 800; margin-bottom: 18px; display: flex; align-items: center; gap: 8px; color: var(--ink); }
+
     @media (max-width: 991.98px){
       .sidebar{ position:fixed; left:-280px; z-index:1040; transition:left .2s; top:56px; height:calc(100vh - 56px); }
       .sidebar.open{ left:0; }
@@ -205,6 +217,7 @@
     $status = str_replace(' ', '_', $status);
 
     $statusLabel = [
+      'draft'           => 'Draft / Belum Diajukan',
       'submit_request'  => 'Dalam Proses Pemesanan',
       'approve_request' => 'Menunggu Verifikasi Final',
       'reject_request'  => 'Ditolak',
@@ -217,7 +230,7 @@
     $statusClass = 'st-'.$status;
 
     $isApprover = in_array(Auth::user()->role, ['admin','bendahara']);
-    $canEditItems = ($isApprover) || in_array($status, ['submit_request','reject_request']);
+    $canEditItems = ($isApprover) || in_array($status, ['draft','submit_request','reject_request']);
     $canProcessByApprover = $isApprover && in_array($status, ['submit_request','approve_request','reject_payment','submit_payment','approve_payment','done']);
     $isTalangan = (bool)($request_pembelian->is_talangan ?? false);
     $statusAlokasi = (string)($request_pembelian->status_alokasi ?? 'belum');
@@ -289,96 +302,123 @@
         </div>
       @endif
 
-      <!-- Ringkasan -->
-      <div class="card card-soft mb-3">
-        <div class="card-body">
-          <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-2">
-            <span class="hint-pill">
-              Status saat ini:
-              <span class="status-badge {{ $statusClass }}">{{ $statusLabel }}</span>
-            </span>
+            <!-- 1. Ringkasan Header -->
+      <div class="card card-soft mb-4 border-0" style="box-shadow: 0 6px 20px rgba(15,23,42,.06);">
+        <div class="card-body p-4">
+          <div class="d-flex align-items-center justify-content-between mb-4 border-bottom pb-3">
+            <h5 class="fw-bold mb-0 text-dark d-flex align-items-center gap-2">
+               <i class="bi bi-card-checklist text-primary"></i> Ringkasan Pengajuan
+            </h5>
             @if($isTalangan)
-              <span class="hint-pill">
-                <i class="bi bi-arrow-left-right"></i>
-                Talangan ({{ $statusAlokasi === 'sudah' ? 'Sudah Alokasi' : 'Belum Alokasi' }})
-              </span>
-            @endif
-
-            <div class="total-card">
-              <div>
-                <div class="label">Total Keseluruhan</div>
-                <div class="value">Rp {{ number_format($grandTotal,0,',','.') }}</div>
-              </div>
-              <div class="hint-pill" style="background:#fff;">
-                <i class="bi bi-calculator"></i> <b>{{ count($detail) }}</b> item
-              </div>
-            </div>
-
-            @if(!$isApprover)
-              @if($status === 'done')
-                <span class="hint-pill"><i class="bi bi-check2-circle"></i> Selesai. Tidak ada aksi lanjutan.</span>
-              @else
-                <span class="hint-pill"><i class="bi bi-clock-history"></i> Pengajuan diproses admin/bendahara.</span>
-              @endif
+               <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle py-2 px-3 fw-bold rounded-pill shadow-sm">
+                 <i class="bi bi-arrow-left-right me-1"></i> Talangan ({{ $statusAlokasi === 'sudah' ? 'Telah Dialokasi' : 'Belum Dialokasi' }})
+               </span>
             @endif
           </div>
 
-          <div class="row g-3 align-items-center">
-            <div class="col-lg-8">
-              <label class="form-label mb-1">Tim Penelitian</label>
-              <select class="form-select" disabled>
-                @foreach ($project as $p)
-                  <option value="{{ $p->id }}" {{ $p->id == $request_pembelian->id_project ? 'selected' : '' }}>
-                    {{ $p->nama_project }}
-                  </option>
-                @endforeach
-              </select>
+          <div class="summary-grid">
+            <div class="summary-item">
+              <div class="summary-label">Status Saat Ini</div>
+              <div class="summary-value"><span class="status-badge {{ $statusClass }} shadow-sm">{{ $statusLabel }}</span></div>
             </div>
-            <div class="col-lg-4">
-              <label class="form-label mb-1">Tanggal Request</label>
-              <input type="date" class="form-control" value="{{ $request_pembelian->tgl_request }}" disabled>
+            <div class="summary-item">
+              <div class="summary-label">Tim Penelitian</div>
+              <div class="summary-value fs-6 fw-bold text-dark">{{ $project->firstWhere('id', $request_pembelian->id_project)->nama_project ?? '-' }}</div>
+            </div>
+            <div class="summary-item">
+              <div class="summary-label">Tanggal Terdaftar</div>
+              <div class="summary-value fs-6 fw-bold">{{ \Carbon\Carbon::parse($request_pembelian->tgl_request)->format('d M Y') }}</div>
+            </div>
+            <div class="summary-item highlight">
+              <div class="summary-label text-success">Total Estimasi Awal ({{ count($detail) }} Item)</div>
+              <div class="summary-value text-success">Rp {{ number_format($grandTotal,0,',','.') }}</div>
             </div>
           </div>
+
+          {{-- Aksi Peneliti (Kirim Draft) --}}
+          @if(!$isApprover && $status === 'draft')
+             <div class="mt-4 pt-4 border-top text-end">
+                @if($grandTotal > 0 && count($detail) > 0)
+                  <form action="{{ route('requestpembelian.submit', $request_pembelian->id) }}" method="POST" class="d-inline">
+                    @csrf
+                    <button type="submit" class="btn btn-brand px-4 py-2 fs-6 fw-bold shadow-sm">
+                      <i class="bi bi-send-fill me-2"></i> Kirim Pengajuan Sekarang
+                    </button>
+                  </form>
+                @else
+                  <button type="button" class="btn btn-secondary px-4 py-2 opacity-75 fw-bold" disabled>
+                    <i class="bi bi-send-exclamation me-1"></i> Kirim Pengajuan
+                  </button>
+                  <div class="text-danger mt-2 fw-medium fs-6"><i class="bi bi-info-circle me-1"></i> Tambahkan minimal 1 barang dengan total nilai di atas Rp 0 untuk mengirim pengajuan.</div>
+                @endif
+             </div>
+          @elseif(!$isApprover)
+             <div class="mt-4 pt-3 border-top">
+                @if($status === 'done')
+                  <span class="hint-pill bg-success-subtle border-success-subtle text-success-emphasis fw-bold px-3 py-2">
+                     <i class="bi bi-check2-circle mb-1 fs-5"></i> Proses Selesai. Seluruh tahapan telah tuntas.
+                  </span>
+                @else
+                  <span class="hint-pill bg-primary-subtle border-primary-subtle text-primary-emphasis fw-bold px-3 py-2">
+                     <i class="bi bi-clock-history fs-5"></i> Pengajuan Anda saat ini sedang dalam proses tinjauan tim Keuangan.
+                  </span>
+                @endif
+             </div>
+          @endif
         </div>
       </div>
 
-      <!-- Ubah Status (Admin) -->
+      <!-- 2. Area Tindakan Admin/Bendahara -->
       @if ($isApprover)
-        <div class="card card-soft mb-3">
-          <div class="card-body">
-            <div class="row g-2 align-items-end">
-              <div class="col-lg-6">
-                <label class="form-label mb-1">Ubah Status</label>
-                <select class="form-select" id="status_request" name="status_request" form="bulkInvoiceForm" @if(count($detail)==0) disabled @endif>
-                  <option value="approve_request" {{ $status=='approve_request' ? 'selected' : '' }}>Kirim ke Verifikasi Final</option>
-                  <option value="reject_request"  {{ $status=='reject_request'  ? 'selected' : '' }}>Tolak Pengajuan</option>
-                  <option value="approve_payment" {{ in_array($status,['done']) ? 'selected' : '' }}>Finalisasi Pembelian</option>
-                  <option value="reject_payment"  {{ $status=='reject_payment'  ? 'selected' : '' }}>Kembalikan untuk Revisi</option>
-                </select>
-              </div>
+        <div class="action-section admin-mode shadow-sm">
+          <div class="section-title text-success mb-4 fs-5">
+            <i class="bi bi-ui-checks-grid me-1"></i> Panel Review Khusus Admin & Bendahara
+          </div>
+          
+          <div class="row g-4 align-items-start">
+            <div class="col-lg-4">
+              <label class="form-label mb-2 fw-bold text-dark fs-6">Keputusan Status</label>
+              <select class="form-select border-success border-opacity-50 py-2 fw-bold text-dark shadow-sm bg-white" id="status_request" name="status_request" form="bulkInvoiceForm" @if(count($detail)==0) disabled @endif>
+                <option value="draft" {{ $status=='draft' ? 'selected' : '' }} disabled>Draft (Peneliti)</option>
+                <option value="submit_request" {{ $status=='submit_request' ? 'selected' : '' }}>Dalam Proses Pemesanan</option>
+                <option value="approve_request" {{ $status=='approve_request' ? 'selected' : '' }}>Menunggu Verifikasi Final</option>
+                <option value="submit_payment" {{ $status=='submit_payment' ? 'selected' : '' }}>Menunggu Finalisasi</option>
+                <option value="approve_payment" {{ $status=='approve_payment' ? 'selected' : '' }}>Terverifikasi Final</option>
+                <option value="done" {{ $status=='done' ? 'selected' : '' }}>Selesai</option>
+                <optgroup label="Revisi / Tolak">
+                  <option value="reject_request"  {{ $status=='reject_request'  ? 'selected' : '' }}>Tolak Pengajuan (Keseluruhan)</option>
+                  <option value="reject_payment"  {{ $status=='reject_payment'  ? 'selected' : '' }}>Perlu Revisi (Tagihan)</option>
+                </optgroup>
+              </select>
+            </div>
 
-              <div class="col-lg-6">
-                <label class="form-label mb-1">Bukti Transfer (Opsional)</label>
-                <input type="file" class="form-control" name="bukti_transfer" accept=".jpg,.jpeg,.png,.pdf" form="bulkInvoiceForm">
-              </div>
+            <div class="col-lg-4">
+              <label class="form-label mb-2 fw-bold text-dark fs-6">Attachment / Bukti Transfer <small class="text-muted fw-normal" style="font-size:0.75rem;">(Ops.)</small></label>
+              <input type="file" class="form-control py-2 shadow-sm bg-white" name="bukti_transfer" accept=".jpg,.jpeg,.png,.pdf" form="bulkInvoiceForm">
+            </div>
 
-              <div class="col-lg-4">
-                <input type="hidden" name="is_talangan" value="0" form="bulkInvoiceForm">
-                <div class="form-check mt-2">
-                  <input class="form-check-input" type="checkbox" value="1" id="is_talangan" name="is_talangan" form="bulkInvoiceForm" {{ $isTalangan ? 'checked' : '' }}>
-                  <label class="form-check-label" for="is_talangan">
-                    Pembelian talangan (dana belum cair)
-                  </label>
-                </div>
-              </div>
-
-              <div class="col-lg-4" id="keterangan_reject_wrap">
-                <label class="form-label mb-1">Keterangan (jika menolak)</label>
-                <input type="text" class="form-control" id="keterangan_reject" name="keterangan_reject"
-                      value="{{ $request_pembelian->keterangan_reject }}" placeholder="Masukkan alasan penolakan"
-                      form="bulkInvoiceForm">
+            <div class="col-lg-4 pt-1">
+              <input type="hidden" name="is_talangan" value="0" form="bulkInvoiceForm">
+              <label class="form-label mb-2 fw-bold text-dark fs-6 d-block">Opsi Tambahan</label>
+              <div class="form-check form-switch fs-5 d-inline-block">
+                <input class="form-check-input mt-1 shadow-sm" type="checkbox" role="switch" value="1" id="is_talangan" name="is_talangan" form="bulkInvoiceForm" {{ $isTalangan ? 'checked' : '' }}>
+                <label class="form-check-label fw-bold text-dark user-select-none fs-6 ms-2" for="is_talangan" style="cursor:pointer; vertical-align: middle;"> Tandai sbg Pembelian Talangan </label>
               </div>
             </div>
+
+            <div class="col-lg-12" id="keterangan_reject_wrap">
+              <label class="form-label mb-2 fw-bold text-danger fs-6">Keterangan Penolakan / Revisi</label>
+              <input type="text" class="form-control border-danger border-opacity-50 py-2 shadow-sm bg-white" id="keterangan_reject" name="keterangan_reject"
+                    value="{{ $request_pembelian->keterangan_reject }}" placeholder="Tuliskan detail poin yang perlu direvisi..." form="bulkInvoiceForm">
+            </div>
+            
+            @if($canProcessByApprover && count($detail) > 0)
+            <div class="col-12 mt-4 text-end border-top pt-4 border-success border-opacity-25">
+               <button type="submit" class="btn btn-success px-5 py-2 fw-bold fs-6 shadow" form="bulkInvoiceForm">
+                 <i class="bi bi-save2-fill me-2"></i> Simpan Status & Nominal Admin
+               </button>
+            </div>
+            @endif
           </div>
         </div>
       @endif
@@ -388,18 +428,19 @@
         <div class="card-body">
           <div class="table-responsive">
             <table class="table table-compact align-middle mb-0">
-              <thead>
-                <tr>
-                  <th>Nama Barang</th>
+                            <thead>
+                <tr class="bg-light text-nowrap">
+                  <th style="min-width: 200px;">Nama Barang</th>
                   <th class="text-center">Qty</th>
-                  <th class="text-end">Harga</th>
-                  <th class="text-end">Total</th>
-                  <th>Total Invoice</th>
-                  <th>Biaya Admin</th>
-                  <th>Link Pembelian</th>
-                  <th>Subkategori</th>
-                  <th>Status Sampai</th>
-                  <th class="text-center">Aksi</th>
+                  <th class="text-end" style="min-width: 120px;">Harga Est.</th>
+                  <th class="text-end" style="min-width: 120px;">Total Est.</th>
+                  <th style="min-width: 170px;">Total Invoice (Real)</th>
+                  <th class="text-center">Link</th>
+                  <th style="min-width: 140px;">Kategori / Sumber</th>
+                  @if($status !== 'draft')
+                  <th class="text-center">Kedatangan</th>
+                  @endif
+                  <th class="text-center" style="min-width: 140px;">Aksi</th>
                 </tr>
               </thead>
 
@@ -434,20 +475,7 @@
                         </span>
                       @endif
                     </td>
-                    @if($loop->first)
-                      <td rowspan="{{ max(count($detail), 1) }}" style="min-width:170px; vertical-align:top;">
-                        @if($canProcessByApprover)
-                          <input type="number" min="0" step="0.01" name="biaya_admin_transfer"
-                                 value="{{ $request_pembelian->biaya_admin_transfer ?? 0 }}"
-                                 class="form-control form-control-sm" placeholder="Biaya admin"
-                                 form="bulkInvoiceForm">
-                        @else
-                          <span class="fw-bold text-warning">
-                            Rp {{ number_format($biayaAdmin,0,',','.') }}
-                          </span>
-                        @endif
-                      </td>
-                    @endif
+                    
                     <td><a href="{{ $d->link_pembelian }}" target="_blank" rel="noreferrer">Lihat Link</a></td>
                     <td>
                       @if ($d->id_subkategori_sumberdana)
@@ -460,48 +488,44 @@
                         -
                       @endif
                     </td>
+                    @if($status !== 'draft')
                     <td>
                       <span class="arrived-badge {{ !empty($d->is_sampai) ? 'arrived-yes' : 'arrived-no' }}">
                         {{ !empty($d->is_sampai) ? 'Sudah Sampai' : 'Belum Sampai' }}
                       </span>
                     </td>
+                    @endif
 
-                    <td class="actions text-center">
-                      {{-- INVOICE (menggantikan bukti item) --}}
-                      @if(!empty($d->invoice_pembelian))
-                        <a href="{{ asset('storage/'.$d->invoice_pembelian) }}" class="btn btn-success btn-icon" title="Lihat Invoice Item" target="_blank" rel="noreferrer">
-                          <i class="bi bi-file-earmark-text"></i>
-                        </a>
-                      @endif
+                                        <td class="actions text-center">
+                      <div class="d-flex justify-content-center gap-2">
+                        @if(!empty($d->invoice_pembelian))
+                          <a href="{{ asset('storage/'.$d->invoice_pembelian) }}" class="btn btn-success btn-sm px-2 py-1 shadow-sm" title="Lihat Invoice Item" target="_blank" rel="noreferrer">
+                            <i class="bi bi-receipt"></i>
+                          </a>
+                        @endif
 
-                      @if($isApprover && $status !== 'reject_request')
-                        <a href="{{ route('requestpembelian.addbukti',$d->id) }}" class="btn btn-primary btn-icon" title="{{ !empty($d->invoice_pembelian) ? 'Upload Ulang Invoice' : 'Upload Invoice' }}">
-                          <i class="bi bi-upload"></i>
-                        </a>
-                      @endif
+                        @if($isApprover && $status !== 'reject_request')
+                          <a href="{{ route('requestpembelian.addbukti',$d->id) }}" class="btn btn-outline-primary btn-sm px-2 py-1" title="Upload Bukti Invoice">
+                            <i class="bi bi-cloud-arrow-up-fill"></i>
+                          </a>
+                        @endif
 
-                      {{-- EDIT/DELETE --}}
-                      @if($canEditItems)
-                        <a href="{{ route('requestpembelian.editdetail',$d->id) }}" class="btn btn-warning btn-icon" title="Edit">
-                          <i class="bi bi-pencil-square"></i>
-                        </a>
+                        {{-- EDIT/DELETE --}}
+                        @if($canEditItems)
+                          <a href="{{ route('requestpembelian.editdetail',$d->id) }}" class="btn btn-warning btn-sm px-2 py-1 shadow-sm border-0 text-dark" title="Edit">
+                            <i class="bi bi-pencil-fill"></i>
+                          </a>
 
-                        <form action="{{ route('requestpembelian.destroydetail',$d->id) }}" method="POST" class="d-inline"
-                              onsubmit="return confirm('Yakin ingin menghapus item ini?')">
-                          @csrf
-                          @method('DELETE')
-                          <button type="submit" class="btn btn-danger btn-icon" title="Hapus">
-                            <i class="bi bi-trash"></i>
-                          </button>
-                        </form>
-                      @else
-                        <button type="button" class="btn btn-outline-warning btn-icon" disabled title="Item terkunci setelah disetujui admin">
-                          <i class="bi bi-pencil-square"></i>
-                        </button>
-                        <button type="button" class="btn btn-outline-danger btn-icon" disabled title="Item terkunci setelah disetujui admin">
-                          <i class="bi bi-trash"></i>
-                        </button>
-                      @endif
+                          <form action="{{ route('requestpembelian.destroydetail',$d->id) }}" method="POST" class="d-inline"
+                                onsubmit="return confirm('Yakin ingin menghapus item ini?')">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" class="btn btn-danger btn-sm px-2 py-1 shadow-sm border-0" title="Hapus">
+                              <i class="bi bi-trash-fill"></i>
+                            </button>
+                          </form>
+                        @endif
+                      </div>
                     </td>
                   </tr>
                 @endforeach
@@ -510,7 +534,7 @@
                 @if(Auth::user()->role !== 'bendahara')
                   @if($canEditItems)
                     <tr>
-                      <td colspan="10" class="pt-3">
+                      <td colspan="{{ $status !== 'draft' ? 9 : 8 }}" class="pt-4 pb-3">
                         <form action="{{ route('requestpembelian.storedetail') }}" method="POST" class="row g-2 align-items-end" id="formAddItem">
                           @csrf
                           <input type="hidden" name="id_request_pembelian_header" value="{{ $request_pembelian->id }}">
@@ -561,7 +585,7 @@
                     </tr>
                   @else
                     <tr>
-                      <td colspan="10" class="text-center py-4">
+                      <td colspan="{{ $status !== 'draft' ? 9 : 8 }}" class="text-center py-4">
                         <span class="hint-pill">
                           <i class="bi bi-lock"></i>
                           Item tidak bisa ditambah/diedit karena status sudah <b>{{ $statusLabel }}</b>.
@@ -574,38 +598,48 @@
               </tbody>
 
               {{-- FOOTER TOTAL --}}
+                            {{-- FORM INDUK HIDDEN --}}
+              <form id="bulkInvoiceForm" action="{{ route('requestpembelian.storeinvoicebulk', $request_pembelian->id) }}" method="POST" enctype="multipart/form-data" class="d-none">
+                @csrf
+              </form>
+
+              {{-- FOOTER TOTAL --}}
               <tfoot>
-                @if($canProcessByApprover && count($detail) > 0)
-                  <tr>
-                    <td colspan="10" class="pt-2 pb-3">
-                      <form id="bulkInvoiceForm" action="{{ route('requestpembelian.storeinvoicebulk', $request_pembelian->id) }}" method="POST" enctype="multipart/form-data" class="d-flex justify-content-end">
-                        @csrf
-                        <button type="submit" class="btn btn-primary">
-                          <i class="bi bi-check2-circle me-1"></i> Submit Semua
-                        </button>
-                      </form>
-                    </td>
-                  </tr>
-                @endif
-                <tr>
-                  <th colspan="6" class="text-end">Total Keseluruhan (Perkiraan)</th>
-                  <th class="text-end">Rp {{ number_format($grandTotal,0,',','.') }}</th>
-                  <th colspan="3"></th>
-                </tr>
-                <tr class="summary-row summary-main">
-                  <th colspan="6" class="text-end">Total Invoice</th>
-                  <th class="text-end text-primary">Rp {{ number_format($totalInvoice,0,',','.') }}</th>
-                  <th colspan="3"></th>
+                <tr class="summary-main bg-light">
+                  <td colspan="4" class="p-0 border-0"></td>
+                  <th colspan="3" class="text-end py-3 text-muted">Total Estimasi Awal (Peneliti)</th>
+                  <th class="text-end py-3 text-muted">Rp {{ number_format($grandTotal,0,',','.') }}</th>
+                  @if($status !== 'draft') <td class="p-0 border-0 bg-white"></td> @endif
                 </tr>
                 <tr class="summary-row">
-                  <th colspan="6" class="text-end">Biaya Admin</th>
-                  <th class="text-end text-warning">Rp {{ number_format($biayaAdmin,0,',','.') }}</th>
-                  <th colspan="3"></th>
+                  <td colspan="4" class="p-0 border-0"></td>
+                  <th colspan="3" class="text-end py-3">Total Invoice (Sesuai Nota Barang)</th>
+                  <th class="text-end text-primary py-3 fs-6">Rp {{ number_format($totalInvoice,0,',','.') }}</th>
+                  @if($status !== 'draft') <td class="p-0 border-0"></td> @endif
                 </tr>
                 <tr class="summary-row">
-                  <th colspan="6" class="text-end">Total Dibayar</th>
-                  <th class="text-end fw-bold text-success">Rp {{ number_format($totalDibayar,0,',','.') }}</th>
-                  <th colspan="3"></th>
+                  <td colspan="4" class="p-0 border-0"></td>
+                  <th colspan="3" class="text-end align-middle py-3">Biaya Tambahan / Transaksi Bank</th>
+                  <th class="py-3">
+                    @if($canProcessByApprover)
+                      <div class="input-group input-group-sm justify-content-end shadow-sm">
+                        <span class="input-group-text bg-white border-end-0 text-muted">Rp</span>
+                        <input type="number" min="0" step="0.01" name="biaya_admin_transfer"
+                               value="{{ $request_pembelian->biaya_admin_transfer ?? 0 }}"
+                               class="form-control form-control-sm text-end border-start-0 fw-bold" style="max-width: 140px;" placeholder="0"
+                               form="bulkInvoiceForm">
+                      </div>
+                    @else
+                      <div class="text-end text-warning fw-bold">Rp {{ number_format($biayaAdmin,0,',','.') }}</div>
+                    @endif
+                  </th>
+                  @if($status !== 'draft') <td class="p-0 border-0"></td> @endif
+                </tr>
+                <tr class="summary-row bg-success bg-opacity-10 border-top border-success border-opacity-25">
+                  <td colspan="4" class="p-0 border-0 bg-white"></td>
+                  <th colspan="3" class="text-end fs-6 py-4 text-success"><i class="bi bi-wallet2 me-2"></i>TOTAL KESELURUHAN DIBAYAR</th>
+                  <th class="text-end fw-bold text-success fs-5 py-4">Rp {{ number_format($totalDibayar,0,',','.') }}</th>
+                  @if($status !== 'draft') <td class="p-0 border-0 bg-white"></td> @endif
                 </tr>
               </tfoot>
 

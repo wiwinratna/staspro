@@ -334,7 +334,19 @@
             @csrf
 
             <div class="row g-3">
-              <div class="col-md-6">
+              <div class="col-md-4">
+                <label for="tipe_project" class="form-label fw-semibold">Tipe Project</label>
+                <select id="tipe_project"
+                        name="tipe_project"
+                        class="form-select @error('tipe_project') is-invalid @enderror">
+                  <option value="Penelitian" {{ old('tipe_project')=='Penelitian' || !old('tipe_project') ? 'selected' : '' }}>Penelitian</option>
+                  <option value="Abdimas"    {{ old('tipe_project')=='Abdimas' ? 'selected' : '' }}>Abdimas</option>
+                </select>
+                <div class="form-text">Pilih tipe project untuk sumber dana ini.</div>
+                @error('tipe_project') <div class="invalid-feedback">{{ $message }}</div> @enderror
+              </div>
+
+              <div class="col-md-4">
                 <label for="nama_sumber_dana" class="form-label fw-semibold">Nama Sumber Dana</label>
                 <input type="text"
                        id="nama_sumber_dana"
@@ -346,8 +358,8 @@
                 @error('nama_sumber_dana') <div class="invalid-feedback">{{ $message }}</div> @enderror
               </div>
 
-              <div class="col-md-6">
-                <label for="jenis_pendanaan" class="form-label fw-semibold">Jenis Pendanaan</label>
+              <div class="col-md-4">
+                <label for="jenis_pendanaan" class="form-label fw-semibold">Jenis Sumber Dana</label>
                 <select id="jenis_pendanaan"
                         name="jenis_pendanaan"
                         class="form-select @error('jenis_pendanaan') is-invalid @enderror">

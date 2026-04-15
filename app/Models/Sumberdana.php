@@ -10,6 +10,7 @@ class Sumberdana extends Model
 
     protected $table    = 'sumber_dana';
     protected $fillable = [
+        'tipe_project',
         'nama_sumber_dana',
         'jenis_pendanaan',
         'user_id_created',

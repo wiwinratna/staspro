@@ -102,11 +102,11 @@
         <span class="ms-2 badge-pill {{ $badgeClass }}">
           @php
             $statusLabel = match($status){
-                'submit'  => 'SUBMIT',
-                'approve' => 'APPROVE',
+                'submit'  => 'DIAJUKAN',
+                'approve' => 'DISETUJUI',
                 'bukti'   => 'BUKTI DIUPLOAD',
-                'done'    => 'FINALIZED',
-                'reject'  => 'REJECT',
+                'done'    => 'SELESAI',
+                'reject'  => 'DITOLAK',
                 default   => strtoupper($status),
             };
             @endphp
@@ -200,7 +200,7 @@
 
           @if($status==='reject')
             <div class="col-12">
-              <div class="label">Keterangan Reject</div>
+              <div class="label">Keterangan Penolakan</div>
               <div class="val text-danger">{{ $trx->keterangan_reject ?? '-' }}</div>
             </div>
           @endif
@@ -268,7 +268,7 @@
         <div class="card-box mt-3">
             <div class="label">Status</div>
             <div class="alert alert-success mb-0" style="border-radius:16px;font-weight:800;">
-            Status sudah FINALIZED. Tidak ada aksi lanjutan.
+            Status sudah <b>Selesai</b>. Tidak ada aksi lanjutan.
             </div>
         </div>
 
@@ -298,8 +298,8 @@
                 </div>
 
                 <div class="col-12 d-flex gap-2 justify-content-end mt-2">
-                    <button type="submit" class="btn-brand"><i class="bi bi-check2"></i> Approve</button>
-                    <button type="button" class="btn-soft" onclick="openReject()"><i class="bi bi-x-lg"></i> Reject</button>
+                    <button type="submit" class="btn-brand"><i class="bi bi-check2"></i> Setujui</button>
+                    <button type="button" class="btn-soft" onclick="openReject()"><i class="bi bi-x-lg"></i> Tolak</button>
                 </div>
                 </div>
             </form>
@@ -341,14 +341,14 @@
         @elseif($status === 'bukti')
         @if($isApprover)
             <div class="card-box mt-3">
-            <div class="label">Finalize</div>
+            <div class="label">Selesaikan</div>
             <p class="mb-2" style="color:var(--ink-600);font-weight:600;">
-                Finalize akan mengubah status menjadi DONE dan memasukkan transaksi ke Pencatatan Keuangan.
+                Menyelesaikan akan mengubah status menjadi <b>Selesai</b> dan memasukkan transaksi ke Pencatatan Keuangan.
             </p>
             <form method="POST" action="{{ route('pengajuan_transaksi.finalize', $trx->id) }}">
                 @csrf
                 <button type="submit" class="btn-brand w-100">
-                <i class="bi bi-flag"></i> Finalize (DONE)
+                <i class="bi bi-flag"></i> Selesaikan
                 </button>
             </form>
             </div>
@@ -366,12 +366,12 @@
 <script>
   function openReject(){
     Swal.fire({
-      title: "Reject Pengajuan?",
+      title: "Tolak Pengajuan?",
       input: "textarea",
-      inputLabel: "Keterangan Reject",
+      inputLabel: "Keterangan Penolakan",
       inputPlaceholder: "Tulis alasan penolakan...",
       showCancelButton: true,
-      confirmButtonText: "Ya, Reject",
+      confirmButtonText: "Ya, Tolak",
       cancelButtonText: "Batal",
       confirmButtonColor: "#dc2626",
     }).then((res)=>{

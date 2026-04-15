@@ -203,14 +203,20 @@
       <table id="table" class="table table-modern table-striped align-middle">
         <thead>
           <tr>
+            <th class="text-center" style="min-width:140px">Tipe Project</th>
             <th class="text-start" style="min-width:260px">Nama Sumber Dana</th>
-            <th class="text-center" style="min-width:200px">Jenis Pendanaan</th>
+            <th class="text-center" style="min-width:200px">Jenis Sumber Dana</th>
             <th class="text-center" style="min-width:140px">Aksi</th>
           </tr>
         </thead>
         <tbody>
           @foreach ($sumberdana as $r)
             <tr>
+              <td class="text-center">
+                <span class="badge {{ $r->tipe_project === 'Abdimas' ? 'bg-info' : 'bg-primary' }}" style="border-radius:999px;font-weight:700;padding:4px 12px;">
+                  {{ $r->tipe_project ?? 'Penelitian' }}
+                </span>
+              </td>
               <td class="text-start">{{ $r->nama_sumber_dana }}</td>
               <td class="text-center">{{ Str::title($r->jenis_pendanaan) }}</td>
               <td class="text-center">
@@ -254,8 +260,8 @@
           paginate:{previous:"‹",next:"›"}
         },
         columnDefs:[
-          { targets:[1,2], className:'text-center' },
-          { targets:[0], className:'text-start' },
+          { targets:[0,2,3], className:'text-center' },
+          { targets:[1], className:'text-start' },
         ]
       });
     });

@@ -83,6 +83,11 @@ class DashboardController extends Controller
         $reqPeriod = (clone $reqBase)
             ->whereBetween('tgl_request', [$start->toDateString(), $end->toDateString()]);
 
+        // ✅ Admin/Bendahara JANGAN hitung draft di total
+        if ($isAdmin) {
+            $reqPeriod->where('status_request', '!=', 'draft');
+        }
+
         $totalRequestsPeriod    = (clone $reqPeriod)->count();
         $submitRequestsPeriod   = (clone $reqPeriod)->where('status_request', 'submit_request')->count();
         $approvedRequestsPeriod = (clone $reqPeriod)->where('status_request', 'approve_request')->count();

@@ -272,7 +272,7 @@
         <div class="hero-inner">
           <div class="hero-left">
             <h1 class="title">Edit Item Request Pembelian</h1>
-            <p class="sub">Perbarui detail item request pembelian (hanya saat status <b>Submit Request</b>).</p>
+            <p class="sub">Perbarui detail item request pembelian (hanya saat status <b>Dalam Proses Pemesanan</b>).</p>
           </div>
 
           <div class="tools-row">
@@ -287,7 +287,7 @@
       @if(!$canEditThis)
         <div class="alert alert-warning">
           <div class="fw-bold mb-1"><i class="bi bi-lock me-1"></i> Item terkunci</div>
-          Item hanya bisa diedit saat status request masih <b>Submit Request</b>.
+          Item hanya bisa diedit saat status request masih <b>Dalam Proses Pemesanan</b>.
           Status sekarang: <b>{{ strtoupper($status) }}</b>.
         </div>
       @endif
@@ -360,7 +360,7 @@
                   <a href="{{ asset('bukti_bayar/'.$detail->bukti_bayar) }}" target="_blank" rel="noreferrer">Lihat</a>
                 </div>
               @else
-                <div class="help-text mt-1">Belum ada bukti bayar. Upload dilakukan di menu <b>Upload Bukti</b> saat status Approve Request.</div>
+                <div class="help-text mt-1">Belum ada bukti bayar. Upload dilakukan di menu <b>Upload Bukti</b> saat status Menunggu Verifikasi Final.</div>
               @endif
             </div>
 

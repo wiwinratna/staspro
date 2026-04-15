@@ -419,7 +419,7 @@
                     <td>{{ $d->link_pembelian }}</td>
                     <td class="action-link">
                       <a href="{{ route('requestpembelian.editdetail', $d->id) }}">Edit</a>
-                      <a href="{{ route('requestpembelian.destroydetail', $d->id) }}">Delete</a>
+                      <a href="{{ route('requestpembelian.destroydetail', $d->id) }}">Hapus</a>
                     </td>
                   </tr>
                 @endforeach

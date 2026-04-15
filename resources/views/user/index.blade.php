@@ -231,6 +231,11 @@
                   <i class="bi bi-pencil-square"></i>
                 </a>
 
+                <button type="button" class="btn btn-info btn-sm text-white" title="Ubah Password"
+                        onclick="changePassword({{ $user->id }}, '{{ addslashes($user->name) }}')">
+                  <i class="bi bi-key-fill"></i>
+                </button>
+
                 <form action="{{ route('users.destroy', $user->id) }}"
                       method="POST"
                       class="d-inline m-0"
@@ -281,6 +286,59 @@
       confirmButtonText:'Ya, hapus!',
       cancelButtonText:'Batal'
     }).then(res=>{ if(res.isConfirmed) form.submit(); });
+  }
+
+  function changePassword(userId, userName){
+    Swal.fire({
+      title: 'Ubah Password',
+      html: `
+        <p style="margin:0 0 12px;color:#475569;font-size:.92rem;">
+          User: <strong>${userName}</strong>
+        </p>
+        <input type="password" id="swal-pw" class="swal2-input" placeholder="Password baru (min 6 karakter)">
+        <input type="password" id="swal-pw-confirm" class="swal2-input" placeholder="Konfirmasi password baru">
+      `,
+      focusConfirm: false,
+      showCancelButton: true,
+      confirmButtonText: '<i class="bi bi-check2-circle"></i> Simpan',
+      cancelButtonText: 'Batal',
+      confirmButtonColor: '#16a34a',
+      preConfirm: () => {
+        const pw = document.getElementById('swal-pw').value;
+        const pwc = document.getElementById('swal-pw-confirm').value;
+        if(!pw || pw.length < 6){
+          Swal.showValidationMessage('Password minimal 6 karakter');
+          return false;
+        }
+        if(pw !== pwc){
+          Swal.showValidationMessage('Konfirmasi password tidak cocok');
+          return false;
+        }
+        return { password: pw, password_confirmation: pwc };
+      }
+    }).then(result => {
+      if(!result.isConfirmed) return;
+
+      fetch(`/users/${userId}/change-password`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-TOKEN': '{{ csrf_token() }}'
+        },
+        body: JSON.stringify(result.value)
+      })
+      .then(r => r.json())
+      .then(data => {
+        if(data.success){
+          Swal.fire({ icon:'success', title:'Sukses', text: data.message, timer:2000, showConfirmButton:false });
+        } else {
+          Swal.fire({ icon:'error', title:'Gagal', text: data.message });
+        }
+      })
+      .catch(() => {
+        Swal.fire({ icon:'error', title:'Error', text:'Terjadi kesalahan pada server.' });
+      });
+    });
   }
 </script>
 @endpush

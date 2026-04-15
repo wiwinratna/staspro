@@ -196,7 +196,7 @@
             </div>
 
             <button type="submit" class="btn btn-brand">
-              <i class="bi bi-upload me-1"></i> Submit Invoice
+              <i class="bi bi-upload me-1"></i> Kirim Invoice
             </button>
           </form>
         @endif

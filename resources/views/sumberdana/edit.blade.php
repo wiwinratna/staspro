@@ -358,7 +358,15 @@
 
 
           <div class="row g-3">
-            <div class="col-md-6">
+            <div class="col-md-4">
+              <label for="tipe_project" class="form-label fw-semibold">Tipe Project</label>
+              <select id="tipe_project" name="tipe_project" class="form-select">
+                <option value="Penelitian" {{ old('tipe_project', $sumberdana->tipe_project) == 'Penelitian' ? 'selected' : '' }}>Penelitian</option>
+                <option value="Abdimas"    {{ old('tipe_project', $sumberdana->tipe_project) == 'Abdimas' ? 'selected' : '' }}>Abdimas</option>
+              </select>
+            </div>
+
+            <div class="col-md-4">
               <label for="nama_sumber_dana" class="form-label fw-semibold">Nama Sumber Dana</label>
               <input
                 type="text"
@@ -369,8 +377,8 @@
               >
             </div>
 
-            <div class="col-md-6">
-              <label for="jenis_pendanaan" class="form-label fw-semibold">Jenis Pendanaan</label>
+            <div class="col-md-4">
+              <label for="jenis_pendanaan" class="form-label fw-semibold">Jenis Sumber Dana</label>
               <select id="jenis_pendanaan" name="jenis_pendanaan" class="form-select">
                 <option value="internal"  {{ old('jenis_pendanaan', $sumberdana->jenis_pendanaan) == 'internal' ? 'selected' : '' }}>Internal</option>
                 <option value="eksternal" {{ old('jenis_pendanaan', $sumberdana->jenis_pendanaan) == 'eksternal' ? 'selected' : '' }}>Eksternal</option>

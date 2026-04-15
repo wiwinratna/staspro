@@ -100,12 +100,18 @@ Route::middleware('auth')->group(function () {
     Route::get('/project/sumberdana/{id}', [ProjectController::class, 'getSubkategori'])
         ->name('project.get_subkategori');
 
+    Route::get('/project/sumberdana-by-tipe/{tipe}', [ProjectController::class, 'getSumberDanaByTipe'])
+        ->name('project.get_sumberdana_by_tipe');
+
     // Tutup project (otomatis pindah sisa ke kas)
     Route::post('/project/{id}/close', [ProjectController::class, 'close'])->name('project.close');
 
-    // Set Ketua (ada duplikasi di kode lama, aku sisain yang route name-nya kamu pakai)
+    // Set Ketua:
+    // - route utama yang dipakai view/controller: project.setKetua
+    // - route alias legacy disediakan untuk backward-compat URL lama (/set-ketua)
+    //   dan sengaja TANPA name agar tidak override route name utama.
     Route::post('/project/{project}/ketua', [ProjectController::class, 'setKetua'])->name('project.setKetua');
-    Route::post('/project/{project}/set-ketua', [ProjectController::class, 'setKetua'])->name('project.setKetua');
+    Route::post('/project/{project}/set-ketua', [ProjectController::class, 'setKetua']);
 
     Route::get('/project/{project}/subcategories', [ProjectController::class, 'getProjectSubcategories']);
 
@@ -131,6 +137,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/requestpembelian/track/{id}/pelaporan', [RequestpembelianController::class, 'markPelaporan'])->name('requestpembelian.track.pelaporan');
     Route::get('/requestpembelian/create', [RequestpembelianController::class, 'create'])->name('requestpembelian.create');
     Route::post('/requestpembelian', [RequestpembelianController::class, 'store'])->name('requestpembelian.store');
+    Route::post('/requestpembelian/{id}/submit', [RequestpembelianController::class, 'submitRequest'])->name('requestpembelian.submit');
 
     Route::get('/requestpembelian/{id}', [RequestpembelianController::class, 'edit'])
         ->whereNumber('id')
@@ -259,6 +266,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/users/{user}/edit', [UserController::class, 'edit'])->name('users.edit');
     Route::put('/users/{user}', [UserController::class, 'update'])->name('users.update');
     Route::delete('/users/{user}', [UserController::class, 'destroy'])->name('users.destroy');
+    Route::post('/users/{user}/change-password', [UserController::class, 'changePassword'])->name('users.changePassword');
 
 
     /*

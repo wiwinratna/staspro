@@ -147,7 +147,7 @@
     <div class="hero-inner">
       <h1 class="title">Pengajuan Transaksi</h1>
       <p class="sub">
-        Kelola pengajuan dana & reimbursement. Transaksi baru masuk ke Pencatatan Keuangan saat status <b>DONE</b>.
+        Kelola pengajuan dana & reimbursement. Transaksi baru masuk ke Pencatatan Keuangan saat status <b>Selesai</b>.
       </p>
 
       <div class="tools-row">
@@ -173,14 +173,17 @@
 
   {{-- TABS STATUS --}}
   @php $active = request('status', 'semua'); @endphp
-  <div class="tabs-wrap">
-    <div class="tabs" id="statusTabs">
-      <a href="{{ route('pengajuan_transaksi.index') }}" class="tab-pill {{ $active==='semua' ? 'active' : '' }}" data-filter="semua">Semua</a>
-      <a href="{{ route('pengajuan_transaksi.index', ['status'=>'submit']) }}" class="tab-pill {{ $active==='submit' ? 'active' : '' }}" data-filter="submit">Submit</a>
-      <a href="{{ route('pengajuan_transaksi.index', ['status'=>'approve']) }}" class="tab-pill {{ $active==='approve' ? 'active' : '' }}" data-filter="approve">Approve</a>
-      <a href="{{ route('pengajuan_transaksi.index', ['status'=>'bukti']) }}" class="tab-pill {{ $active==='bukti' ? 'active' : '' }}" data-filter="bukti">Bukti Diupload</a>
-      <a href="{{ route('pengajuan_transaksi.index', ['status'=>'done']) }}" class="tab-pill {{ $active==='done' ? 'active' : '' }}" data-filter="done">Finalized</a>
-      <a href="{{ route('pengajuan_transaksi.index', ['status'=>'reject']) }}" class="tab-pill {{ $active==='reject' ? 'active' : '' }}" data-filter="reject">Reject</a>
+  <div class="card card-soft mb-4 border-0 shadow-sm" style="border-radius:18px;">
+    <div class="card-body p-4">
+      <div class="fw-bold fs-6 mb-3 text-dark"><i class="bi bi-funnel-fill me-2 text-primary"></i>Filter Status Pengajuan</div>
+      <div class="d-flex flex-wrap gap-2" id="statusTabs">
+        <a href="{{ route('pengajuan_transaksi.index') }}" class="btn btn-outline-secondary btn-sm rounded-pill fw-bold px-3 {{ $active==='semua' ? 'active' : '' }}">Semua</a>
+        <a href="{{ route('pengajuan_transaksi.index', ['status'=>'submit']) }}" class="btn btn-outline-primary btn-sm rounded-pill fw-bold px-3 {{ $active==='submit' ? 'active' : '' }}">Diajukan</a>
+        <a href="{{ route('pengajuan_transaksi.index', ['status'=>'approve']) }}" class="btn btn-outline-info btn-sm rounded-pill fw-bold px-3 {{ $active==='approve' ? 'active' : '' }}">Disetujui</a>
+        <a href="{{ route('pengajuan_transaksi.index', ['status'=>'bukti']) }}" class="btn btn-outline-warning btn-sm rounded-pill fw-bold px-3 {{ $active==='bukti' ? 'active' : '' }}">Bukti Diupload</a>
+        <a href="{{ route('pengajuan_transaksi.index', ['status'=>'done']) }}" class="btn btn-outline-success btn-sm rounded-pill fw-bold px-3 {{ $active==='done' ? 'active' : '' }}">Selesai</a>
+        <a href="{{ route('pengajuan_transaksi.index', ['status'=>'reject']) }}" class="btn btn-outline-danger btn-sm rounded-pill fw-bold px-3 {{ $active==='reject' ? 'active' : '' }}">Ditolak</a>
+      </div>
     </div>
   </div>
 
@@ -190,17 +193,13 @@
       <table class="table table-modern table-striped align-middle">
         <thead>
           <tr>
-            <th style="width:60px">No</th>
-            <th style="width:170px">No Request</th>
-            <th style="width:150px">Tanggal</th>
-            <th style="width:190px">Tim</th>
-            <th style="width:230px">Sub Kategori</th>
-            <th style="width:220px">Tipe</th>
-            <th style="width:140px">Status</th>
-            <th class="text-end" style="width:160px">Estimasi</th>
-            <th class="text-end" style="width:170px">Disetujui</th>
-            <th style="width:110px">Bukti</th>
-            <th style="width:150px">Aksi</th>
+            <th style="min-width:160px">No Request</th>
+            <th style="min-width:130px">Tanggal</th>
+            <th style="min-width:180px">Tim</th>
+            <th style="min-width:200px">Sub Kategori</th>
+            <th style="min-width:140px">Status</th>
+            <th class="text-end" style="min-width:150px">Nominal</th>
+            <th class="text-center" style="min-width:180px">Aksi</th>
           </tr>
         </thead>
 
@@ -221,11 +220,11 @@
 
             // ✅ LABEL STATUS BIAR JELAS
             $statusLabel = match($status){
-                'submit'  => 'SUBMIT',
-                'approve' => 'APPROVE',
+                'submit'  => 'DIAJUKAN',
+                'approve' => 'DISETUJUI',
                 'bukti'   => 'BUKTI DIUPLOAD',
-                'done'    => 'FINALIZED',
-                'reject'  => 'REJECT',
+                'done'    => 'SELESAI',
+                'reject'  => 'DITOLAK',
                 default   => strtoupper($status),
             };
 
@@ -238,9 +237,10 @@
 
 
             <tr>
-              <td>{{ $index + 1 }}</td>
-
-              <td class="fw-bold tnum">{{ $trx->no_request }}</td>
+              <td>
+                <div class="fw-bold tnum mb-1" style="font-size:0.95rem;">{{ $trx->no_request }}</div>
+                <div style="font-size:0.7rem; font-weight:700; color:var(--ink-600);"><i class="bi {{ $tipe==='reimbursement' ? 'bi-receipt' : 'bi-cash-coin' }} me-1"></i>{{ $tipeLabel }}</div>
+              </td>
 
               <td>
                 <div class="fw-bold">
@@ -260,73 +260,66 @@
               </td>
 
               <td>
-                <span class="badge-pill">
-                  <i class="bi {{ $tipe==='reimbursement' ? 'bi-receipt' : 'bi-cash-coin' }}"></i>
-                  {{ $tipeLabel }}
-                </span>
-              </td>
-
-              <td>
                 <span class="badge-pill {{ $badgeClass }}">
                   <i class="bi {{ $status==='done' ? 'bi-check-circle' : ($status==='reject' ? 'bi-x-circle' : 'bi-clock-history') }}"></i>
                   {{ $statusLabel }}
                 </span>
               </td>
 
-              <td class="text-end tnum fw-bold">
-                Rp {{ number_format($trx->estimasi_nominal ?? 0, 0, ',', '.') }}
-              </td>
-
-              <td class="text-end tnum fw-bold">
-                {{ is_null($trx->nominal_disetujui) ? '-' : 'Rp '.number_format($trx->nominal_disetujui, 0, ',', '.') }}
-              </td>
-
-              <td>
-                @if($hasBukti)
-                  <a href="{{ asset('storage/' . $trx->bukti_file) }}"
-                     target="_blank" rel="noopener"
-                     class="btn-soft proof-trigger"
-                     style="height:32px;padding:0 10px;border-radius:999px;font-weight:900;">
-                    <i class="bi bi-image"></i> Lihat
-                  </a>
+              <td class="text-end tnum fw-bold" style="white-space: nowrap;">
+                @if(!is_null($trx->nominal_disetujui))
+                   <div style="font-size:0.7rem; color:var(--ink-600); font-weight:600; line-height:1; margin-bottom: 2px;">Disetujui:</div>
+                   <div style="font-size:0.95rem; color:#166534;">Rp {{ number_format($trx->nominal_disetujui, 0, ',', '.') }}</div>
                 @else
-                  <span class="text-muted" style="font-weight:800;">-</span>
+                   <div style="font-size:0.7rem; color:var(--ink-600); font-weight:600; line-height:1; margin-bottom: 2px;">Estimasi:</div>
+                   <div style="font-size:0.95rem; color:var(--ink);">Rp {{ number_format($trx->estimasi_nominal ?? 0, 0, ',', '.') }}</div>
                 @endif
               </td>
 
-              <td>
-                <div class="d-flex gap-1 flex-wrap">
-                  <a href="{{ route('pengajuan_transaksi.show', $trx->id) }}" class="btn-act detail" title="Detail">
-                    <i class="bi bi-eye"></i>
+              <td class="text-center">
+                <div class="d-flex justify-content-center gap-1 flex-wrap">
+                  <a href="{{ route('pengajuan_transaksi.show', $trx->id) }}" class="btn btn-outline-success btn-sm shadow-sm rounded-pill fw-bold py-1 px-3" style="font-size:0.75rem; border-color: rgba(22,163,74, 0.4);">
+                    Detail
                   </a>
+
+                  @if($hasBukti)
+                    <a href="{{ asset('storage/' . $trx->bukti_file) }}"
+                       target="_blank" rel="noopener"
+                       class="btn btn-outline-primary btn-sm shadow-sm rounded-pill fw-bold border-1 py-1 px-2 d-inline-flex align-items-center"
+                       style="font-size:0.75rem;" title="Lihat Bukti">
+                      <i class="bi bi-image"></i>
+                    </a>
+                  @else
+                    <span class="btn btn-outline-secondary btn-sm rounded-pill fw-bold border-1 py-1 px-2 d-inline-flex align-items-center disabled"
+                          style="font-size:0.75rem; opacity:0.5; background-color:#f1f5f9; cursor:not-allowed;" title="Belum ada bukti">
+                      <i class="bi bi-image"></i>
+                    </span>
+                  @endif
 
                     {{-- Aksi Approver --}}
                     @if($isApprover)
 
-                    {{-- ✅ DONE = tidak ada aksi lanjutan --}}
                     @if($status === 'done')
-                        <span class="text-muted" style="font-weight:800;">-</span>
+                        <!-- No Action -->
 
                     @elseif($status==='submit')
-                        <button type="button" class="btn-act ok" title="Approve" onclick="openApprove({{ $trx->id }})">
-                        <i class="bi bi-check2"></i>
+                        <button type="button" class="btn btn-success btn-sm rounded-circle shadow-sm" title="Approve" onclick="openApprove({{ $trx->id }})" style="width: 26px; height: 26px; padding: 0; display: inline-flex; align-items: center; justify-content: center;">
+                          <i class="bi bi-check-lg" style="font-size: 1rem;"></i>
                         </button>
-
-                        <button type="button" class="btn-act no" title="Reject" onclick="openReject({{ $trx->id }})">
-                        <i class="bi bi-x-lg"></i>
+                        <button type="button" class="btn btn-danger btn-sm rounded-circle shadow-sm" title="Reject" onclick="openReject({{ $trx->id }})" style="width: 26px; height: 26px; padding: 0; display: inline-flex; align-items: center; justify-content: center;">
+                          <i class="bi bi-x-lg" style="font-size: 0.8rem;"></i>
                         </button>
 
                     @elseif($status==='approve')
-                        {{-- pengajuan: tunggu bukti, reimbursement: bisa finalize --}}
                         @if($tipe==='reimbursement')
-                        <button type="button" class="btn-act ok" title="Finalize" onclick="openFinalize({{ $trx->id }})">
-                            <i class="bi bi-flag"></i>
+                        <button type="button" class="btn btn-primary btn-sm rounded-circle shadow-sm" title="Finalize" onclick="openFinalize({{ $trx->id }})" style="width: 26px; height: 26px; padding: 0; display: inline-flex; align-items: center; justify-content: center;">
+                            <i class="bi bi-flag-fill" style="font-size: 0.8rem;"></i>
                         </button>
                         @endif
 
                     @elseif($status==='bukti')
-                        <button type="button" class="btn-act ok" title="Finalize" onclick="openFinalize({{ $trx->id }})">
-                        <i class="bi bi-flag"></i>
+                        <button type="button" class="btn btn-primary btn-sm rounded-circle shadow-sm" title="Finalize" onclick="openFinalize({{ $trx->id }})" style="width: 26px; height: 26px; padding: 0; display: inline-flex; align-items: center; justify-content: center;">
+                          <i class="bi bi-flag-fill" style="font-size: 0.8rem;"></i>
                         </button>
                     @endif
 
@@ -356,7 +349,7 @@
 
           @empty
             <tr>
-              <td colspan="11" class="text-center text-muted py-4" style="font-weight:800;">Belum ada pengajuan transaksi.</td>
+              <td colspan="7" class="text-center text-muted py-5" style="font-weight:600;">Belum ada pengajuan transaksi.</td>
             </tr>
           @endforelse
         </tbody>
@@ -371,7 +364,7 @@
 <script>
   function openApprove(id){
     Swal.fire({
-      title: "Approve Pengajuan?",
+      title: "Setujui Pengajuan?",
       html: `
         <div class="text-start">
           <label class="fw-bold mb-1">Tanggal Cair</label>
@@ -389,7 +382,7 @@
       `,
       icon: "question",
       showCancelButton: true,
-      confirmButtonText: "Ya, Approve",
+      confirmButtonText: "Ya, Setujui",
       cancelButtonText: "Batal",
       confirmButtonColor: "#16a34a",
     }).then((res)=>{
@@ -408,12 +401,12 @@
 
   function openReject(id){
     Swal.fire({
-      title: "Reject Pengajuan?",
+      title: "Tolak Pengajuan?",
       input: "textarea",
-      inputLabel: "Keterangan Reject",
+      inputLabel: "Keterangan Penolakan",
       inputPlaceholder: "Tulis alasan penolakan...",
       showCancelButton: true,
-      confirmButtonText: "Ya, Reject",
+      confirmButtonText: "Ya, Tolak",
       cancelButtonText: "Batal",
       confirmButtonColor: "#dc2626",
     }).then((res)=>{
@@ -425,11 +418,11 @@
 
   function openFinalize(id){
     Swal.fire({
-      title: "Finalize & Masukkan ke Pencatatan Keuangan?",
-      text: "Setelah finalize, data akan dianggap DONE dan masuk ledger.",
+      title: "Selesaikan & Masukkan ke Pencatatan Keuangan?",
+      text: "Setelah diselesaikan, data akan dianggap selesai dan masuk ke buku besar.",
       icon: "warning",
       showCancelButton: true,
-      confirmButtonText: "Ya, Finalize",
+      confirmButtonText: "Ya, Selesaikan",
       cancelButtonText: "Batal",
       confirmButtonColor: "#16a34a",
     }).then((res)=>{

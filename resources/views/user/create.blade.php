@@ -264,8 +264,37 @@
                 <select class="form-select" id="role" name="role" required>
                   <option value="admin" {{ old('role')=='admin' ? 'selected' : '' }}>Admin</option>
                   <option value="peneliti" {{ old('role')=='peneliti' ? 'selected' : '' }}>Peneliti</option>
+                  <option value="bendahara" {{ old('role')=='bendahara' ? 'selected' : '' }}>Bendahara</option>
                 </select>
                 <div class="help-text mt-1">Role menentukan hak akses menu di sistem.</div>
+              </div>
+
+              <div class="col-md-6"></div>
+
+              <div class="col-md-6">
+                <label for="password" class="form-label fw-bold">Password <span class="text-danger">*</span></label>
+                <div class="input-group">
+                  <input type="password" id="password" name="password" class="form-control"
+                         placeholder="Minimal 6 karakter" required minlength="6"
+                         style="border-top-right-radius:0;border-bottom-right-radius:0;">
+                  <button type="button" class="btn btn-outline-secondary" onclick="togglePw('password', this)"
+                          style="border-top-right-radius:14px;border-bottom-right-radius:14px;border-color:rgba(226,232,240,.95);">
+                    <i class="bi bi-eye"></i>
+                  </button>
+                </div>
+              </div>
+
+              <div class="col-md-6">
+                <label for="password_confirmation" class="form-label fw-bold">Konfirmasi Password <span class="text-danger">*</span></label>
+                <div class="input-group">
+                  <input type="password" id="password_confirmation" name="password_confirmation" class="form-control"
+                         placeholder="Ketik ulang password" required minlength="6"
+                         style="border-top-right-radius:0;border-bottom-right-radius:0;">
+                  <button type="button" class="btn btn-outline-secondary" onclick="togglePw('password_confirmation', this)"
+                          style="border-top-right-radius:14px;border-bottom-right-radius:14px;border-color:rgba(226,232,240,.95);">
+                    <i class="bi bi-eye"></i>
+                  </button>
+                </div>
               </div>
 
               <div class="d-flex gap-2 mt-4">
@@ -296,6 +325,18 @@
 
     toggleBtn?.addEventListener('click', ()=> sidebar.classList.contains('open') ? closeSidebar() : openSidebar());
     backdrop?.addEventListener('click', closeSidebar);
+
+    function togglePw(id, btn){
+      const inp = document.getElementById(id);
+      const icon = btn.querySelector('i');
+      if(inp.type === 'password'){
+        inp.type = 'text';
+        icon.classList.replace('bi-eye','bi-eye-slash');
+      } else {
+        inp.type = 'password';
+        icon.classList.replace('bi-eye-slash','bi-eye');
+      }
+    }
   </script>
 
   <script>

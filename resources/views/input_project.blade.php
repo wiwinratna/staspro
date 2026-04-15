@@ -423,6 +423,25 @@
 
             <hr class="my-4">
 
+            <!-- Tipe Project -->
+            @php
+              $current_tipe_project = isset($project) ? ($project->tipe_project ?? 'Penelitian') : old('tipe_project', 'Penelitian');
+            @endphp
+
+            <div class="form-section-title"><i class="bi bi-folder2-open"></i> Tipe Project</div>
+
+            <div class="row g-3">
+              <div class="col-md-4">
+                <label for="tipe_project" class="form-label">Tipe Project</label>
+                <select id="tipe_project" name="tipe_project" class="form-select">
+                  <option value="Penelitian" {{ $current_tipe_project=='Penelitian' ? 'selected' : '' }}>Penelitian</option>
+                  <option value="Abdimas"    {{ $current_tipe_project=='Abdimas'    ? 'selected' : '' }}>Abdimas</option>
+                </select>
+              </div>
+            </div>
+
+            <hr class="my-4">
+
             <!-- Sumber Dana -->
             @php
               $current_sumber_dana = isset($project) && $project->sumberDana ? ($project->sumberDana->jenis_pendanaan ?? 'internal') : old('sumber_dana','internal');
@@ -434,7 +453,7 @@
 
             <div class="row g-3">
               <div class="col-md-4">
-                <label for="sumber_dana" class="form-label">Jenis Pendanaan</label>
+                <label for="sumber_dana" class="form-label">Jenis Sumber Dana</label>
                 <select id="sumber_dana" name="sumber_dana" class="form-select">
                   <option value="internal" {{ $current_sumber_dana=='internal' ? 'selected' : '' }}>Internal</option>
                   <option value="eksternal" {{ $current_sumber_dana=='eksternal' ? 'selected' : '' }}>Eksternal</option>
@@ -501,6 +520,7 @@
 
   <script>
     (function(){
+      const tipeProject = document.getElementById('tipe_project');
       const sumberDana = document.getElementById('sumber_dana');
       const wrapInt   = document.getElementById('wrap-kategori-internal');
       const wrapEks   = document.getElementById('wrap-kategori-eksternal');
@@ -540,12 +560,12 @@
         if(!katId) return;
         try{
           const res = await fetch(`/project/sumberdana/${katId}`);
-          const data = await res.json(); // [{nama, nama_form}, ...]
+          const data = await res.json();
           buildFields(data || []);
 
           if(isEditMode && projectId){
             const r2 = await fetch(`/project/${projectId}/subcategories`);
-            const exists = await r2.json(); // [{nama_form, nominal}, ...]
+            const exists = await r2.json();
             exists?.forEach(sc=>{
               const input = document.querySelector(`[name="${sc.nama_form}"]`);
               if(input){
@@ -556,6 +576,44 @@
         }catch(e){
           console.error('loadSubkategoriPendanaan error', e);
           contWrap.style.display='none';
+        }
+      }
+
+      /**
+       * Fetch sumber dana by tipe_project and repopulate internal/eksternal dropdowns.
+       */
+      async function reloadSumberDanaByTipe(tipe, preserveKategoriId){
+        try{
+          const res = await fetch(`/project/sumberdana-by-tipe/${encodeURIComponent(tipe)}`);
+          const data = await res.json();
+
+          const internals  = data.filter(d => d.jenis_pendanaan === 'internal');
+          const eksternals = data.filter(d => d.jenis_pendanaan === 'eksternal');
+
+          // Rebuild internal dropdown
+          selInt.innerHTML = '';
+          internals.forEach(d=>{
+            const opt = document.createElement('option');
+            opt.value = d.id;
+            opt.textContent = d.nama_sumber_dana;
+            if(preserveKategoriId && d.id == preserveKategoriId) opt.selected = true;
+            selInt.appendChild(opt);
+          });
+
+          // Rebuild eksternal dropdown
+          selEks.innerHTML = '';
+          eksternals.forEach(d=>{
+            const opt = document.createElement('option');
+            opt.value = d.id;
+            opt.textContent = d.nama_sumber_dana;
+            if(preserveKategoriId && d.id == preserveKategoriId) opt.selected = true;
+            selEks.appendChild(opt);
+          });
+
+          // Trigger subkategori load
+          toggleKategori();
+        }catch(e){
+          console.error('reloadSumberDanaByTipe error', e);
         }
       }
 
@@ -576,12 +634,24 @@
         this.querySelectorAll('.rupiah').forEach(inp=> inp.value = toNumber(inp.value));
       });
 
+      // Tipe project berubah -> reload sumber dana
+      tipeProject.addEventListener('change', function(){
+        reloadSumberDanaByTipe(this.value, null);
+      });
+
       sumberDana.addEventListener('change', toggleKategori);
       selInt.addEventListener('change', ()=> sumberDana.value==='internal' && loadSubkategoriPendanaan(selInt.value));
       selEks.addEventListener('change', ()=> sumberDana.value==='eksternal' && loadSubkategoriPendanaan(selEks.value));
 
-      // init
-      toggleKategori();
+      // init: on edit mode, preserve current kategori; on create, just load
+      const preserveId = document.getElementById('current_kategori_id')?.value || null;
+      if(isEditMode && preserveId){
+        // Already loaded from server-side, just toggle kategori
+        toggleKategori();
+      } else {
+        // Create mode: load by tipe
+        reloadSumberDanaByTipe(tipeProject.value, null);
+      }
     })();
   </script>
 </body>

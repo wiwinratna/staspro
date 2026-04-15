@@ -286,7 +286,7 @@
         </div>
 
         <div class="mini-note mt-2">
-          Alur: <b>Submitted</b> → <b>Approved</b> (menunggu dana cair) → <b>Dana Cair</b> (ketua set ulang RAB) → <b>Finalized</b>.
+          Alur: <b>Diajukan</b> → <b>Disetujui</b> (menunggu dana cair) → <b>Dana Cair</b> (ketua set ulang RAB) → <b>Final</b>.
         </div>
       </div>
     </div>
@@ -302,19 +302,19 @@
 
 <section class="kpi-grid mt-2">
   <div class="kpi-mini kpi-filter active" data-filter="all">
-      <div class="label">All</div>
+      <div class="label">Semua</div>
       <div class="val">{{ $rows->count() }}</div>
       <div class="hint">Klik untuk tampilkan semua</div>
   </div>
 
   <div class="kpi-mini kpi-filter" data-filter="submitted">
-      <div class="label">Submitted</div>
+      <div class="label">Diajukan</div>
       <div class="val">{{ $countSubmitted ?? 0 }}</div>
-      <div class="hint">Klik untuk filter submitted</div>
+      <div class="hint">Klik untuk filter diajukan</div>
   </div>
 
   <div class="kpi-mini kpi-filter" data-filter="approved">
-      <div class="label">Approved</div>
+      <div class="label">Disetujui</div>
       <div class="val">{{ $countApproved ?? 0 }}</div>
       <div class="hint">Menunggu dana cair</div>
   </div>
@@ -326,7 +326,7 @@
   </div>
 
   <div class="kpi-mini kpi-filter" data-filter="finalized">
-      <div class="label">Finalized</div>
+      <div class="label">Final</div>
       <div class="val">{{ $countFinalized ?? 0 }}</div>
       <div class="hint">Sudah final</div>
   </div>
@@ -340,7 +340,7 @@
 
     <div class="filter-pill">
       <i class="bi bi-funnel"></i>
-      Filter: <span id="activeFilterLabel">All</span>
+      Filter: <span id="activeFilterLabel">Semua</span>
     </div>
   </div>
 
@@ -350,10 +350,10 @@
         <tr>
           <th>Project</th>
           <th>Status Pengajuan</th>
-          <th>Submitted</th>
-          <th>Approved</th>
+          <th>Diajukan</th>
+          <th>Disetujui</th>
           <th>Dana Cair</th>
-          <th>Finalized</th>
+          <th>Final</th>
           <th class="text-end">Aksi</th>
         </tr>
       </thead>
@@ -373,12 +373,12 @@
             };
 
             $label = match($wf){
-              'submitted' => 'Submitted',
-              'approved'  => 'Approved (nunggu dana cair)',
+              'submitted' => 'Diajukan',
+              'approved'  => 'Disetujui (menunggu dana cair)',
               'funded'    => 'Dana Cair (set ulang RAB)',
-              'finalized' => 'Finalized',
-              'rejected'  => 'Rejected',
-              default     => 'Unknown'
+              'finalized' => 'Final',
+              'rejected'  => 'Ditolak',
+              default     => 'Tidak Diketahui'
             };
 
             // ✅ indikator ketua sudah set ulang RAB (tanpa nambah kolom)
@@ -462,7 +462,7 @@
                         onsubmit="return confirm('Approve pengajuan ini?');">
                     @csrf
                     <button type="submit" class="btn btn-sm btn-approve btn-pill">
-                      <i class="bi bi-check2-circle"></i> Approve
+                      <i class="bi bi-check2-circle"></i> Setujui
                     </button>
                   </form>
 
@@ -470,7 +470,7 @@
                         onsubmit="return confirm('Reject pengajuan ini?');">
                     @csrf
                     <button type="submit" class="btn btn-sm btn-reject btn-pill">
-                      <i class="bi bi-x-circle"></i> Reject
+                      <i class="bi bi-x-circle"></i> Tolak
                     </button>
                   </form>
                 @endif
@@ -540,7 +540,7 @@
       kpis.forEach(x => x.classList.remove('active'));
       card.classList.add('active');
 
-      const labelMap = { all:'All', submitted:'Submitted', approved:'Approved', funded:'Dana Cair', finalized:'Finalized' };
+      const labelMap = { all:'Semua', submitted:'Diajukan', approved:'Disetujui', funded:'Dana Cair', finalized:'Final' };
       activeFilterLabel.textContent = labelMap[activeFilter] || activeFilter;
 
       applyFilters();

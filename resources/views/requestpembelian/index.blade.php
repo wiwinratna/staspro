@@ -233,6 +233,7 @@
       border-color:#e2e8f0;
       color:#0f172a;
     }
+    .tab-btn[data-status="draft"]{ background:#f1f5f9; border-color:#cbd5e1; color:#475569; }
     .tab-btn[data-status="submit_request"]{ background:#fff7ed; border-color:#fed7aa; color:#9a3412; }
     .tab-btn[data-status="approve_request"]{ background:#eff6ff; border-color:#bfdbfe; color:#1e40af; }
     .tab-btn[data-status="reject_request"]{ background:#fef2f2; border-color:#fecaca; color:#991b1b; }
@@ -313,6 +314,7 @@
       justify-content:center;
       gap:6px;
     }
+    .badge-draft { background:#f1f5f9; color:#475569; border-color:#cbd5e1; }
     .badge-submit-request { background:#fff7ed; color:#9a3412; border-color:#fed7aa; }
     .badge-approve-request{ background:#eff6ff; color:#1e40af; border-color:#bfdbfe; }
     .badge-reject-request { background:#fef2f2; color:#991b1b; border-color:#fecaca; }
@@ -386,59 +388,36 @@
   @endif
 
   @if(Auth::user()->role !== 'peneliti')
-    <!-- WORKFLOW PANEL -->
-    <div class="panel">
-      <div class="panel-head">
-        <div>
-          <div class="fw-bold">Status Alur</div>
-          <div class="workflow-hint">
-            Tahap <b>Pengajuan</b> untuk permintaan awal, tahap <b>Proses Pembelian</b> untuk transfer/invoice, lalu <b>Selesai</b>.
-          </div>
-        </div>
-      </div>
-
-      <!-- GLOBAL -->
-      <div class="status-tabs" id="statusTabsGlobal">
-        <button class="tab-btn active" type="button" data-status="">
-          Semua <span class="tab-count" data-count="all">0</span>
-        </button>
-        <button class="tab-btn" type="button" data-status="done">
-          Selesai <span class="tab-count" data-count="done">0</span>
-        </button>
-      </div>
-
-      <div class="tabs-divider"></div>
-
-      <!-- REQUEST & PAYMENT SEJAJAR -->
-      <div class="stage-grid">
-        <div class="stage-box">
-          <div class="tabs-title mt-0">Tahap Pengajuan</div>
-          <div class="status-tabs" id="statusTabsRequest">
-            <button class="tab-btn" type="button" data-status="submit_request">
-              Dalam Proses Pemesanan <span class="tab-count" data-count="submit_request">0</span>
-            </button>
-            <button class="tab-btn" type="button" data-status="approve_request">
-              Menunggu Verifikasi Final <span class="tab-count" data-count="approve_request">0</span>
-            </button>
-            <button class="tab-btn" type="button" data-status="reject_request">
-              Ditolak <span class="tab-count" data-count="reject_request">0</span>
-            </button>
-          </div>
-        </div>
-
-        <div class="stage-box stage-box-right">
-          <div class="tabs-title mt-0">Tahap Proses Pembelian</div>
-          <div class="status-tabs" id="statusTabsPayment">
-            <button class="tab-btn" type="button" data-status="submit_payment">
-              Menunggu Finalisasi <span class="tab-count" data-count="submit_payment">0</span>
-            </button>
-            <button class="tab-btn" type="button" data-status="approve_payment">
-              Terverifikasi Final <span class="tab-count" data-count="approve_payment">0</span>
-            </button>
-            <button class="tab-btn" type="button" data-status="reject_payment">
-              Perlu Revisi Pembelian <span class="tab-count" data-count="reject_payment">0</span>
-            </button>
-          </div>
+    <!-- WORKFLOW PANEL (CLEAN) -->
+    <div class="card card-soft mb-4 border-0 shadow-sm" style="border-radius:18px;">
+      <div class="card-body p-4">
+        <div class="fw-bold fs-6 mb-3 text-dark"><i class="bi bi-funnel-fill me-2 text-primary"></i>Filter Status Pengajuan</div>
+        
+        <div class="d-flex flex-wrap gap-2" id="statusTabsGlobal">
+          <button class="btn btn-outline-secondary btn-sm rounded-pill fw-bold tab-btn active px-3" type="button" data-status="">
+            Semua <span class="badge bg-secondary ms-1 tab-count" data-count="all">0</span>
+          </button>
+          <button class="btn btn-outline-primary btn-sm rounded-pill fw-bold tab-btn px-3" type="button" data-status="submit_request">
+            Pemesanan <span class="badge bg-primary ms-1 tab-count" data-count="submit_request">0</span>
+          </button>
+          <button class="btn btn-outline-info btn-sm rounded-pill fw-bold tab-btn px-3" type="button" data-status="approve_request">
+            Verifikasi Final <span class="badge bg-info text-dark ms-1 tab-count" data-count="approve_request">0</span>
+          </button>
+          <button class="btn btn-outline-warning btn-sm rounded-pill fw-bold tab-btn px-3" type="button" data-status="submit_payment">
+            Finalisasi <span class="badge bg-warning text-dark ms-1 tab-count" data-count="submit_payment">0</span>
+          </button>
+          <button class="btn btn-outline-success btn-sm rounded-pill fw-bold tab-btn px-3" type="button" data-status="approve_payment">
+            Terverifikasi <span class="badge bg-success ms-1 tab-count" data-count="approve_payment">0</span>
+          </button>
+          <button class="btn btn-outline-dark btn-sm rounded-pill fw-bold tab-btn px-3" type="button" data-status="done">
+            Selesai <span class="badge bg-dark ms-1 tab-count" data-count="done">0</span>
+          </button>
+          <button class="btn btn-outline-danger btn-sm rounded-pill fw-bold tab-btn px-3" type="button" data-status="reject_request">
+            Ditolak <span class="badge bg-danger ms-1 tab-count" data-count="reject_request">0</span>
+          </button>
+          <button class="btn btn-outline-danger btn-sm rounded-pill fw-bold tab-btn px-3" type="button" data-status="reject_payment">
+            Revisi <span class="badge bg-danger ms-1 tab-count" data-count="reject_payment">0</span>
+          </button>
         </div>
       </div>
     </div>
@@ -468,6 +447,7 @@
             $status = str_replace(' ', '_', $status);
 
             $labelMap = [
+              'draft'           => 'Draft',
               'submit_request'  => 'Dalam Proses Pemesanan',
               'approve_request' => 'Menunggu Verifikasi Final',
               'reject_request'  => 'Ditolak',
@@ -479,7 +459,7 @@
 
             $badge = 'badge-' . str_replace('_','-',$status);
             $labelInternal = $labelMap[$status] ?? ucwords(str_replace('_',' ', $status));
-            $label = Auth::user()->role === 'peneliti'
+            $label = (Auth::user()->role === 'peneliti' && $status !== 'draft')
               ? ($status === 'done' ? 'Sudah Sampai' : 'Dalam Proses Pemesanan')
               : $labelInternal;
           @endphp
@@ -499,49 +479,24 @@
             <td class="text-center">
               <span class="badge badge-status {{ $badge }}">{{ $label }}</span>
               @if(!empty(data_get($r, 'is_talangan')))
-                <div class="mt-1">
-                  <span class="badge bg-warning-subtle text-warning-emphasis">
-                    Talangan {{ (data_get($r, 'status_alokasi') ?? 'belum') === 'sudah' ? '• Sudah Alokasi' : '• Belum Alokasi' }}
-                  </span>
+                <div class="mt-1" style="font-size: 0.7rem; color: #64748b; font-weight: 600;">
+                  <i class="bi bi-arrow-return-right me-1"></i>
+                  {{ (data_get($r, 'status_alokasi') ?? 'belum') === 'sudah' ? 'Talangan Dialokasikan' : 'Talangan Belum Alokasi' }}
                 </div>
               @endif
             </td>
 
             <td class="text-center">
-              <div class="action-btns">
-                <a href="{{ route('requestpembelian.detail',$r->id) }}" class="btn btn-success btn-sm">Detail</a>
-
-                {{-- ADMIN/BENDAHARA: bisa approve/reject REQUEST saat status submit_request --}}
-                @if(in_array(Auth::user()->role, ['admin','bendahara']) && $status === 'submit_request')
-                  <form method="POST" action="{{ route('requestpembelian.changestatus') }}" class="d-inline">
-                    @csrf
-                    <input type="hidden" name="id_request_pembelian_header" value="{{ $r->id }}">
-                    <input type="hidden" name="status_request" value="approve_request">
-                    <button type="submit" class="btn btn-primary btn-sm">Verifikasi Final</button>
-                  </form>
-
-                  <a href="{{ route('requestpembelian.detail',$r->id) }}" class="btn btn-outline-danger btn-sm">
-                    Reject
-                  </a>
-                @endif
-
-                {{-- ADMIN/BENDAHARA: bisa approve/reject PAYMENT saat status submit_payment --}}
-                @if(in_array(Auth::user()->role, ['admin','bendahara']) && $status === 'submit_payment')
-                  <form method="POST" action="{{ route('requestpembelian.changestatus') }}" class="d-inline">
-                    @csrf
-                    <input type="hidden" name="id_request_pembelian_header" value="{{ $r->id }}">
-                    <input type="hidden" name="status_request" value="approve_payment">
-                    <button type="submit" class="btn btn-primary btn-sm">Finalisasi Pembelian</button>
-                  </form>
-
-                  <a href="{{ route('requestpembelian.detail',$r->id) }}" class="btn btn-outline-danger btn-sm">
-                    Revisi
-                  </a>
-                @endif
+              <div class="d-flex justify-content-center gap-2">
+                <a href="{{ route('requestpembelian.detail',$r->id) }}" class="btn btn-outline-success btn-sm rounded-pill fw-bold px-4 py-1 shadow-sm" style="font-size:0.8rem; border-color: rgba(22,163,74, 0.4);">
+                  Detail
+                </a>
 
                 {{-- PENELITI: boleh delete hanya kalau masih submit_request / reject_request (opsional) --}}
                 @if(Auth::user()->role === 'peneliti' && in_array($status, ['submit_request','reject_request']))
-                  <button class="btn btn-outline-danger btn-sm" onclick="confirmDelete({{ $r->id }})">Delete</button>
+                  <button class="btn btn-outline-danger btn-sm px-3 shadow-sm rounded-pill fw-bold" onclick="confirmDelete({{ $r->id }})">
+                    <i class="bi bi-trash-fill"></i>
+                  </button>
                 @endif
               </div>
             </td>
@@ -595,6 +550,7 @@
         const counts = {
           all: 0,
           submit_request: 0,
+          draft: 0,
           approve_request: 0,
           reject_request: 0,
           submit_payment: 0,

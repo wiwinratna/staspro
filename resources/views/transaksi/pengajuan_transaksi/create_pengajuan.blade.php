@@ -25,39 +25,49 @@
   .sub{ margin:6px 0 0; color:var(--ink-600); font-weight:500; }
 
   .btn-brand{
-    height:38px; display:inline-flex; align-items:center; gap:8px;
-    border-radius:999px; font-weight:800; padding:0 14px;
-    background:linear-gradient(135deg,var(--brand-700),var(--brand));
+    display:inline-flex; align-items:center; gap:8px;
+    border-radius:8px; font-weight:600; padding:8px 16px;
+    background:var(--brand);
     border:0; color:#fff; text-decoration:none; white-space:nowrap;
-    box-shadow:0 16px 28px rgba(22,163,74,.18);
+    box-shadow:0 4px 6px -1px rgba(22,163,74,.2);
+    transition: all 0.2s;
   }
+  .btn-brand:hover { background:var(--brand-700); transform: translateY(-1px); box-shadow:0 6px 8px -1px rgba(22,163,74,.3); }
+
   .btn-soft{
-    height:38px; display:inline-flex; align-items:center; gap:8px;
-    border-radius:999px; font-weight:800; padding:0 14px;
-    background:#fff; color:var(--ink); text-decoration:none; white-space:nowrap;
-    border:1px solid rgba(226,232,240,.95);
-    box-shadow:0 10px 26px rgba(15,23,42,.05);
+    display:inline-flex; align-items:center; gap:8px;
+    border-radius:8px; font-weight:600; padding:8px 16px;
+    background:#fff; color:var(--ink-600); text-decoration:none; white-space:nowrap;
+    border:1px solid #cbd5e1;
+    box-shadow:0 1px 2px rgba(0,0,0,0.05);
+    transition: all 0.2s;
   }
+  .btn-soft:hover { background:#f8fafc; border-color:#94a3b8; color:var(--ink); transform: translateY(-1px); }
 
   .card-form{
     background:var(--card);
-    border:1px solid rgba(226,232,240,.95);
-    border-radius:22px;
-    padding:14px;
-    box-shadow:var(--shadow);
+    border:1px solid #e2e8f0;
+    border-radius:16px;
+    padding:24px;
+    box-shadow:0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -2px rgba(0,0,0,0.05);
   }
   .label{
-    font-weight:900; font-size:.78rem; letter-spacing:.06em;
-    text-transform:uppercase; color:var(--ink-600);
-    margin-bottom:6px;
+    font-weight:600; font-size:.85rem;
+    color:var(--ink-600);
+    margin-bottom:8px; display: block;
   }
   .field{
-    height:38px; border-radius:999px;
-    border:1px solid rgba(226,232,240,.95);
-    padding:0 12px; font-weight:700; background:#fff;
+    border-radius:8px;
+    border:1px solid #cbd5e1;
+    padding:8px 12px; font-weight:400; background:#fff;
+    width: 100%; transition: all 0.2s;
+  }
+  .field:focus{
+    outline: none; border-color: var(--brand);
+    box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.15);
   }
   textarea.field{
-    height:auto; border-radius:16px; padding:12px;
+    height:auto; min-height: 100px; padding:12px;
   }
 </style>
 @endpush

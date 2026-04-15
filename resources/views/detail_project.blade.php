@@ -604,55 +604,74 @@
                       $isMe = ((int)$a->id === (int)Auth::id());
                     @endphp
 
-                    <div class="col-12 col-md-6 col-xl-4">
-                      <div class="member-card">
-                        <div class="member-inner d-flex flex-column h-100">
+                    <div class="col-12 col-md-6 col-xl-4 pt-2 ps-2">
+                      {{-- Modern Grid Card with Dashed Border (Inspired by Ref) --}}
+                      <div class="card h-100 position-relative shadow-sm" style="border: 1.5px dashed #dc2626; border-radius: 12px; background: #fff; overflow: visible;">
+                        
+                        {{-- Absolute Number Badge --}}
+                        <div class="position-absolute d-flex align-items-center justify-content-center text-white fw-bold shadow" style="width: 26px; height: 26px; background: #334155; border-radius: 50%; top: -10px; left: -10px; font-size: 0.8rem; z-index: 2;">
+                          {{ $loop->iteration }}
+                        </div>
 
-                          {{-- Header: Nama + badges --}}
-                          <div class="member-head">
-                            <div class="member-head-row">
-                              <div class="member-avatar">
+                        <div class="card-body p-3 d-flex flex-column h-100">
+                          
+                          {{-- Profile Row --}}
+                          <div class="d-flex align-items-start gap-3 mb-3">
+                            <div class="flex-shrink-0">
                                 @if(!empty($a->profile_photo))
-                                  <img src="{{ asset('storage/'.$a->profile_photo) }}" alt="{{ $a->name }}">
+                                  <img src="{{ asset('storage/'.$a->profile_photo) }}" alt="{{ $a->name }}" class="shadow-sm" style="width: 56px; height: 56px; object-fit: cover; border-radius: 50%; border: 3px solid #fff;">
                                 @else
-                                  <span class="member-avatar-fallback">{{ strtoupper(substr($a->name ?? 'U', 0, 1)) }}</span>
+                                  <div class="d-flex align-items-center justify-content-center text-white fw-bold shadow-sm" style="width: 56px; height: 56px; border-radius: 50%; background: linear-gradient(135deg, #1e293b, #475569); border: 3px solid #fff; font-size: 1.25rem;">
+                                    {{ strtoupper(substr($a->name ?? 'U', 0, 1)) }}
+                                  </div>
+                                @endif
+                            </div>
+                            <div class="flex-grow-1">
+                              <h6 class="mb-1 fw-bold text-dark" style="font-size: 0.95rem; line-height: 1.2;">{{ $a->name }}</h6>
+                              <div class="d-flex flex-wrap gap-1 mt-1">
+                                <span class="badge" style="background: #dc2626; color: #fff; font-size: 0.65rem; border-radius: 4px; padding: 4px 6px;">{{ strtoupper($a->role ?? 'PENELITI') }}</span>
+                                @if($isKetua)
+                                  <span class="badge" style="background: #16a34a; color: #fff; font-size: 0.65rem; border-radius: 4px; padding: 4px 6px;"><i class="bi bi-star-fill me-1"></i>Ketua</span>
+                                @else
+                                  <span class="badge" style="background: #64748b; color: #fff; font-size: 0.65rem; border-radius: 4px; padding: 4px 6px;">Anggota</span>
+                                @endif
+                                @if($isMe)
+                                  <span class="badge" style="background: #3b82f6; color: #fff; font-size: 0.65rem; border-radius: 4px; padding: 4px 6px;"><i class="bi bi-person-fill me-1"></i>Kamu</span>
                                 @endif
                               </div>
-                              <p class="member-name mb-1">{{ $a->name }}</p>
-                            </div>
-                            <div class="member-meta">
-                              @if($isKetua)
-                                <span class="pill-badge pill-ketua">
-                                  <i class="bi bi-star-fill"></i> Ketua Project
-                                </span>
-                              @else
-                                <span class="pill-badge pill-anggota">Anggota</span>
-                              @endif
-
-                              @if($isMe)
-                                <span class="pill-badge pill-you">
-                                  <i class="bi bi-person-check"></i> Kamu
-                                </span>
-                              @endif
                             </div>
                           </div>
 
-                          {{-- Body (optional helper text) --}}
-                          @if($isKetua)
-                            <div class="member-note small subtle mt-2">
+                          {{-- Contact Info Row --}}
+                          <div class="mb-3" style="font-size: 0.8rem; color: #475569; line-height: 1.5;">
+                            <div class="d-flex align-items-center mb-1">
+                              <i class="bi bi-envelope text-muted ms-1 me-2" style="font-size: 0.9rem;"></i> {{ $a->email ?? '-' }}
                             </div>
-                          @else
-                            <div class="member-note small subtle mt-2">&nbsp;</div>
-                          @endif
+                            <div class="d-flex align-items-center">
+                              <span class="fw-bold text-dark px-1 me-2" style="font-size: 0.75rem;">NIM/NIK:</span> {{ $a->nim_nip ?? '-' }}
+                            </div>
+                          </div>
+
+                          {{-- Department Tags --}}
+                          <div class="d-flex flex-wrap gap-1 mb-auto">
+                            @if(!empty($a->jurusan))
+                              <span class="badge" style="background: #ef4444; color: #fff; font-size: 0.65rem; border-radius: 12px; padding: 4px 10px;">{{ strtoupper($a->jurusan) }}</span>
+                            @endif
+                            @if(!empty($a->fakultas))
+                              <span class="badge" style="background: #94a3b8; color: #fff; font-size: 0.65rem; border-radius: 12px; padding: 4px 10px;">{{ strtoupper($a->fakultas) }}</span>
+                            @endif
+                            @if(empty($a->jurusan) && empty($a->fakultas))
+                              <span class="small text-muted fst-italic" style="font-size: 0.75rem;">- Detail akademik belum disetel -</span>
+                            @endif
+                          </div>
 
                           {{-- Actions: selalu di bawah --}}
-                          <div class="member-actions mt-auto d-flex gap-2 justify-content-end flex-wrap">
+                          <div class="member-actions mt-3 d-flex gap-2 justify-content-end flex-wrap pt-3" style="border-top: 1.5px dashed #f1f5f9;">
                             @if($canChangeKetua && !$isKetua)
                             <form action="{{ route('project.setKetua', $project->id) }}" method="POST" class="m-0">
-
                                 @csrf
                                 <input type="hidden" name="ketua_id" value="{{ $a->id }}">
-                                <button type="submit" class="btn btn-outline-success btn-mini">
+                                <button type="submit" class="btn btn-sm btn-outline-success fw-bold" style="font-size: 0.75rem; border-radius: 6px; padding: 4px 12px;">
                                   Jadikan Ketua
                                 </button>
                               </form>
@@ -661,17 +680,15 @@
                                     onsubmit="return confirm('Yakin hapus anggota ini dari project?')">
                                 @csrf
                                 @method('DELETE')
-                                <button type="submit" class="btn btn-outline-danger btn-mini">
-                                  Hapus
+                                <button type="submit" class="btn btn-sm btn-outline-danger fw-bold" style="font-size: 0.75rem; border-radius: 6px; padding: 4px 12px;">
+                                  <i class="bi bi-trash"></i>
                                 </button>
                               </form>
                             @endif
+                            @if($isKetua && $canChangeKetua)
+                               <span class="small text-muted fst-italic w-100 text-end" style="font-size: 0.7rem;">Ketua bertanggung jawab mengelola tim.</span>
+                            @endif
                           </div>
-                          @if($isKetua)
-                            <div class="small subtle mt-2">
-                              Ketua bertanggung jawab mengelola tim & proses pengajuan.
-                            </div>
-                          @endif
                         </div>
                       </div>
                     </div>
@@ -701,7 +718,7 @@
                   <small class="subtle">Tombol simpan revisi ada di bawah (sticky bar) di tab <b>Detail Dana</b>.</small>
                 @endif
 
-                @if($isAdmin)
+                @if($isAdmin || $isBendahara)
                   @if(!$isClosed)
                     <button type="button" class="btn btn-danger btn-eq js-close-project"
                       data-id="{{ $project->id }}" data-nama="{{ $project->nama_project }}">
@@ -738,12 +755,20 @@
             <div class="card p-3">
               <h5 class="mb-3">Pendanaan</h5>
               <div class="row g-2">
-                <div class="col-6">
-                  <div class="label-sm">Sumber Dana</div>
+                <div class="col-4">
+                  <div class="label-sm">Tipe Project</div>
+                  <div class="value-lg">
+                    <span class="badge {{ ($project->tipe_project ?? 'Penelitian') === 'Abdimas' ? 'bg-info' : 'bg-primary' }}" style="border-radius:999px;font-weight:700;padding:4px 12px;">
+                      {{ $project->tipe_project ?? 'Penelitian' }}
+                    </span>
+                  </div>
+                </div>
+                <div class="col-4">
+                  <div class="label-sm">Jenis Sumber Dana</div>
                   <div class="value-lg">{{ $sdJenis }}</div>
                 </div>
-                <div class="col-6">
-                  <div class="label-sm">Kategori</div>
+                <div class="col-4">
+                  <div class="label-sm">Nama Sumber Dana</div>
                   <div class="value-lg">{{ $sdNama }}</div>
                 </div>
               </div>

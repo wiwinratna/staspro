@@ -347,7 +347,7 @@
       @endphp
 
       <div class="col-12 col-sm-6 col-lg-4 col-xxl-3 project-item"
-           data-search="{{ strtolower(($p->nama_project ?? '').' '.($p->tahun ?? '').' on going ongoing aktif') }}">
+           data-search="{{ strtolower(($p->nama_project ?? '').' '.($p->tahun ?? '').' '.($p->tipe_project ?? '').' on going ongoing aktif') }}">
         <div class="proj-card {{ $isJoined ? 'joined' : '' }}" role="button" tabindex="0"
              onclick="location.href='{{ route('project.show',$p->id) }}'"
              onkeydown="if(event.key==='Enter'){ this.click(); }">
@@ -358,7 +358,7 @@
           <div class="proj-title">{{ $p->nama_project }}</div>
 
           <div class="proj-meta">
-            <div>Sumber Dana: {{ $p->sumberDana->jenis_pendanaan ?? '-' }}</div>
+            <div>Tipe: {{ $p->tipe_project ?? 'Penelitian' }} • Sumber Dana: {{ $p->sumberDana->jenis_pendanaan ?? '-' }}</div>
           </div>
 
           @if(Auth::user()->role !== 'admin' && $isJoined)
@@ -401,7 +401,7 @@
       @endphp
 
       <div class="col-12 col-sm-6 col-lg-4 col-xxl-3 project-item"
-           data-search="{{ strtolower(($p->nama_project ?? '').' '.($p->tahun ?? '').' ditutup arsip') }}">
+           data-search="{{ strtolower(($p->nama_project ?? '').' '.($p->tahun ?? '').' '.($p->tipe_project ?? '').' ditutup arsip') }}">
         <div class="proj-card archived {{ $isJoined ? 'joined' : '' }}" role="button" tabindex="0"
              onclick="location.href='{{ route('project.show',$p->id) }}'"
              onkeydown="if(event.key==='Enter'){ this.click(); }">

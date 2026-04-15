@@ -22,23 +22,22 @@ class UserController extends Controller
     public function store(Request $request)
     {
         // Validasi input
-        $request->validate ([
-            'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users,email',
-            'role' => 'required|string|in:admin,peneliti', 
+        $request->validate([
+            'name'     => 'required|string|max:255',
+            'email'    => 'required|string|email|max:255|unique:users,email',
+            'role'     => 'required|string|in:admin,peneliti,bendahara',
+            'password' => 'required|string|min:6|confirmed',
         ]);
 
         try {
-            $defaultPassword = $request->role === 'admin' ? 'Admin@123' : 'User@321';
-
             User::create([
-                'name' => $request->name,
-                'email' => $request->email,
-                'role' => $request->role,
-                'password' => Hash::make($defaultPassword),
+                'name'     => $request->name,
+                'email'    => $request->email,
+                'role'     => $request->role,
+                'password' => Hash::make($request->password),
             ]);
 
-            return redirect()->route('users.index')->with('success', 'User  berhasil ditambahkan.');
+            return redirect()->route('users.index')->with('success', 'User berhasil ditambahkan.');
         } catch (\Exception $e) {
             return redirect()->route('users.index')->with('error', 'Gagal menambahkan user.');
         }
@@ -53,25 +52,27 @@ class UserController extends Controller
     public function update(Request $request, $id)
     {
         $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255',
-            'role' => 'required|string|in:admin,peneliti',
+            'name'     => 'required|string|max:255',
+            'email'    => 'required|string|email|max:255',
+            'role'     => 'required|string|in:admin,peneliti,bendahara',
+            'password' => 'nullable|string|min:6|confirmed',
         ]);
 
         $user = User::findOrFail($id);
-        
-        // Update nama dan email
-        $user->name = $request->name;
-        $user->email = $request->email;
-        $user->role = $request->role;
 
-        // Set password default sesuai role baru
-        $defaultPassword = $request->role === 'admin' ? 'Admin@123' : 'User @123';
-        $user->password = Hash::make($defaultPassword);
+        // Update nama, email, role
+        $user->name  = $request->name;
+        $user->email = $request->email;
+        $user->role  = $request->role;
+
+        // Hanya ubah password jika diisi
+        if ($request->filled('password')) {
+            $user->password = Hash::make($request->password);
+        }
 
         $user->save();
 
-        return redirect()->route('users.index')->with('success', 'User  berhasil diperbarui.');
+        return redirect()->route('users.index')->with('success', 'User berhasil diperbarui.');
     }
 
     public function destroy($id)
@@ -89,6 +90,25 @@ class UserController extends Controller
         $user->delete();
 
         return redirect()->route('users.index')->with('success', 'User berhasil dihapus.');
+    }
+
+    /**
+     * AJAX: ubah password user dari halaman daftar user.
+     */
+    public function changePassword(Request $request, $id)
+    {
+        $request->validate([
+            'password' => 'required|string|min:6|confirmed',
+        ]);
+
+        $user = User::findOrFail($id);
+        $user->password = Hash::make($request->password);
+        $user->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Password ' . $user->name . ' berhasil diubah.',
+        ]);
     }
 
 }

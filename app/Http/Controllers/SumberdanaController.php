@@ -24,6 +24,7 @@ class SumberdanaController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
+            'tipe_project'     => 'required|in:Penelitian,Abdimas',
             'nama_sumber_dana' => 'required|string|max:255|unique:sumber_dana,nama_sumber_dana',
             'jenis_pendanaan'  => 'required|string|max:255',
             'subkategori'      => 'nullable|array',
@@ -33,6 +34,7 @@ class SumberdanaController extends Controller
         try {
             // Buat sumber dana baru
             $sumberdana = Sumberdana::create([
+                'tipe_project'     => $request->tipe_project,
                 'nama_sumber_dana' => $request->nama_sumber_dana,
                 'jenis_pendanaan'  => $request->jenis_pendanaan,
                 'user_id_created'  => Auth::user()->id,
@@ -90,6 +92,7 @@ class SumberdanaController extends Controller
 public function update(Request $request, string $id)
 {
     $request->validate([
+        'tipe_project'     => 'required|in:Penelitian,Abdimas',
         'nama_sumber_dana' => 'required|string|max:255',
         'jenis_pendanaan'  => 'required|string|in:internal,eksternal',
         'subkategori'      => 'nullable|array',
@@ -101,6 +104,7 @@ public function update(Request $request, string $id)
 
         // 1) Update header
         $sumberdana->update([
+            'tipe_project'     => $request->tipe_project,
             'nama_sumber_dana' => $request->nama_sumber_dana,
             'jenis_pendanaan'  => $request->jenis_pendanaan,
             'user_id_updated'  => Auth::id(),

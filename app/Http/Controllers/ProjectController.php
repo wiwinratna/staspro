@@ -69,13 +69,28 @@ class ProjectController extends Controller
 
         return view('input_project', [
             'sumber_internal'  => $sumber_internal,
-            'sumber_eksternal' => $sumber_eksternal
+            'sumber_eksternal' => $sumber_eksternal,
         ]);
+    }
+
+    /**
+     * API: Return sumber dana filtered by tipe_project (JSON).
+     */
+    public function getSumberDanaByTipe($tipe)
+    {
+        $data = Sumberdana::where('tipe_project', $tipe)
+            ->select('id', 'tipe_project', 'jenis_pendanaan', 'nama_sumber_dana')
+            ->orderBy('jenis_pendanaan')
+            ->orderBy('nama_sumber_dana')
+            ->get();
+
+        return response()->json($data);
     }
 
     public function store(Request $request)
     {
         $validated = $request->validate([
+            'tipe_project'  => 'required|in:Penelitian,Abdimas',
             'tahun'         => 'required',
             'nama_project'  => 'required|unique:project,nama_project',
             'durasi'        => 'required',
@@ -99,6 +114,12 @@ class ProjectController extends Controller
                 ? $request->kategori_pendanaan_internal
                 : $request->kategori_pendanaan_eksternal;
 
+            // ✅ Validasi backend: pastikan tipe_project sumber dana cocok
+            $sumberDana = Sumberdana::findOrFail($sumberDanaId);
+            if ($sumberDana->tipe_project !== $request->tipe_project) {
+                return redirect()->back()->withInput()->with('error', 'Sumber dana yang dipilih tidak sesuai dengan tipe project.');
+            }
+
             $subkategori_sumberdana = SubkategoriSumberdana::where('id_sumberdana', $sumberDanaId)->get();
 
             DB::transaction(function () use (
@@ -110,6 +131,7 @@ class ProjectController extends Controller
                 &$project
             ) {
                 $project = Project::create([
+                    'tipe_project'    => $request->tipe_project,
                     'tahun'           => $request->tahun,
                     'nama_project'    => $request->nama_project,
                     'id_sumber_dana'  => $sumberDanaId,
@@ -634,8 +656,11 @@ class ProjectController extends Controller
     public function edit($id)
     {
         $project = Project::findOrFail($id);
-        $sumber_internal = SumberDana::where('jenis_pendanaan', 'internal')->get();
-        $sumber_eksternal = SumberDana::where('jenis_pendanaan', 'eksternal')->get();
+
+        // Filter berdasarkan tipe_project yang dimiliki project ini
+        $tipe = $project->tipe_project ?? 'Penelitian';
+        $sumber_internal  = Sumberdana::where('jenis_pendanaan', 'internal')->where('tipe_project', $tipe)->get();
+        $sumber_eksternal = Sumberdana::where('jenis_pendanaan', 'eksternal')->where('tipe_project', $tipe)->get();
 
         return view('input_project', compact('project', 'sumber_internal', 'sumber_eksternal'));
     }
@@ -645,6 +670,7 @@ class ProjectController extends Controller
         $project = Project::findOrFail($id);
 
         $validated = $request->validate([
+            'tipe_project' => 'required|in:Penelitian,Abdimas',
             'nama_project' => 'required|unique:project,nama_project,' . $id,
             'tahun'        => 'required',
             'durasi'       => 'required',
@@ -678,8 +704,15 @@ class ProjectController extends Controller
             ? $request->kategori_pendanaan_internal
             : $request->kategori_pendanaan_eksternal;
 
+        // ✅ Validasi backend: pastikan tipe_project sumber dana cocok
+        $sumberDana = Sumberdana::findOrFail($new_sumber_dana_id);
+        if ($sumberDana->tipe_project !== $request->tipe_project) {
+            return redirect()->back()->withInput()->with('error', 'Sumber dana yang dipilih tidak sesuai dengan tipe project.');
+        }
+
         $old_sumber_dana_id = $project->id_sumber_dana;
 
+        $project->tipe_project    = $request->tipe_project;
         $project->nama_project    = $request->nama_project;
         $project->tahun           = $request->tahun;
         $project->durasi          = $request->durasi;
@@ -773,6 +806,14 @@ class ProjectController extends Controller
     public function close(Request $request, $id)
     {
         $project = Project::findOrFail($id);
+        $role = strtolower(auth()->user()->role ?? '');
+
+        if ($role !== 'admin' && $role !== 'bendahara') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Anda tidak memiliki akses untuk menutup project.'
+            ], 403);
+        }
 
         if (strtolower($project->status ?? '') === 'ditutup') {
             return response()->json([

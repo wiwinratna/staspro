@@ -159,10 +159,10 @@
 </section>
 
 <section class="row g-3 mt-2">
-  <div class="col-md-3"><div class="kpi-mini"><div class="label">Submitted</div><div class="val">{{ $countSubmitted }}</div></div></div>
-  <div class="col-md-3"><div class="kpi-mini"><div class="label">Approved</div><div class="val">{{ $countApproved }}</div></div></div>
-  <div class="col-md-3"><div class="kpi-mini"><div class="label">Funded</div><div class="val">{{ $countFunded }}</div></div></div>
-  <div class="col-md-3"><div class="kpi-mini"><div class="label">Finalized</div><div class="val">{{ $countFinalized }}</div></div></div>
+  <div class="col-md-3"><div class="kpi-mini"><div class="label">Diajukan</div><div class="val">{{ $countSubmitted }}</div></div></div>
+  <div class="col-md-3"><div class="kpi-mini"><div class="label">Disetujui</div><div class="val">{{ $countApproved }}</div></div></div>
+  <div class="col-md-3"><div class="kpi-mini"><div class="label">Dana Cair</div><div class="val">{{ $countFunded }}</div></div></div>
+  <div class="col-md-3"><div class="kpi-mini"><div class="label">Final</div><div class="val">{{ $countFinalized }}</div></div></div>
 </section>
 
 <section class="mt-3 table-card">
@@ -178,10 +178,10 @@
         <tr>
           <th>Project</th>
           <th>Status Pengajuan</th>
-          <th>Submitted</th>
-          <th>Approved</th>
-          <th>Funded</th>
-          <th>Finalized</th>
+          <th>Diajukan</th>
+          <th>Disetujui</th>
+          <th>Dana Cair</th>
+          <th>Final</th>
           <th class="text-end">Aksi</th>
         </tr>
       </thead>
@@ -200,11 +200,11 @@
             };
 
             $label = match($wf){
-              'submitted' => 'Submitted',
-              'approved'  => 'Approved',
+              'submitted' => 'Diajukan',
+              'approved'  => 'Disetujui',
               'funded'    => 'Dana Cair',
               'finalized' => 'Final',
-              default     => 'Unknown'
+              default     => 'Tidak Diketahui'
             };
 
             $searchText = strtolower(

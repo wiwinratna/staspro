@@ -38,8 +38,10 @@ class RequestpembelianController extends Controller
         // ✅ hanya PENELITI yang dibatasi data milik sendiri
         if (Auth::user()->role === 'peneliti') {
             $q->where('a.user_id_created', Auth::id());
+        } else {
+            // ✅ Admin/Bendahara JANGAN lihat yang masih draft
+            $q->where('a.status_request', '!=', 'draft');
         }
-
 
         $request_pembelian = $q->get();
 
@@ -180,7 +182,7 @@ class RequestpembelianController extends Controller
                 'no_request'      => 'REQ' . now()->format('YmdHis'),
                 'tgl_request'     => $request->tgl_request,
                 'id_project'      => $request->id_project,
-                'status_request'  => 'submit_request',
+                'status_request'  => 'draft',
                 'user_id_created' => $user->id,
                 'user_id_updated' => $user->id,
             ]);
@@ -951,6 +953,50 @@ class RequestpembelianController extends Controller
         } catch (\Exception $e) {
             Log::error('Error pengajuan ulang: ' . $e->getMessage());
             return redirect()->route('requestpembelian.index')->with('error', 'Pengajuan ulang gagal: ' . $e->getMessage());
+        }
+    }
+
+    public function submitRequest(string $id)
+    {
+        try {
+            $header = RequestpembelianHeader::findOrFail($id);
+
+            // 1. Validasi role (hanya creator)
+            if ($header->user_id_created != Auth::id()) {
+                abort(403);
+            }
+
+            // 2. Validasi status (wajib draft)
+            if ($header->status_request !== 'draft') {
+                return back()->with('error', 'Hanya pengajuan berstatus Draft yang bisa dikirim.');
+            }
+
+            // 3. Validasi item & total
+            $details = RequestpembelianDetail::where('id_request_pembelian_header', $id)->get();
+            if ($details->count() === 0) {
+                return back()->with('error', 'Gagal kirim: Minimal harus ada 1 item barang.');
+            }
+
+            $total = 0;
+            foreach ($details as $d) {
+                $total += ($d->kuantitas * $d->harga);
+            }
+
+            if ($total <= 0) {
+                return back()->with('error', 'Gagal kirim: Total pengajuan harus lebih dari Rp 0.');
+            }
+
+            // 4. Update status
+            $header->status_request = 'submit_request';
+            $header->updated_at = now();
+            $header->save();
+
+            return redirect()
+                ->route('requestpembelian.index')
+                ->with('success', 'Pengajuan berhasil dikirim ke Admin/Bendahara.');
+
+        } catch (\Exception $e) {
+            return back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
         }
     }
 }
