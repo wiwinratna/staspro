@@ -188,7 +188,8 @@
     </div>
 
     <div class="hero-actions">
-      <a href="#" class="btn-manual">
+      <a href="https://drive.google.com/file/d/1HKaZH2I-Ohq7S-SBb8ADMHMd3htU0nio/view?usp=sharing" 
+         class="btn-manual" target="_blank" rel="noopener">
         <i class="bi bi-book"></i> Manual Book
       </a>
     </div>

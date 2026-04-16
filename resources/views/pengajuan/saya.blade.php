@@ -149,7 +149,7 @@
 
       <div class="tools-right">
         <a class="btn-manual"
-           href="https://drive.google.com/file/d/1NicpoYzDkSk64F3HfVEDWt1tpk0WvrlI/view?usp=sharing"
+           href="https://drive.google.com/file/d/1HKaZH2I-Ohq7S-SBb8ADMHMd3htU0nio/view?usp=sharing"
            target="_blank" rel="noopener" title="Buka Manual Book">
           <i class="bi bi-book"></i> Manual Book
         </a>

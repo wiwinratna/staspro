@@ -152,7 +152,7 @@
 
       <div class="tools-row">
         <div class="tools-right">
-          <a href="https://drive.google.com/file/d/1NicpoYzDkSk64F3HfVEDWt1tpk0WvrlI/view?usp=sharing"
+          <a href="https://drive.google.com/file/d/1HKaZH2I-Ohq7S-SBb8ADMHMd3htU0nio/view?usp=sharing"
              target="_blank" rel="noopener" class="btn-soft">
             <i class="bi bi-journal-bookmark"></i> Manual Book
           </a>
