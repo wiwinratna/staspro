@@ -276,6 +276,76 @@
     outline:2px solid rgba(255,255,255,.35);
     box-shadow:0 18px 42px rgba(2,6,23,.18);
   }
+
+  /* FILTER CARD BAR */
+  .filter-card{
+    background:#fff;
+    border:1px solid rgba(226,232,240,.95);
+    border-radius:20px;
+    padding:12px 16px;
+    box-shadow:0 10px 30px rgba(15,23,42,.05);
+    margin-top:-10px; /* pull up into hero slightly if needed, or keep it below */
+    margin-bottom:20px;
+    position:relative;
+    z-index:10;
+  }
+  .filter-row{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    flex-wrap:wrap;
+  }
+  .filter-label{
+    font-weight:900;
+    font-size:.84rem;
+    color:#475569;
+    white-space:nowrap;
+    margin-right:4px;
+  }
+  .filter-select, .filter-input{
+    height:38px;
+    border-radius:999px;
+    border:1px solid rgba(226,232,240,.95);
+    padding:0 16px;
+    font-weight:700;
+    font-size:.85rem;
+    background:#fff;
+    outline:none;
+    transition:all .2s;
+  }
+  .filter-select:focus, .filter-input:focus{
+    border-color:rgba(22,163,74,.4);
+    box-shadow:0 0 0 .2rem rgba(22,163,74,.05);
+  }
+  .filter-input{ width:300px; flex-grow:1; }
+
+  .filter-reset{
+    height:38px; width:38px;
+    display:inline-flex; align-items:center; justify-content:center;
+    border-radius:999px;
+    border:1px solid rgba(226,232,240,.95);
+    background:#f8fafc;
+    color:#64748b;
+    text-decoration:none;
+    transition:.15s;
+  }
+  .filter-reset:hover{ background:#f1f5f9; color:#15803d; transform:rotate(-45deg); }
+
+  .btn-filter-apply{
+    height:38px;
+    display:inline-flex; align-items:center; gap:8px;
+    padding:0 18px;
+    border-radius:999px;
+    background:linear-gradient(135deg,#15803d,#16a34a);
+    color:#fff;
+    font-weight:900;
+    font-size:.88rem;
+    border:0;
+    box-shadow:0 10px 20px rgba(22,163,74,.15);
+    transition:transform .15s;
+    text-decoration:none;
+  }
+  .btn-filter-apply:hover{ transform:translateY(-1px); color:#fff; brightness:1.05; }
 </style>
 @endpush
 
@@ -296,11 +366,6 @@
 
         <div class="tools-row">
           <div class="tools-left">
-            <div class="search-wrap">
-              <i class="bi bi-search"></i>
-              <input id="searchProject" class="search-input" placeholder="Cari project (nama / tahun / status)">
-            </div>
-
             {{-- Admin & Peneliti boleh ajukan/input --}}
             @if(in_array(Auth::user()->role, ['admin','peneliti']))
               <a href="{{ route('project.create') }}" class="btn-apply">
@@ -314,7 +379,7 @@
             <a class="btn-manual"
                href="https://drive.google.com/file/d/1HKaZH2I-Ohq7S-SBb8ADMHMd3htU0nio/view?usp=sharing"
                target="_blank" rel="noopener" title="Buka Manual Book">
-              <i class="bi bi-book"></i> Manual Book
+               <i class="bi bi-book"></i> Manual Book
             </a>
           </div>
         </div>
@@ -322,6 +387,31 @@
       </div>
     </div>
   </section>
+
+  {{-- FILTER BAR --}}
+  <div class="filter-card">
+    <form action="{{ route('project.index') }}" method="GET" class="filter-row">
+      <div class="filter-label">Filter Project</div>
+      
+      <select name="filter" class="filter-select">
+        <option value="all" {{ ($filter ?? 'all') === 'all' ? 'selected' : '' }}>All Project</option>
+        <option value="my" {{ ($filter ?? '') === 'my' ? 'selected' : '' }}>My project</option>
+        <option value="except_me" {{ ($filter ?? '') === 'except_me' ? 'selected' : '' }}>Except Me</option>
+      </select>
+
+      <input type="text" id="searchProject" name="q" class="filter-input" placeholder="Cari project (nama / tahun / status)..." value="{{ request('q') }}">
+
+      <a href="{{ route('project.index') }}" class="filter-reset" title="Reset Filter">
+        <i class="bi bi-arrow-counterclockwise"></i>
+      </a>
+
+      <div class="ms-auto">
+        <button type="submit" class="btn-filter-apply">
+          <i class="bi bi-funnel-fill"></i> Terapkan
+        </button>
+      </div>
+    </form>
+  </div>
 
   @if ($message = Session::get('success'))
     <div class="alert alert-success">{{ $message }}</div>
@@ -444,12 +534,7 @@
 
 @push('scripts')
 <script>
-  // Search filter
-  document.getElementById('searchProject')?.addEventListener('input', function(){
-    const q = this.value.toLowerCase().trim();
-    document.querySelectorAll('.project-item').forEach(el=>{
-      el.style.display = (el.dataset.search || '').includes(q) ? '' : 'none';
-    });
-  });
+  // Script pencarian client-side dihilangkan karena sekarang menggunakan
+  // server-side search via form Terapkan.
 </script>
 @endpush

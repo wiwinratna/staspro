@@ -42,4 +42,14 @@ class RequestpembelianHeader extends Model
     {
         return $this->hasMany(PencatatanKeuangan::class, 'request_pembelian_id');
     }
+
+    public function project()
+    {
+        return $this->belongsTo(Project::class, 'id_project');
+    }
+
+    public function details()
+    {
+        return $this->hasMany(RequestpembelianDetail::class, 'id_request_pembelian_header');
+    }
 }

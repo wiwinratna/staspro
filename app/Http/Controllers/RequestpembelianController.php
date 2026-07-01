@@ -29,21 +29,33 @@ class RequestpembelianController extends Controller
             $selects[] = 'a.status_alokasi';
         }
 
-        $q = DB::table('request_pembelian_header as a')
-            ->leftJoin('project as b', 'a.id_project', '=', 'b.id')
-            ->leftJoin(DB::raw("(SELECT id_request_pembelian_header, GROUP_CONCAT(CONCAT(kuantitas, ' x ', nama_barang)) as nama_barang, SUM(harga * kuantitas) as total_harga FROM request_pembelian_detail GROUP BY id_request_pembelian_header) as c"), 'a.id', '=', 'c.id_request_pembelian_header')
-            ->select($selects);
+        $q = \App\Models\RequestpembelianHeader::with([
+            'project',
+            'details'
+        ]);
 
-        // ✅ kalau bukan admin, tampilkan hanya yang dibuat user tersebut
-        // ✅ hanya PENELITI yang dibatasi data milik sendiri
         if (Auth::user()->role === 'peneliti') {
-            $q->where('a.user_id_created', Auth::id());
+            $q->where('user_id_created', Auth::id());
         } else {
-            // ✅ Admin/Bendahara JANGAN lihat yang masih draft
-            $q->where('a.status_request', '!=', 'draft');
+            $q->where('status_request', '!=', 'draft');
         }
 
-        $request_pembelian = $q->get();
+        $headers = $q->orderByDesc('id')->get();
+
+        // Transform collection to match previous object struct
+        $request_pembelian = $headers->map(function($h) {
+            $total_harga = $h->details->sum(function($d) { return (float)$d->harga * (int)$d->kuantitas; });
+            return (object) [
+                'id' => $h->id,
+                'no_request' => $h->no_request,
+                'nama_project' => $h->project->nama_project ?? '-',
+                'status_request' => $h->status_request,
+                'is_talangan' => $h->is_talangan,
+                'status_alokasi' => $h->status_alokasi,
+                'total_harga' => $total_harga,
+                'details' => $h->details
+            ];
+        });
 
         return view('requestpembelian.index', ['request_pembelian' => $request_pembelian]);
     }
@@ -99,7 +111,7 @@ class RequestpembelianController extends Controller
                 DB::raw('(COALESCE(d.kuantitas,0) * COALESCE(d.harga,0)) as total_perkiraan'),
                 DB::raw('COALESCE(d.total_invoice,0) as total_invoice'),
                 DB::raw('COALESCE(d.is_sampai,0) as is_sampai'),
-                DB::raw('COALESCE(d.is_pelaporan,0) as is_pelaporan')
+                'd.nama_penerima'
             )
             ->whereIn('h.status_request', ['approve_request', 'submit_payment', 'approve_payment', 'done'])
             ->orderByDesc('h.id')
@@ -110,7 +122,7 @@ class RequestpembelianController extends Controller
         return view('requestpembelian.track', compact('tracks'));
     }
 
-    public function markSampai(string $id)
+    public function markSampai(Request $request, string $id)
     {
         if (!in_array(Auth::user()->role, ['admin', 'bendahara'], true)) {
             return back()->with('error', 'Hanya admin/bendahara yang bisa update status sampai.');
@@ -118,29 +130,13 @@ class RequestpembelianController extends Controller
 
         $detail = RequestpembelianDetail::findOrFail($id);
         $detail->is_sampai = 1;
+        $detail->nama_penerima = $request->nama_penerima;
         $detail->user_id_updated = Auth::id();
         $detail->save();
 
         return back()->with('success', 'Status item berhasil ditandai sudah sampai.');
     }
 
-    public function markPelaporan(string $id)
-    {
-        if (!in_array(Auth::user()->role, ['admin', 'bendahara'], true)) {
-            return back()->with('error', 'Hanya admin/bendahara yang bisa update status pelaporan.');
-        }
-
-        $detail = RequestpembelianDetail::findOrFail($id);
-        if (!(bool) $detail->is_sampai) {
-            return back()->with('error', 'Item harus ditandai sudah sampai dulu sebelum pelaporan.');
-        }
-
-        $detail->is_pelaporan = 1;
-        $detail->user_id_updated = Auth::id();
-        $detail->save();
-
-        return back()->with('success', 'Status item berhasil ditandai sudah pelaporan.');
-    }
 
     public function store(Request $request)
     {
@@ -353,8 +349,9 @@ class RequestpembelianController extends Controller
 
             RequestpembelianDetail::where('id', $id)->update([
                 'invoice_pembelian' => $path,
-                'user_id_updated' => Auth::id(),
-                'updated_at'      => now(),
+                'no_invoice'        => $request->no_invoice,
+                'user_id_updated'   => Auth::id(),
+                'updated_at'        => now(),
             ]);
 
             return redirect()
@@ -630,6 +627,10 @@ class RequestpembelianController extends Controller
             }
             $path = $request->file('invoice_pembelian')->store('request_pembelian/invoice_item', 'public');
             $detail->invoice_pembelian = $path;
+        }
+
+        if ($request->filled('no_invoice')) {
+            $detail->no_invoice = $request->no_invoice;
         }
 
         if ($request->filled('total_invoice')) {

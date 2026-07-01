@@ -521,8 +521,30 @@
             <td class="text-start">{{ $r->nama_project }}</td>
 
             <td class="text-start">
-              <div class="col-item" title="{{ $r->nama_barang }}">
-                {{ $r->nama_barang }}
+              @php
+                  $itemCount = count($r->details);
+                  $collapseId = 'collapseItems_' . $r->id;
+              @endphp
+              <button class="btn btn-sm text-primary fw-bold p-0 d-flex align-items-center" style="font-size: 0.85rem;" type="button" data-bs-toggle="collapse" data-bs-target="#{{ $collapseId }}" aria-expanded="false" aria-controls="{{ $collapseId }}">
+                <i class="bi bi-boxes me-1"></i> {{ $itemCount }} Item <i class="bi bi-chevron-down ms-1" style="font-size:0.7rem; opacity:0.8;"></i>
+              </button>
+              
+              <div class="collapse mt-2" id="{{ $collapseId }}">
+                <div class="p-2" style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; font-size:0.8rem;">
+                  @foreach($r->details as $d)
+                    <div class="mb-2 last:mb-0">
+                      <div class="fw-bold text-dark d-flex align-items-baseline gap-1">
+                        <span class="badge bg-secondary" style="font-size: 0.65rem;">{{ $d->kuantitas }}x</span>
+                        <span class="text-truncate" style="max-width: 250px;" title="{{ $d->nama_barang }}">{{ $d->nama_barang }}</span>
+                      </div>
+                      @if($d->no_invoice)
+                        <div class="mt-1 fw-bold" style="color:#2563eb; font-size:0.75rem;">
+                          <i class="bi bi-receipt-cutoff me-1"></i> {{ $d->no_invoice }}
+                        </div>
+                      @endif
+                    </div>
+                  @endforeach
+                </div>
               </div>
             </td>
 

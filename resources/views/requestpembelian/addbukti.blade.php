@@ -1,59 +1,10 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-  @extends('layouts.app')
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="csrf-token" content="{{ csrf_token() }}">
-  <title>Upload Invoice Item</title>
+{{-- resources/views/requestpembelian/addbukti.blade.php --}}
+@extends('layouts.panel')
 
-  <!-- Fonts & Icons -->
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet"/>
+@section('title', 'Upload Invoice Item')
 
-  <style>
-    :root{
-      --brand:#16a34a;
-      --brand-700:#15803d;
-      --brand-50:#ecfdf5;
-      --ink:#0f172a;
-      --ink-600:#475569;
-      --line:#e2e8f0;
-      --bg:#f6f7fb;
-      --card:#ffffff;
-    }
-
-    *{ box-sizing:border-box }
-    body{
-      background:var(--bg);
-      font-family:'Inter',system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
-      color:var(--ink);
-    }
-
-    /* Topbar */
-    .topbar{ background:linear-gradient(135deg,var(--brand-700),var(--brand)); color:#fff; }
-    .brand-title{ font-weight:700; letter-spacing:.3px; }
-
-    /* Layout */
-    .app{ display:flex; min-height:calc(100vh - 56px); }
-    .sidebar{
-      width:260px; background:var(--card); border-right:1px solid var(--line);
-      padding:18px; position:sticky; top:0; height:calc(100vh - 56px);
-    }
-    .menu-title{
-      font-size:.75rem; letter-spacing:.08em; text-transform:uppercase;
-      color:var(--ink-600); font-weight:600; margin:8px 0 12px;
-    }
-    .nav-link-custom{
-      display:flex; align-items:center; gap:10px; padding:10px 12px;
-      border-radius:12px; text-decoration:none; color:var(--ink); font-weight:500;
-      transition:.2s;
-    }
-    .nav-link-custom:hover{ background:var(--brand-50); color:var(--brand-700); }
-    .nav-link-custom.active{ background:var(--brand); color:#fff; box-shadow:0 6px 16px rgba(22,163,74,.25); }
-
-    .content{ flex:1; padding:24px; }
+@push('styles')
+<style>
     .page-title{ font-size:1.55rem; font-weight:800; }
     .page-sub{ color:var(--ink-600); margin-top:4px; }
 
@@ -79,21 +30,10 @@
       border-color:var(--brand-700) !important;
       color:#fff !important;
     }
+</style>
+@endpush
 
-    /* Mobile */
-    @media(max-width:991px){
-      .sidebar{ position:fixed; left:-280px; z-index:1040; transition:.2s; }
-      .sidebar.open{ left:0; }
-      .backdrop{ position:fixed; inset:0; background:rgba(15,23,42,.4); display:none; z-index:1035; }
-      .backdrop.show{ display:block; }
-      .content{ padding:18px; }
-    }
-  </style>
-
-  @vite(['resources/css/app.css', 'resources/js/app.js'])
-</head>
-
-<body>
+@section('content')
 @php
   // ambil header (kalau controller belum kirim)
   $header = $header ?? \App\Models\RequestpembelianHeader::find($detail->id_request_pembelian_header);
@@ -108,29 +48,6 @@
   // ✅ FIX: izinkan upload juga saat submit_payment (biar bisa nyicil upload semua item)
   $allowUpload = $isApprover && $statusHeader !== 'reject_request';
 @endphp
-
-<!-- TOPBAR -->
-<nav class="navbar topbar navbar-expand-lg">
-  <div class="container-fluid">
-    <button class="btn btn-light d-lg-none me-2" id="sidebarToggle" aria-label="Toggle sidebar">
-      <i class="bi bi-list"></i>
-    </button>
-    <div class="brand-title">STAS-RG • Request Pembelian</div>
-    <div class="ms-auto">@include('navbar')</div>
-  </div>
-</nav>
-
-<div class="app">
-
-  <!-- SIDEBAR -->
-  <aside class="sidebar" id="appSidebar">
-      @include('layouts.sidebar-menu')
-    </aside>
-
-  <div class="backdrop" id="backdrop"></div>
-
-  <!-- CONTENT -->
-  <main class="content">
 
     <div class="d-flex justify-content-between align-items-end flex-wrap gap-2">
       <div>
@@ -190,6 +107,11 @@
             <input type="hidden" name="id_request_pembelian_header" value="{{ $detail->id_request_pembelian_header }}">
 
             <div class="mb-3">
+              <label class="form-label fw-bold" for="no_invoice">Nomor Invoice <span class="text-muted fw-normal">(Opsional)</span></label>
+              <input type="text" class="form-control" id="no_invoice" name="no_invoice" placeholder="Cth: INV-2026/04/123" value="{{ $detail->no_invoice ?? '' }}">
+            </div>
+
+            <div class="mb-3">
               <label class="form-label fw-bold" for="bukti_bayar">File Invoice</label>
               <input type="file" class="form-control" id="bukti_bayar" name="bukti_bayar" accept=".jpg,.jpeg,.png,.pdf" required>
               <div class="form-text">Format: JPG/JPEG/PNG/PDF. Maks 5MB.</div>
@@ -204,22 +126,4 @@
       </div>
     </div>
 
-  </main>
-</div>
-
-<!-- SCRIPT -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<script>
-  const sidebar = document.getElementById('appSidebar');
-  const toggleBtn = document.getElementById('sidebarToggle');
-  const backdrop = document.getElementById('backdrop');
-
-  const openSidebar = ()=>{ sidebar.classList.add('open'); backdrop.classList.add('show'); }
-  const closeSidebar = ()=>{ sidebar.classList.remove('open'); backdrop.classList.remove('show'); }
-
-  toggleBtn?.addEventListener('click', ()=> sidebar.classList.contains('open') ? closeSidebar() : openSidebar());
-  backdrop?.addEventListener('click', closeSidebar);
-</script>
-
-</body>
-</html>
+@endsection

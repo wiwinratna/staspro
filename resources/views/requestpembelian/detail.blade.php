@@ -1,72 +1,11 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-  @extends('layouts.app')
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Pengajuan Komponen</title>
+{{-- resources/views/requestpembelian/detail.blade.php --}}
+@extends('layouts.panel')
 
-  <!-- Fonts & CSS -->
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet" />
+@section('title', 'Detail Pengajuan Komponen')
 
-  <style>
-    :root{
-      --brand:#16a34a; --brand-700:#15803d; --brand-50:#ecfdf5;
-      --ink:#0f172a; --ink-600:#475569; --line:#e2e8f0; --bg:#f6f7fb; --card:#fff;
-    }
-    *{box-sizing:border-box}
-    body{ background:var(--bg); font-family:'Inter',system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif; color:var(--ink); margin:0; }
-
-    /* Topbar */
-    .topbar{
-      position:sticky; top:0; z-index:1030;
-      background:linear-gradient(135deg,var(--brand-700),var(--brand));
-      color:#fff;
-      height:56px;
-      border-bottom:1px solid rgba(255,255,255,.18);
-    }
-    .brand{ display:flex; align-items:center; gap:10px; font-weight:800; letter-spacing:.2px; }
-    .brand-badge{
-      font-size:.72rem; font-weight:800;
-      padding:.22rem .55rem; border-radius:999px;
-      background:rgba(255,255,255,.16);
-      border:1px solid rgba(255,255,255,.22);
-      white-space:nowrap;
-    }
-
-    /* Layout */
-    .app{ display:flex; min-height:calc(100vh - 56px); }
-
-    .sidebar{
-      width:260px; background:var(--card); border-right:1px solid var(--line);
-      padding:14px; position:sticky; top:56px; height:calc(100vh - 56px); overflow:auto;
-    }
-    .menu-title{
-      font-size:.72rem; letter-spacing:.08em; color:var(--ink-600);
-      text-transform:uppercase; margin:8px 0; font-weight:700;
-    }
-    .nav-link-custom{
-      display:flex; align-items:center; gap:10px;
-      padding:9px 10px; border-radius:14px;
-      text-decoration:none; color:var(--ink);
-      font-weight:600; font-size:.92rem; line-height:1;
-      transition:.18s; white-space:nowrap;
-    }
-    .nav-link-custom i{ font-size:1.05rem; }
-    .nav-link-custom:hover{ background:var(--brand-50); color:var(--brand-700); transform:translateX(2px); }
-    .nav-link-custom.active{
-      background:linear-gradient(135deg,var(--brand-700),var(--brand));
-      color:#fff; box-shadow:0 16px 28px rgba(2,6,23,.12);
-      font-weight:700;
-    }
-
-    .content{ flex:1; padding:18px 18px 22px; }
-
-    .page-title{ font-size:1.5rem; font-weight:800; margin:0; }
-    .page-sub{ color:var(--ink-600); margin:6px 0 0; }
-
+@push('styles')
+<style>
+    /* Specific styles for this page */
     .card-soft{
       background:var(--card);
       border:1px solid var(--line);
@@ -185,34 +124,12 @@
     .action-section.admin-mode { border: 2px solid rgba(22,163,74,.4); background: #fdfcf9; }
     .section-title { font-size: 1.15rem; font-weight: 800; margin-bottom: 18px; display: flex; align-items: center; gap: 8px; color: var(--ink); }
 
-    @media (max-width: 991.98px){
-      .sidebar{ position:fixed; left:-280px; z-index:1040; transition:left .2s; top:56px; height:calc(100vh - 56px); }
-      .sidebar.open{ left:0; }
-      .content{ padding:14px; }
-      .backdrop{ display:none; position:fixed; inset:0; background:rgba(15,23,42,.38); z-index:1035; }
-      .backdrop.show{ display:block; }
-    }
-  </style>
+    .page-title{ font-size:1.5rem; font-weight:800; margin:0; }
+    .page-sub{ color:var(--ink-600); margin:6px 0 0; }
+</style>
+@endpush
 
-  @vite(['resources/css/app.css', 'resources/js/app.js'])
-</head>
-
-<body>
-  <!-- Topbar -->
-  <nav class="navbar topbar navbar-expand-lg">
-    <div class="container-fluid">
-      <button class="btn btn-outline-light d-lg-none me-2" id="sidebarToggle" aria-label="Toggle sidebar">
-        <i class="bi bi-list"></i>
-      </button>
-
-      <div class="brand">
-        <span>STAS-RG • Pengajuan Komponen</span>
-        </div>
-
-      <div class="ms-auto">@include('navbar')</div>
-    </div>
-  </nav>
-
+@section('content')
   @php
     $rawStatus = $request_pembelian->status_request ?? '';
     $status = strtolower(trim($rawStatus));
@@ -258,16 +175,7 @@
     $totalDibayar = $totalInvoice + $biayaAdmin;
   @endphp
 
-  <div class="app">
-    <!-- Sidebar -->
-    <aside class="sidebar" id="appSidebar">
-      @include('layouts.sidebar-menu')
-    </aside>
 
-    <div class="backdrop" id="backdrop"></div>
-
-    <!-- Main -->
-    <main class="content">
       <div class="d-flex align-items-end justify-content-between flex-wrap gap-2 mb-3">
         <div>
           <div class="page-title">Pengajuan Komponen</div>
@@ -488,7 +396,14 @@
                     $rowTotal = $qty * $hargaItem;
                   @endphp
                   <tr>
-                    <td>{{ $d->nama_barang }}</td>
+                    <td>
+                      <div class="fw-bold">{{ $d->nama_barang }}</div>
+                      @if(!empty($d->no_invoice))
+                        <div class="mt-1" style="font-size:0.75rem; color:#2563eb;">
+                          <i class="bi bi-receipt-cutoff me-1"></i> Inv: {{ $d->no_invoice }}
+                        </div>
+                      @endif
+                    </td>
                     <td class="text-center">{{ $qty }}</td>
                     <td class="text-end">Rp {{ number_format($hargaItem,0,',','.') }}</td>
                     <td class="text-end fw-bold">Rp {{ number_format($rowTotal,0,',','.') }}</td>
@@ -702,23 +617,11 @@
         </div>
       </div>
 
-    </main>
-  </div>
+@endsection
 
-  <!-- Scripts -->
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
+@push('scripts')
   <script>
-    // Sidebar toggle (mobile)
-    const sidebar=document.getElementById('appSidebar');
-    const toggleBtn=document.getElementById('sidebarToggle');
-    const backdrop=document.getElementById('backdrop');
-    const openSidebar=()=>{ sidebar.classList.add('open'); backdrop.classList.add('show'); }
-    const closeSidebar=()=>{ sidebar.classList.remove('open'); backdrop.classList.remove('show'); }
-    toggleBtn?.addEventListener('click',()=> sidebar.classList.contains('open')?closeSidebar():openSidebar());
-    backdrop?.addEventListener('click',closeSidebar);
-
-    // Alasan reject only when needed (admin)
+    // ====== ALASAN REJECT ONLY WHEN NEEDED (ADMIN) ======
     (function(){
       const sel=document.getElementById('status_request');
       const wrap=document.getElementById('keterangan_reject_wrap');
@@ -790,5 +693,4 @@
       updateTotal();
     })();
   </script>
-</body>
-</html>
+@endpush

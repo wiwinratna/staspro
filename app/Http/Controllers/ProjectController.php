@@ -19,8 +19,10 @@ use Carbon\Carbon;
 
 class ProjectController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
+        $filter = $request->get('filter', 'all');
+        $search = $request->get('q');
         $query = Project::with('sumberDana');
 
         if (Auth::user()->role === 'peneliti') {
@@ -30,20 +32,38 @@ class ProjectController extends Controller
             });
         }
 
-        $projects = $query->orderByDesc('id')->get();
-
-        $joinedProjectIds = [];
-
-        if (strtolower(Auth::user()->role ?? '') !== 'admin') {
-            $joinedProjectIds = DB::table('detail_project')
-                ->where('id_user', Auth::id())
-                ->pluck('id_project')
-                ->map(fn ($v) => (int) $v)
-                ->unique()
-                ->toArray();
+        // Search logic
+        if (!empty($search)) {
+            $query->where(function ($q) use ($search) {
+                $q->where('nama_project', 'like', "%{$search}%")
+                  ->orWhere('tahun', 'like', "%{$search}%")
+                  ->orWhere('tipe_project', 'like', "%{$search}%")
+                  ->orWhere('status', 'like', "%{$search}%");
+            });
         }
 
-        return view('project', compact('projects', 'joinedProjectIds'));
+        // Ambil ID project di mana user tergabung (sebagai anggota)
+        $joinedProjectIds = DB::table('detail_project')
+            ->where('id_user', Auth::id())
+            ->pluck('id_project')
+            ->map(fn ($v) => (int) $v)
+            ->unique()
+            ->toArray();
+
+        // Project saya = Dibuat oleh saya ATAU saya sebagai anggota
+        if ($filter === 'my') {
+            $query->where(function($q) use ($joinedProjectIds) {
+                $q->where('user_id_created', Auth::id())
+                  ->orWhereIn('id', $joinedProjectIds);
+            });
+        } elseif ($filter === 'except_me') {
+            $query->where('user_id_created', '!=', Auth::id())
+                  ->whereNotIn('id', $joinedProjectIds);
+        }
+
+        $projects = $query->orderByDesc('id')->get();
+
+        return view('project', compact('projects', 'joinedProjectIds', 'filter'));
     }
 
     public function tracking()

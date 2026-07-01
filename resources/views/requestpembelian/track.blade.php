@@ -119,7 +119,7 @@
 @section('content')
 <section class="hero">
   <h1 class="title">Track Pengajuan Komponen</h1>
-  <p class="sub">Pantau item yang sudah disetujui: sudah sampai atau belum, dan status pelaporannya.</p>
+  <p class="sub">Pantau item yang sudah disetujui, di mana paket komponen sudah sampai berserta penerimanya.</p>
   <div class="mt-3 search-wrap">
     <i class="bi bi-search"></i>
     <input id="searchTrack" class="search-input" placeholder="Cari project / barang / request / status">
@@ -138,9 +138,7 @@
           <th>Total Perkiraan</th>
           <th>Total Invoice</th>
           <th>Status Sampai</th>
-          @if(auth()->user()->role !== 'peneliti')
-            <th>Status Pelaporan</th>
-          @endif
+          <th>Nama Penerima</th>
           <th class="text-end">Aksi</th>
         </tr>
       </thead>
@@ -148,13 +146,11 @@
         @forelse($tracks as $t)
           @php
             $sampai = (bool)($t->is_sampai ?? false);
-            $pelaporan = (bool)($t->is_pelaporan ?? false);
             $statusSampai = $sampai ? 'Sudah Sampai' : 'Belum Sampai';
-            $statusPelaporan = $pelaporan ? 'Sudah Pelaporan' : 'Belum Pelaporan';
             $search = strtolower(
               ($t->nama_project ?? '').' '.
               ($t->nama_barang ?? '').' '.
-              $statusSampai.' '.$statusPelaporan
+              $statusSampai.' '.($t->nama_penerima ?? '')
             );
           @endphp
           <tr data-search="{{ $search }}">
@@ -170,27 +166,19 @@
             <td>
               <span class="badge-status {{ $sampai ? 's-done' : 's-submit-request' }}">{{ $statusSampai }}</span>
             </td>
-            @if(auth()->user()->role !== 'peneliti')
-              <td>
-                <span class="badge-status {{ $pelaporan ? 's-done' : 's-reject-payment' }}">{{ $statusPelaporan }}</span>
-              </td>
-            @endif
+            <td>
+              @if($sampai)
+                <span style="font-weight:700; color:#1f2937;">{{ $t->nama_penerima ?: '-' }}</span>
+              @else
+                <span class="text-muted">-</span>
+              @endif
+            </td>
             <td class="text-end">
               <div class="actions-wrap">
                 <a href="{{ route('requestpembelian.detail', $t->id) }}" class="btn btn-sm btn-outline-success">Detail</a>
                 @if(in_array(auth()->user()->role, ['admin','bendahara']))
                   @if(!$sampai)
-                    <form action="{{ route('requestpembelian.track.sampai', $t->detail_id) }}" method="POST" class="d-inline">
-                      @csrf
-                      <button class="btn btn-sm btn-arrived" type="submit">Sudah Sampai</button>
-                    </form>
-                  @endif
-
-                  @if($sampai && !$pelaporan)
-                    <form action="{{ route('requestpembelian.track.pelaporan', $t->detail_id) }}" method="POST" class="d-inline">
-                      @csrf
-                      <button class="btn btn-sm btn-report" type="submit">Sudah Pelaporan</button>
-                    </form>
+                    <button class="btn btn-sm btn-arrived" type="button" data-bs-toggle="modal" data-bs-target="#modalSampai" onclick="openSampaiModal({{ $t->detail_id }})">Sudah Sampai</button>
                   @endif
                 @endif
               </div>
@@ -198,13 +186,40 @@
           </tr>
         @empty
           <tr>
-            <td colspan="{{ auth()->user()->role === 'peneliti' ? 8 : 9 }}" class="text-center py-4 text-muted">Belum ada data track paket komponen.</td>
+            <td colspan="9" class="text-center py-4 text-muted">Belum ada data track paket komponen.</td>
           </tr>
         @endforelse
       </tbody>
     </table>
   </div>
 </section>
+
+<!-- Modal Sampai -->
+<div class="modal fade" id="modalSampai" tabindex="-1" aria-labelledby="modalSampaiLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0" style="border-radius:18px; box-shadow:0 10px 30px rgba(15,23,42,.08);">
+      <form id="formSampai" method="POST">
+        @csrf
+        <div class="modal-header border-0 pb-0">
+          <h5 class="modal-title fw-bold" id="modalSampaiLabel">Konfirmasi Barang Sampai</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body p-4 pt-3">
+          <p class="text-muted mb-3" style="font-size:0.9rem;">Masukkan nama penanggung jawab atau penerima paket komponen.</p>
+          <div class="mb-3">
+            <label for="nama_penerima" class="form-label fw-bold" style="font-size:0.85rem;">Nama Penerima</label>
+            <input type="text" class="form-control" id="nama_penerima" name="nama_penerima" placeholder="Cth: Ratna / Satpam Depan" required autocomplete="off">
+          </div>
+        </div>
+        <div class="modal-footer border-0 pt-0">
+          <button type="button" class="btn btn-light" style="border-radius:12px; font-weight:600;" data-bs-dismiss="modal">Batal</button>
+          <button type="submit" class="btn btn-success" style="border-radius:12px; font-weight:700;">Simpan & Tandai Sampai</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
 @endsection
 
 @push('scripts')
@@ -216,5 +231,10 @@
       tr.style.display = text.includes(q) ? '' : 'none';
     });
   });
+  function openSampaiModal(id) {
+    const form = document.getElementById('formSampai');
+    form.action = `/requestpembelian/track/${id}/sampai`;
+    document.getElementById('nama_penerima').value = '';
+  }
 </script>
 @endpush

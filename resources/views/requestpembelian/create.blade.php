@@ -1,111 +1,10 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-  @extends('layouts.app')
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Tambah Request Pembelian</title>
+{{-- resources/views/requestpembelian/create.blade.php --}}
+@extends('layouts.panel')
 
-  <!-- Fonts & Icons -->
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet" />
+@section('title', 'Tambah Request Pembelian')
 
-  <style>
-    :root{
-      --brand:#16a34a;
-      --brand-700:#15803d;
-      --brand-50:#ecfdf5;
-
-      --ink:#0f172a;
-      --ink-600:#475569;
-      --line:#e2e8f0;
-
-      --bg:#f6f7fb;
-      --card:#ffffff;
-
-      --shadow:0 10px 30px rgba(15,23,42,.08);
-    }
-
-    *{box-sizing:border-box}
-    body{
-      margin:0;
-      background:var(--bg);
-      font-family:'Inter',system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
-      color:var(--ink);
-    }
-
-    /* Topbar */
-    .topbar{
-      position:sticky; top:0; z-index:1030;
-      background:linear-gradient(135deg,var(--brand-700),var(--brand));
-      color:#fff;
-      border-bottom:1px solid rgba(255,255,255,.18);
-      height:56px;
-    }
-    .brand{
-      display:flex; align-items:center; gap:10px;
-      font-weight:800; letter-spacing:.2px;
-    }
-    .brand-badge{
-      font-size:.72rem; font-weight:800;
-      padding:.22rem .55rem; border-radius:999px;
-      background:rgba(255,255,255,.16);
-      border:1px solid rgba(255,255,255,.22);
-      white-space:nowrap;
-    }
-
-    /* Layout */
-    .app{ display:flex; min-height:calc(100vh - 56px); }
-
-    .sidebar{
-      width:260px;
-      background:var(--card);
-      border-right:1px solid var(--line);
-      padding:14px;
-      position:sticky;
-      top:56px;
-      height:calc(100vh - 56px);
-      overflow:auto;
-    }
-
-    .menu-title{
-      font-size:.72rem;
-      letter-spacing:.08em;
-      color:var(--ink-600);
-      text-transform:uppercase;
-      margin:8px 0;
-      font-weight:700;
-    }
-
-    .nav-link-custom{
-      display:flex; align-items:center; gap:10px;
-      padding:9px 10px;
-      border-radius:14px;
-      text-decoration:none;
-      color:var(--ink);
-      font-weight:600;
-      font-size:.92rem;
-      line-height:1;
-      transition:.18s;
-      white-space:nowrap;
-    }
-    .nav-link-custom i{ font-size:1.05rem; }
-
-    .nav-link-custom:hover{
-      background:var(--brand-50);
-      color:var(--brand-700);
-      transform:translateX(2px);
-    }
-    .nav-link-custom.active{
-      background:linear-gradient(135deg,var(--brand-700),var(--brand));
-      color:#fff;
-      box-shadow:0 16px 28px rgba(2,6,23,.12);
-      font-weight:700;
-    }
-
-    .content{ flex:1; padding:18px 18px 22px; }
-
+@push('styles')
+<style>
     .page-title{ font-size:1.55rem; font-weight:900; margin:0; }
     .page-sub{ color:var(--ink-600); margin:6px 0 0; }
 
@@ -114,7 +13,6 @@
       background:var(--card);
       border:1px solid var(--line);
       border-radius:18px;
-      box-shadow:var(--shadow);
     }
 
     .btn-brand{
@@ -126,62 +24,11 @@
       padding:.6rem 1rem;
       box-shadow:0 16px 28px rgba(22,163,74,.18);
     }
-    .btn-brand:hover{ filter:brightness(.98); transform:translateY(-1px); }
+    .btn-brand:hover{ filter:brightness(.98); transform:translateY(-1px); color:#fff; }
+</style>
+@endpush
 
-    /* Mobile sidebar */
-    .backdrop{
-      display:none;
-      position:fixed;
-      inset:0;
-      background:rgba(15,23,42,.38);
-      z-index:1035;
-    }
-    .backdrop.show{ display:block; }
-    @media (max-width:991.98px){
-      .sidebar{
-        position:fixed;
-        left:-290px;
-        top:56px;
-        height:calc(100vh - 56px);
-        z-index:1040;
-        transition:left .2s;
-      }
-      .sidebar.open{ left:0; }
-      .content{ padding:14px; }
-    }
-  </style>
-
-  @vite(['resources/css/app.css', 'resources/js/app.js'])
-</head>
-
-<body>
-
-  <!-- TOPBAR -->
-  <nav class="navbar topbar">
-    <div class="container-fluid">
-      <button class="btn btn-outline-light d-lg-none me-2" id="sidebarToggle" aria-label="Toggle sidebar">
-        <i class="bi bi-list"></i>
-      </button>
-
-      <div class="brand">
-        <span>STAS-RG</span>
-        </div>
-
-      <div class="ms-auto">@include('navbar')</div>
-    </div>
-  </nav>
-
-  <div class="app">
-
-    <!-- SIDEBAR -->
-    <aside class="sidebar" id="appSidebar">
-      @include('layouts.sidebar-menu')
-    </aside>
-
-    <div class="backdrop" id="backdrop"></div>
-
-    <!-- CONTENT -->
-    <main class="content">
+@section('content')
 
       <div class="d-flex align-items-end justify-content-between flex-wrap gap-2 mb-3">
         <div>
@@ -224,21 +71,4 @@
         </div>
       </div>
 
-    </main>
-  </div>
-
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-  <script>
-    // sidebar mobile toggle
-    const sidebar = document.getElementById('appSidebar');
-    const toggleBtn = document.getElementById('sidebarToggle');
-    const backdrop = document.getElementById('backdrop');
-
-    const openSidebar = ()=>{ sidebar.classList.add('open'); backdrop.classList.add('show'); }
-    const closeSidebar = ()=>{ sidebar.classList.remove('open'); backdrop.classList.remove('show'); }
-
-    toggleBtn?.addEventListener('click', ()=> sidebar.classList.contains('open') ? closeSidebar() : openSidebar());
-    backdrop?.addEventListener('click', closeSidebar);
-  </script>
-</body>
-</html>
+@endsection

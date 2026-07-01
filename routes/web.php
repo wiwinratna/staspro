@@ -124,7 +124,6 @@ Route::middleware(['auth', 'profile.complete'])->group(function () {
         Route::get('/requestpembelian', 'index')->name('requestpembelian.index');
         Route::get('/requestpembelian/track', 'track')->name('requestpembelian.track');
         Route::post('/requestpembelian/track/{id}/sampai', 'markSampai')->name('requestpembelian.track.sampai');
-        Route::post('/requestpembelian/track/{id}/pelaporan', 'markPelaporan')->name('requestpembelian.track.pelaporan');
         Route::get('/requestpembelian/create', 'create')->name('requestpembelian.create');
         Route::post('/requestpembelian', 'store')->name('requestpembelian.store');
         Route::post('/requestpembelian/{id}/submit', 'submitRequest')->name('requestpembelian.submit');
