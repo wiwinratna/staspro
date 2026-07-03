@@ -71,4 +71,9 @@ class Project extends Model
         return $this->belongsTo(User::class, 'ketua_id');
     }
 
+    public function sdgs()
+    {
+        return $this->belongsToMany(\App\Models\Sdg::class, 'project_sdgs', 'project_id', 'sdgs_id');
+    }
+
 }

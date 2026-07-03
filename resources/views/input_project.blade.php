@@ -10,6 +10,8 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" rel="stylesheet" />
 
   <meta name="csrf-token" content="{{ csrf_token() }}">
 
@@ -253,6 +255,113 @@
       border-color:rgba(22,163,74,.45);
     }
 
+    /* Select2 Customization */
+    .select2-container--bootstrap-5 .select2-selection {
+      border-radius: 14px;
+      border: 1px solid rgba(226,232,240,.95);
+      font-weight: 600;
+      min-height: 40px;
+      padding: 2px 6px;
+    }
+    .select2-container--bootstrap-5.select2-container--focus .select2-selection {
+      box-shadow:0 0 0 .2rem rgba(22,163,74,.14);
+      border-color:rgba(22,163,74,.45);
+    }
+    .select2-container--bootstrap-5 .select2-selection--multiple .select2-selection__rendered {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      padding-top: 4px;
+      padding-bottom: 4px;
+    }
+    .select2-container--bootstrap-5 .select2-selection--multiple .select2-selection__choice {
+      background: rgba(22,163,74,.12) !important;
+      color: #166534 !important;
+      border: 1px solid rgba(22,163,74,.20) !important;
+      border-radius: 999px !important;
+      padding: 4px 10px 4px 12px !important;
+      margin: 0 !important;
+      font-weight: 800;
+      font-size: 0.85rem;
+      display: flex !important;
+      align-items: center;
+      flex-direction: row-reverse;
+      gap: 6px;
+    }
+    .select2-container--bootstrap-5 .select2-selection--multiple .select2-selection__choice__remove {
+      color: #166534 !important;
+      font-size: 1.1rem !important;
+      font-weight: bold;
+      border: none !important;
+      background: transparent !important;
+      margin: 0 !important;
+      padding: 0 !important;
+      display: flex;
+      line-height: 1;
+    }
+    .select2-container--bootstrap-5 .select2-selection--multiple .select2-selection__choice__remove:hover {
+      color: #dc2626 !important;
+    }
+
+    /* Select2 Dropdown Styling */
+    .select2-dropdown {
+      border-radius: 16px !important;
+      border: 1px solid rgba(226,232,240,.95) !important;
+      box-shadow: 0 10px 30px rgba(15,23,42,.08) !important;
+      overflow: hidden;
+      margin-top: 4px;
+    }
+    .select2-search--dropdown .select2-search__field {
+      border-radius: 10px !important;
+      border: 1px solid rgba(226,232,240,.95) !important;
+      padding: 8px 14px !important;
+      font-size: 0.95rem;
+    }
+    .select2-search--dropdown .select2-search__field:focus {
+      outline: none;
+      border-color: rgba(22,163,74,.45) !important;
+      box-shadow: 0 0 0 .2rem rgba(22,163,74,.10) !important;
+    }
+    .select2-results__options {
+      padding: 6px !important;
+    }
+    .select2-results__option {
+      border-radius: 10px !important;
+      padding: 10px 14px !important;
+      margin-bottom: 2px;
+      font-weight: 600;
+      color: var(--ink-700);
+      font-size: 0.92rem;
+      transition: all 0.15s ease;
+    }
+    .select2-results__option--highlighted[aria-selected],
+    .select2-results__option:hover {
+      background-color: var(--brand-50) !important;
+      color: var(--brand-700) !important;
+    }
+    .select2-results__option[aria-selected="true"] {
+      background-color: rgba(22,163,74,.12) !important;
+      color: #166534 !important;
+      font-weight: 800;
+    }
+    .select2-container--bootstrap-5 .select2-selection--multiple .select2-selection__clear {
+      width: 24px;
+      height: 24px;
+      background: #f1f5f9;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #64748b;
+      margin-top: 8px;
+      margin-right: 4px;
+      transition: 0.2s;
+    }
+    .select2-container--bootstrap-5 .select2-selection--multiple .select2-selection__clear:hover {
+      background: #fee2e2;
+      color: #dc2626;
+    }
+
     .form-section-title{
       font-weight:800;
       font-size:1.02rem;
@@ -484,6 +593,27 @@
               </div>
             </div>
 
+            <hr class="my-4">
+
+            <!-- SDGs -->
+            <div class="form-section-title"><i class="bi bi-globe"></i> SDGs (Sustainable Development Goals)</div>
+            <div class="row g-3">
+              <div class="col-12">
+                <label for="sdgs" class="form-label">Pilih SDGs yang didukung project...</label>
+                <select id="sdgs" name="sdgs[]" class="form-select select2-sdgs" multiple>
+                  @php
+                    $selected_sdgs = isset($project) ? $project->sdgs->pluck('id')->toArray() : (old('sdgs') ?? []);
+                  @endphp
+                  @foreach ($sdgs as $sdg)
+                    <option value="{{ $sdg->id }}" {{ in_array($sdg->id, $selected_sdgs) ? 'selected' : '' }}>
+                      SDG {{ $sdg->nomor }} - {{ $sdg->nama }}
+                    </option>
+                  @endforeach
+                </select>
+                <div class="help-text mt-1">Dapat memilih lebih dari satu SDGs.</div>
+              </div>
+            </div>
+
             <!-- Subkategori (auto) -->
             <div id="subkategori_pendanaan_container" class="mt-3" style="display:none;">
               <div class="form-section-title"><i class="bi bi-list-check"></i> Detail Pendanaan</div>
@@ -505,7 +635,9 @@
   </div>
 
   <!-- Scripts -->
+  <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
   <script>
     // Sidebar toggle (mobile)
     const sidebar = document.getElementById('appSidebar');
@@ -652,6 +784,16 @@
         reloadSumberDanaByTipe(tipeProject.value, null);
       }
     })();
+
+    // Initialize Select2 for SDGs
+    $(document).ready(function() {
+      $('.select2-sdgs').select2({
+        theme: 'bootstrap-5',
+        placeholder: 'Pilih SDGs yang didukung project...',
+        allowClear: true,
+        width: '100%'
+      });
+    });
   </script>
 </body>
 </html>

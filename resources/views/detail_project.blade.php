@@ -794,6 +794,22 @@
                   <div class="value-lg">{{ $sdNama }}</div>
                 </div>
               </div>
+
+              @if(isset($project) && $project->sdgs && $project->sdgs->count() > 0)
+                <div class="mt-3 pt-3" style="border-top:1px dashed var(--line);">
+                  <div class="label-sm mb-2">SDGs</div>
+                  <div class="d-flex flex-column gap-2">
+                    @foreach($project->sdgs as $sdg)
+                      <div class="badge text-start d-flex align-items-center p-2" 
+                           style="background-color: {{ $sdg->warna }}; color: #fff; font-size: 0.85rem; border-radius: 8px; white-space: normal;" 
+                           title="SDG {{ $sdg->nomor }} - {{ $sdg->nama }}">
+                        <strong class="me-2" style="font-size: 1rem;">SDG {{ $sdg->nomor }}</strong> 
+                        <span>{{ $sdg->nama }}</span>
+                      </div>
+                    @endforeach
+                  </div>
+                </div>
+              @endif
             </div>
 
           </div>

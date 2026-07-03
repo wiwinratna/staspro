@@ -86,10 +86,12 @@ class ProjectController extends Controller
     {
         $sumber_internal  = Sumberdana::where('jenis_pendanaan', 'internal')->get();
         $sumber_eksternal = Sumberdana::where('jenis_pendanaan', 'eksternal')->get();
+        $sdgs = \App\Models\Sdg::orderBy('nomor')->get();
 
         return view('input_project', [
             'sumber_internal'  => $sumber_internal,
             'sumber_eksternal' => $sumber_eksternal,
+            'sdgs'             => $sdgs,
         ]);
     }
 
@@ -198,6 +200,10 @@ class ProjectController extends Controller
                         ]);
                     }
                 }
+
+                if ($request->has('sdgs') && is_array($request->sdgs)) {
+                    $project->sdgs()->attach($request->sdgs);
+                }
             });
 
             return redirect()->route('project.index')->with('success', 'Data berhasil ditambahkan');
@@ -208,7 +214,7 @@ class ProjectController extends Controller
 
     public function show(Project $project)
     {
-        $project = Project::with('sumberDana')->findOrFail($project->id);
+        $project = Project::with(['sumberDana', 'sdgs'])->findOrFail($project->id);
 
         $sumber_dana = null;
         if (!$project->sumberDana) {
@@ -798,14 +804,15 @@ class ProjectController extends Controller
 
     public function edit($id)
     {
-        $project = Project::findOrFail($id);
+        $project = Project::with('sdgs')->findOrFail($id);
 
         // Filter berdasarkan tipe_project yang dimiliki project ini
         $tipe = $project->tipe_project ?? 'Penelitian';
         $sumber_internal  = Sumberdana::where('jenis_pendanaan', 'internal')->where('tipe_project', $tipe)->get();
         $sumber_eksternal = Sumberdana::where('jenis_pendanaan', 'eksternal')->where('tipe_project', $tipe)->get();
+        $sdgs = \App\Models\Sdg::orderBy('nomor')->get();
 
-        return view('input_project', compact('project', 'sumber_internal', 'sumber_eksternal'));
+        return view('input_project', compact('project', 'sumber_internal', 'sumber_eksternal', 'sdgs'));
     }
 
     public function update(Request $request, $id)
@@ -923,6 +930,8 @@ class ProjectController extends Controller
                 ->whereNotIn('id_subkategori_sumberdana', $provided_subcategory_ids)
                 ->delete();
         }
+
+        $project->sdgs()->sync($request->sdgs ?? []);
 
         return redirect()->route('project.index')->with('success', 'Project berhasil diupdate!');
     }
