@@ -109,10 +109,18 @@ public function index(Request $request)
 
         // ✅ hanya project yang sudah APPROVED (biar dana cair ga salah sasaran)
         $projects = DB::table('project')
-        ->where('status', 'aktif')
-        ->where('workflow_status', 'approved')
-        ->orderByDesc('id')
-        ->get(['id','nama_project','tahun']);
+        ->leftJoin('skema_pendanaan', 'project.skema_pendanaan_id', '=', 'skema_pendanaan.id')
+        ->leftJoin('sumber_dana', 'project.id_sumber_dana', '=', 'sumber_dana.id')
+        ->where('project.status', 'aktif')
+        ->where('project.workflow_status', 'approved')
+        ->orderByDesc('project.id')
+        ->select([
+            'project.id',
+            'project.nama_project',
+            'project.tahun',
+            DB::raw('COALESCE(skema_pendanaan.nama, sumber_dana.nama_sumber_dana) as nama_sumber')
+        ])
+        ->get();
 
         return view('funding.create', compact('projects'));
     }

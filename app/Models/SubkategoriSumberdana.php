@@ -13,7 +13,13 @@ class SubkategoriSumberdana extends Model
         'nama',
         'nama_form',
         'id_sumberdana',
+        'komponen_biaya_id',
         'user_id_created',
         'user_id_updated',
     ];
+
+    public function komponenBiaya()
+    {
+        return $this->belongsTo(KomponenBiaya::class, 'komponen_biaya_id');
+    }
 }

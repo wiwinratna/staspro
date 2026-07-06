@@ -70,6 +70,7 @@ class PengajuanTransaksiController extends Controller
         $trx->nama_bank                 = $request->nama_bank;
         $trx->no_rekening               = $request->no_rekening;
         $trx->metode_pembayaran         = $request->metode_pembayaran;
+        $trx->is_talangan               = $request->has('is_talangan') ? 1 : 0;
         $trx->status                    = 'submit';
         $trx->user_id_created           = Auth::id();
         $trx->save();
@@ -122,6 +123,7 @@ class PengajuanTransaksiController extends Controller
         $trx->nominal_realisasi         = $kuantitas * $hargaSatuan;
         $trx->bukti_file                = $path;
         $trx->metode_pembayaran         = $request->metode_pembayaran;
+        $trx->is_talangan               = $request->has('is_talangan') ? 1 : 0;
         $trx->status                    = 'submit';
         $trx->user_id_created           = Auth::id();
         $trx->save();

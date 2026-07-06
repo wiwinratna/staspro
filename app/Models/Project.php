@@ -23,6 +23,7 @@ class Project extends Model
         'file_proposal',
         'file_rab',
         'id_sumber_dana',
+        'skema_pendanaan_id',
 
         // status lama
         'status',
@@ -41,6 +42,11 @@ class Project extends Model
         'user_id_created',
         'user_id_updated',
     ];
+
+    public function skemaPendanaan(): BelongsTo
+    {
+        return $this->belongsTo(SkemaPendanaan::class, 'skema_pendanaan_id');
+    }
 
     public function sumberDana(): BelongsTo
     {

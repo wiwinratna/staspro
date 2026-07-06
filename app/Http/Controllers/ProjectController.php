@@ -84,36 +84,47 @@ class ProjectController extends Controller
 
     public function create()
     {
-        $sumber_internal  = Sumberdana::where('jenis_pendanaan', 'internal')->get();
-        $sumber_eksternal = Sumberdana::where('jenis_pendanaan', 'eksternal')->get();
+        $skema_pendanaan = \App\Models\SkemaPendanaan::with(['jenisProject', 'jenisPendanaan', 'provider'])
+            ->where('is_active', true)
+            ->get();
+            
+        $komponen_biaya = \App\Models\KomponenBiaya::where('is_active', true)->get();
         $sdgs = \App\Models\Sdg::orderBy('nomor')->get();
 
         return view('input_project', [
-            'sumber_internal'  => $sumber_internal,
-            'sumber_eksternal' => $sumber_eksternal,
-            'sdgs'             => $sdgs,
+            'skema_pendanaan' => $skema_pendanaan,
+            'komponen_biaya'  => $komponen_biaya,
+            'sdgs'            => $sdgs,
         ]);
     }
 
-    /**
-     * API: Return sumber dana filtered by tipe_project (JSON).
-     */
-    public function getSumberDanaByTipe($tipe)
+    public function getSkemaDetails($id)
     {
-        $data = Sumberdana::where('tipe_project', $tipe)
-            ->select('id', 'tipe_project', 'jenis_pendanaan', 'nama_sumber_dana')
-            ->orderBy('jenis_pendanaan')
-            ->orderBy('nama_sumber_dana')
-            ->get();
+        $skema = \App\Models\SkemaPendanaan::with(['jenisProject', 'jenisPendanaan', 'provider', 'komponen.komponenBiaya'])
+            ->findOrFail($id);
 
-        return response()->json($data);
+        $komponen = $skema->komponen->map(function($k) {
+            return [
+                'id' => $k->komponenBiaya->id,
+                'nama' => $k->komponenBiaya->nama,
+                'is_wajib' => $k->is_wajib,
+                'urutan' => $k->urutan
+            ];
+        });
+
+        return response()->json([
+            'skema' => $skema,
+            'komponen' => $komponen
+        ]);
     }
 
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'tipe_project'  => 'required|in:Penelitian,Abdimas',
+            'skema_pendanaan_id' => 'required|exists:skema_pendanaan,id',
             'tahun'         => 'required',
+            'tanggal_mulai' => 'required|date',
+            'tanggal_selesai' => 'required|date|after_or_equal:tanggal_mulai',
             'nama_project'  => 'required|unique:project,nama_project',
             'durasi'        => 'required',
             'deskripsi'     => 'required',
@@ -122,6 +133,8 @@ class ProjectController extends Controller
         ]);
 
         try {
+            $skema = \App\Models\SkemaPendanaan::with(['jenisProject', 'jenisPendanaan'])->findOrFail($request->skema_pendanaan_id);
+
             // ========= UPLOAD FILE (AMAN DI CPANEL) =========
             $file_proposal = $request->file('file_proposal');
             $filename_proposal = time() . '_proposal.' . $file_proposal->getClientOriginalExtension();
@@ -131,49 +144,44 @@ class ProjectController extends Controller
             $filename_rab = time() . '_rab.' . $file_rab->getClientOriginalExtension();
             $file_rab->storeAs('file_rab', $filename_rab, 'public');
 
-            // sumber dana id
-            $sumberDanaId = $request->sumber_dana == 'internal'
-                ? $request->kategori_pendanaan_internal
-                : $request->kategori_pendanaan_eksternal;
-
-            // ✅ Validasi backend: pastikan tipe_project sumber dana cocok
-            $sumberDana = Sumberdana::findOrFail($sumberDanaId);
-            if ($sumberDana->tipe_project !== $request->tipe_project) {
-                return redirect()->back()->withInput()->with('error', 'Sumber dana yang dipilih tidak sesuai dengan tipe project.');
-            }
-
-            $subkategori_sumberdana = SubkategoriSumberdana::where('id_sumberdana', $sumberDanaId)->get();
-
             DB::transaction(function () use (
                 $request,
                 $filename_proposal,
                 $filename_rab,
-                $sumberDanaId,
-                $subkategori_sumberdana,
+                $skema,
                 &$project
             ) {
+                // 1. Create shadow sumber_dana for isolated project RAB
+                $sumberDana = Sumberdana::create([
+                    'tipe_project' => $skema->jenisProject->nama ?? 'Penelitian',
+                    'jenis_pendanaan' => $skema->jenisPendanaan->nama ?? 'internal',
+                    'nama_sumber_dana' => 'Alokasi: ' . $request->nama_project,
+                    'user_id_created' => Auth::id(),
+                    'user_id_updated' => Auth::id(),
+                ]);
+
+                // 2. Create Project
                 $project = Project::create([
-                    'tipe_project'    => $request->tipe_project,
+                    'tipe_project'    => $skema->jenisProject->nama ?? 'Penelitian',
                     'tahun'           => $request->tahun,
+                    'tanggal_mulai'   => $request->tanggal_mulai,
+                    'tanggal_selesai' => $request->tanggal_selesai,
                     'nama_project'    => $request->nama_project,
-                    'id_sumber_dana'  => $sumberDanaId,
+                    'id_sumber_dana'  => $sumberDana->id,
+                    'skema_pendanaan_id' => $skema->id,
                     'durasi'          => $request->durasi,
                     'deskripsi'       => $request->deskripsi,
                     'file_proposal'   => $filename_proposal,
                     'file_rab'        => $filename_rab,
 
-                    // ✅ workflow
                     'workflow_status' => 'submitted',
                     'submitted_at'    => now(),
-
-                    // ✅ ketua default = pengaju
                     'ketua_id'        => Auth::id(),
-
                     'user_id_created' => Auth::id(),
                     'user_id_updated' => Auth::id(),
                 ]);
 
-                // ✅ AUTO: pengaju otomatis jadi anggota detail_project
+                // 3. Auto pengaju jadi anggota
                 DB::table('detail_project')->updateOrInsert(
                     ['id_project' => $project->id, 'id_user' => Auth::id()],
                     [
@@ -184,21 +192,34 @@ class ProjectController extends Controller
                     ]
                 );
 
-                foreach ($subkategori_sumberdana as $subkategori) {
-                    $nama_form = $subkategori->nama_form;
+                // 4. Insert overridden/preview components
+                $komponenIds = $request->input('komponen_id', []);
+                $nominals = $request->input('nominal', []);
 
-                    if ($request->has($nama_form)) {
-                        $nominal = str_replace(['Rp.', '.', ','], ['', '', '.'], $request->$nama_form);
-                        $nominal = (float) $nominal;
+                foreach ($komponenIds as $index => $kompId) {
+                    $komponenBiaya = \App\Models\KomponenBiaya::find($kompId);
+                    if (!$komponenBiaya) continue;
 
-                        DetailSubkategori::create([
-                            'nominal'                   => $nominal,
-                            'id_subkategori_sumberdana' => $subkategori->id,
-                            'id_project'                => $project->id,
-                            'user_id_created'           => Auth::id(),
-                            'user_id_updated'           => Auth::id(),
-                        ]);
-                    }
+                    // Buat shadow subkategori
+                    $subkat = \App\Models\SubkategoriSumberdana::create([
+                        'id_sumberdana' => $sumberDana->id,
+                        'nama' => $komponenBiaya->nama,
+                        'nama_form' => 'komp_' . $kompId . '_' . uniqid(),
+                        'komponen_biaya_id' => $komponenBiaya->id,
+                        'user_id_created' => Auth::id(),
+                        'user_id_updated' => Auth::id(),
+                    ]);
+
+                    $rawNominal = $nominals[$index] ?? 0;
+                    $nominalVal = (float) str_replace(['Rp.', '.', ','], ['', '', '.'], $rawNominal);
+
+                    \App\Models\DetailSubkategori::create([
+                        'nominal'                   => $nominalVal,
+                        'id_subkategori_sumberdana' => $subkat->id,
+                        'id_project'                => $project->id,
+                        'user_id_created'           => Auth::id(),
+                        'user_id_updated'           => Auth::id(),
+                    ]);
                 }
 
                 if ($request->has('sdgs') && is_array($request->sdgs)) {
@@ -206,9 +227,9 @@ class ProjectController extends Controller
                 }
             });
 
-            return redirect()->route('project.index')->with('success', 'Data berhasil ditambahkan');
+            return redirect()->route('project.index')->with('success', 'Project berhasil dibuat beserta konfigurasi RAB-nya.');
         } catch (\Exception $e) {
-            return redirect()->route('project.index')->with('error', $e->getMessage());
+            return redirect()->route('project.index')->with('error', 'Gagal membuat project: ' . $e->getMessage());
         }
     }
 
@@ -823,6 +844,8 @@ class ProjectController extends Controller
             'tipe_project' => 'required|in:Penelitian,Abdimas',
             'nama_project' => 'required|unique:project,nama_project,' . $id,
             'tahun'        => 'required',
+            'tanggal_mulai' => 'required|date',
+            'tanggal_selesai' => 'required|date|after_or_equal:tanggal_mulai',
             'durasi'       => 'required',
             'deskripsi'    => 'required',
         ]);
@@ -865,6 +888,8 @@ class ProjectController extends Controller
         $project->tipe_project    = $request->tipe_project;
         $project->nama_project    = $request->nama_project;
         $project->tahun           = $request->tahun;
+        $project->tanggal_mulai   = $request->tanggal_mulai;
+        $project->tanggal_selesai = $request->tanggal_selesai;
         $project->durasi          = $request->durasi;
         $project->deskripsi       = $request->deskripsi;
         $project->id_sumber_dana  = $new_sumber_dana_id;

@@ -222,6 +222,24 @@ Route::middleware(['auth', 'profile.complete'])->group(function () {
 
     /*
     |--------------------------------------------------------------------------
+    | Master Data (Arsitektur Baru)
+    |--------------------------------------------------------------------------
+    */
+    Route::get('/project/sumberdana/{id}', [App\Http\Controllers\ProjectController::class, 'getSubkategori'])->name('project.sumberdana');
+    Route::get('/project/skema-details/{id}', [App\Http\Controllers\ProjectController::class, 'getSkemaDetails'])->name('project.skema-details');
+    Route::get('/project/{id}/subcategories', [App\Http\Controllers\ProjectController::class, 'getProjectSubcategories']);
+    Route::resource('master/jenis-project', \App\Http\Controllers\JenisProjectController::class)->except(['show']);
+    Route::resource('master/jenis-pendanaan', \App\Http\Controllers\JenisPendanaanController::class)->except(['show']);
+    Route::resource('master/provider-pendanaan', \App\Http\Controllers\ProviderPendanaanController::class)->except(['show']);
+    Route::resource('master/komponen-biaya', \App\Http\Controllers\KomponenBiayaController::class)->except(['show']);
+    Route::resource('master/skema-pendanaan', \App\Http\Controllers\SkemaPendanaanController::class);
+    Route::post('master/skema-pendanaan/{skema}/komponen', [\App\Http\Controllers\SkemaPendanaanController::class, 'storeKomponen'])->name('skema-pendanaan.komponen.store');
+    Route::delete('master/skema-pendanaan/{skema}/komponen/{komponen}', [\App\Http\Controllers\SkemaPendanaanController::class, 'destroyKomponen'])->name('skema-pendanaan.komponen.destroy');
+    Route::put('master/skema-pendanaan/{skema}/komponen/reorder', [\App\Http\Controllers\SkemaPendanaanController::class, 'reorderKomponen'])->name('skema-pendanaan.komponen.reorder');
+    Route::put('master/skema-pendanaan/{skema}/komponen/{komponen}/toggle-wajib', [\App\Http\Controllers\SkemaPendanaanController::class, 'toggleWajib'])->name('skema-pendanaan.komponen.toggle-wajib');
+
+    /*
+    |--------------------------------------------------------------------------
     | Users Management
     |--------------------------------------------------------------------------
     */

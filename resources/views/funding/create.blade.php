@@ -50,7 +50,7 @@
         <select name="project_id" class="form-select" required>
           <option value="">Pilih project aktif</option>
           @foreach($projects as $p)
-            <option value="{{ $p->id }}" {{ old('project_id') == $p->id ? 'selected' : '' }}>
+            <option value="{{ $p->id }}" data-sumber="{{ $p->nama_sumber }}" {{ old('project_id') == $p->id ? 'selected' : '' }}>
               {{ $p->nama_project }} ({{ $p->tahun }})
             </option>
           @endforeach
@@ -110,16 +110,30 @@
 </div>
 
 @push('scripts')
-<script>
-  // Format rupiah sederhana saat ngetik
-  const el = document.getElementById('nominal');
-  if(el){
-    el.addEventListener('input', () => {
-      const digits = el.value.replace(/[^\d]/g,'');
-      if(!digits) { el.value=''; return; }
-      el.value = new Intl.NumberFormat('id-ID').format(parseInt(digits,10));
-    });
-  }
-</script>
+  <script>
+    const el = document.getElementById('nominal');
+    if(el){
+      el.addEventListener('input', () => {
+        const digits = el.value.replace(/[^\d]/g,'');
+        if(!digits) { el.value=''; return; }
+        el.value = new Intl.NumberFormat('id-ID').format(parseInt(digits,10));
+      });
+    }
+
+    const projectSelect = document.querySelector('select[name="project_id"]');
+    const sumberInput = document.querySelector('input[name="sumber_dana"]');
+    
+    if(projectSelect && sumberInput) {
+      projectSelect.addEventListener('change', function() {
+        const selectedOption = this.options[this.selectedIndex];
+        const sumber = selectedOption.getAttribute('data-sumber');
+        if(sumber) {
+          sumberInput.value = sumber;
+        } else {
+          sumberInput.value = '';
+        }
+      });
+    }
+  </script>
 @endpush
 @endsection

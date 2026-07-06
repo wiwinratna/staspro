@@ -6,7 +6,7 @@
     : (Auth::user()->role === 'admin' ? 'dashboard' : 'peneliti.dashboard');
   $projectMenuOpen = request()->routeIs('project.*') || request()->routeIs('pengajuan.*');
   $komponenMenuOpen = request()->routeIs('requestpembelian.*');
-  $masterDataOpen = request()->routeIs('sumberdana.*') || request()->routeIs('users.*');
+  $masterDataOpen = request()->routeIs('sumberdana.*') || request()->routeIs('users.*') || request()->routeIs('jenis-project.*') || request()->routeIs('jenis-pendanaan.*') || request()->routeIs('provider-pendanaan.*') || request()->routeIs('komponen-biaya.*') || request()->routeIs('skema-pendanaan.*');
 @endphp
 
 <a class="nav-link-custom {{ request()->routeIs($dashRoute) ? 'active' : '' }}" href="{{ route($dashRoute) }}">
@@ -146,8 +146,27 @@
 
   <div class="collapse {{ $masterDataOpen ? 'show' : '' }}" id="menuMasterData">
     <div class="ms-2 mt-1 d-grid gap-1">
+      
+      <!-- Arsitektur Master Baru -->
+      <a class="nav-link-custom {{ request()->routeIs('jenis-project.*') ? 'active' : '' }}" href="{{ route('jenis-project.index') }}">
+        <i class="bi bi-folder"></i> Jenis Project
+      </a>
+      <a class="nav-link-custom {{ request()->routeIs('jenis-pendanaan.*') ? 'active' : '' }}" href="{{ route('jenis-pendanaan.index') }}">
+        <i class="bi bi-wallet"></i> Jenis Pendanaan
+      </a>
+      <a class="nav-link-custom {{ request()->routeIs('provider-pendanaan.*') ? 'active' : '' }}" href="{{ route('provider-pendanaan.index') }}">
+        <i class="bi bi-building"></i> Provider Pendanaan
+      </a>
+      <a class="nav-link-custom {{ request()->routeIs('komponen-biaya.*') ? 'active' : '' }}" href="{{ route('komponen-biaya.index') }}">
+        <i class="bi bi-list-check"></i> Komponen Biaya
+      </a>
+      <a class="nav-link-custom {{ request()->routeIs('skema-pendanaan.*') ? 'active' : '' }}" href="{{ route('skema-pendanaan.index') }}">
+        <i class="bi bi-diagram-3"></i> Skema Pendanaan
+      </a>
+
+      <!-- Legacy Master -->
       <a class="nav-link-custom {{ request()->routeIs('sumberdana.*') ? 'active' : '' }}" href="{{ route('sumberdana.index') }}">
-        <i class="bi bi-cash-coin"></i> Sumber Dana
+        <i class="bi bi-cash-coin"></i> Sumber Dana (Legacy)
       </a>
 
       @if(Auth::user()->role === 'admin')

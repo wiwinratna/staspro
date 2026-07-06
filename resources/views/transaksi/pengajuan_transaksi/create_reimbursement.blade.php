@@ -172,12 +172,14 @@
           <input type="date" name="tgl_bukti" class="form-control field" value="{{ old('tgl_bukti') }}" required>
         </div>
 
-        <div class="col-md-4">
-          <div class="label">Upload Bukti *</div>
-          <input type="file" name="bukti_file" class="form-control field" accept="image/*" required>
+        <div class="col-md-6">
+          <div class="label">Bukti Transaksi (JPG/PNG/PDF) *</div>
+          <input type="file" name="bukti_file" class="form-control field" accept=".jpg,.jpeg,.png,.pdf,.webp" required>
         </div>
 
-        <div class="col-12 d-flex gap-2 justify-content-end">
+
+
+        <div class="col-12 d-flex gap-2 justify-content-end mt-4">
           <a href="{{ route('pengajuan_transaksi.index') }}" class="btn-soft">
             <i class="bi bi-x-lg"></i> Batal
           </a>

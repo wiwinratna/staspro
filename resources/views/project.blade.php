@@ -172,110 +172,56 @@
   /* card project */
   .proj-card{
     width:100%;
-    background:
-      radial-gradient(900px 220px at 18% 0%, rgba(255,255,255,.16), transparent 60%),
-      radial-gradient(600px 200px at 85% 12%, rgba(255,255,255,.10), transparent 55%),
-      linear-gradient(180deg,#1a8f4a,#157a3b);
-    color:#fff;
+    background:#fff;
+    color:var(--ink-600);
     border-radius:20px;
-    padding:16px;
-    height:180px;
+    padding:20px;
+    height:100%;
+    min-height:180px;
     position:relative;
-    box-shadow:0 10px 26px rgba(15,23,42,.10);
-    transition: transform .15s ease, box-shadow .15s ease;
+    box-shadow:0 6px 16px rgba(15,23,42,.04);
+    transition: transform .2s ease, box-shadow .2s ease, border-color .2s;
     cursor:pointer;
-    overflow:hidden;
-    border:1px solid rgba(255,255,255,.14);
-  }
-  .proj-card:hover{ transform:translateY(-2px); box-shadow:0 18px 40px rgba(15,23,42,.10); }
-  .proj-card.archived{
-    background:
-      radial-gradient(900px 220px at 18% 0%, rgba(255,255,255,.14), transparent 60%),
-      radial-gradient(600px 200px at 85% 12%, rgba(255,255,255,.08), transparent 55%),
-      linear-gradient(180deg,#94a3b8,#64748b);
-    border:1px solid rgba(255,255,255,.18);
-  }
-
-  .proj-year{
-    position:absolute; top:14px; left:14px;
-    font-size:.72rem;
-    padding:.22rem .6rem;
-    border-radius:999px;
-    background:rgba(255,255,255,.16);
-    border:1px solid rgba(255,255,255,.22);
-    font-weight:800;
-    white-space:nowrap;
-  }
-  .proj-status{
-    position:absolute; top:14px; right:14px;
-    font-size:.72rem;
-    font-weight:800;
-    padding:.22rem .6rem;
-    border-radius:999px;
-    background:rgba(255,255,255,.16);
-    border:1px solid rgba(255,255,255,.22);
-    white-space:nowrap;
-  }
-  .proj-title{
-    margin-top:40px;
-    font-size:1.05rem;
-    font-weight:900;
-    line-height:1.35;
-    letter-spacing:-.1px;
-  }
-  .proj-meta{
-    margin-top:10px;
-    font-size:.82rem;
-    opacity:.95;
+    border:1px solid rgba(226,232,240,.95);
     display:flex;
     flex-direction:column;
-    gap:4px;
-    font-weight:600;
+  }
+  .proj-card:hover{ 
+    transform:translateY(-3px); 
+    box-shadow:0 14px 28px rgba(15,23,42,.08); 
+    border-color:#bbf7d0;
+  }
+  .proj-card.archived{
+    background:#f8fafc;
+    border:1px dashed #cbd5e1;
+    box-shadow:none;
+  }
+  .proj-card.archived:hover{
+    box-shadow:0 8px 16px rgba(15,23,42,.04);
+    border-color:#94a3b8;
   }
 
-  /* actions (admin only) */
-  .proj-actions{
-    position:absolute;
-    right:12px;
-    bottom:12px;
-    display:flex;
-    gap:8px;
-    opacity:0;
-    transition:.15s;
+  .proj-title{
+    font-size:1.1rem; font-weight:800; line-height:1.3; color:#1e293b; margin-bottom:12px;
+    display:-webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
   }
-  .proj-card:hover .proj-actions{ opacity:1; }
-  .proj-actions .btn{
-    --bs-btn-padding-y:.2rem;
-    --bs-btn-padding-x:.5rem;
-    --bs-btn-bg:rgba(255,255,255,.18);
-    --bs-btn-border-color:rgba(255,255,255,.30);
-    --bs-btn-hover-bg:rgba(255,255,255,.26);
-    color:#fff;
-    border-radius:12px;
-    font-weight:800;
+  .proj-meta-grid { display:grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom:12px; }
+  .proj-meta-grid > div { display:flex; flex-direction:column; }
+  .proj-meta-val {
+    font-size:0.85rem; font-weight:700; color:#334155; line-height:1.2; margin-bottom:2px;
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
   }
-  .proj-actions form{ margin:0; }
-
-  /* badge anggota */
-  .proj-member{
-    position:absolute;
-    left:14px;
-    bottom:14px;
-    font-size:.72rem;
-    font-weight:900;
-    padding:.22rem .6rem;
-    border-radius:999px;
-    background:rgba(255,255,255,.22);
-    border:1px solid rgba(255,255,255,.30);
-    display:inline-flex;
-    align-items:center;
-    gap:6px;
-    white-space:nowrap;
+  .proj-meta-val.wrap-2 { white-space:normal; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; }
+  .proj-meta-lbl { font-size:0.65rem; color:#94a3b8; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; }
+  .proj-footer {
+    margin-top:auto; padding-top:12px; border-top:1px solid #f1f5f9;
+    display:flex; justify-content:space-between; align-items:center;
   }
-  .proj-card.joined{
-    outline:2px solid rgba(255,255,255,.35);
-    box-shadow:0 18px 42px rgba(2,6,23,.18);
-  }
+  .proj-footer-status { font-size:.72rem; font-weight:800; padding:.2rem .6rem; border-radius:4px; }
+  .proj-footer-status.ongoing { background:#ecfdf5; color:#15803d; }
+  .proj-footer-status.closed { background:#f1f5f9; color:#64748b; }
+  
+  .proj-card.joined{ border-color:#bbf7d0; }
 
   /* FILTER CARD BAR */
   .filter-card{
@@ -422,16 +368,20 @@
 
   @php
     $aktif = $projects->filter(fn($p)=>($p->status ?? 'aktif')==='aktif');
+    $aktifPenelitian = $aktif->filter(fn($p) => strtolower($p->tipe_project ?? '') === 'penelitian');
+    $aktifAbdimas = $aktif->filter(fn($p) => strtolower($p->tipe_project ?? '') === 'abdimas');
+    $aktifLainnya = $aktif->filter(fn($p) => !in_array(strtolower($p->tipe_project ?? ''), ['penelitian', 'abdimas']));
+    
     $arsip = $projects->filter(fn($p)=>($p->status ?? '')==='ditutup');
   @endphp
 
-  <div class="section-head">
-    <h6 class="section-title"><i class="bi bi-play-circle-fill"></i> Project Aktif</h6>
-    <span class="section-pill"><i class="bi bi-layers"></i> {{ $aktif->count() }} item</span>
+  @if($aktifPenelitian->count() > 0)
+  <div class="section-head mt-4">
+    <h6 class="section-title"><i class="bi bi-play-circle-fill"></i> Project Penelitian (Aktif)</h6>
+    <span class="section-pill"><i class="bi bi-layers"></i> {{ $aktifPenelitian->count() }} item</span>
   </div>
-
   <div class="row g-3">
-    @foreach($aktif as $p)
+    @foreach($aktifPenelitian as $p)
       @php
         $isJoined = Auth::user()->role !== 'admin' && in_array($p->id, $joinedProjectIds ?? []);
       @endphp
@@ -442,44 +392,182 @@
              onclick="location.href='{{ route('project.show',$p->id) }}'"
              onkeydown="if(event.key==='Enter'){ this.click(); }">
 
-          <span class="proj-year">{{ $p->tahun }}</span>
-          <span class="proj-status">ON GOING</span>
-
-          <div class="proj-title">{{ $p->nama_project }}</div>
-
-          <div class="proj-meta">
-            <div>Tipe: {{ $p->tipe_project ?? 'Penelitian' }} • Sumber Dana: {{ $p->sumberDana->jenis_pendanaan ?? '-' }}</div>
+          <!-- Title -->
+          <div class="proj-title" title="{{ $p->nama_project }}">{{ $p->nama_project }}</div>
+          
+          <!-- Grid 2 Cols -->
+          <div class="proj-meta-grid">
+            <div>
+              <div class="proj-meta-val">{{ $p->tipe_project ?? 'Penelitian' }}</div>
+              <div class="proj-meta-lbl">Tipe Project</div>
+            </div>
+            <div class="text-end">
+              <div class="proj-meta-val">{{ $p->tahun }}</div>
+              <div class="proj-meta-lbl">Tahun</div>
+            </div>
+          </div>
+          
+          <!-- Full Row -->
+          <div class="mb-3">
+            <div class="proj-meta-val wrap-2">{{ ucwords(strtolower($p->sumberDana->nama ?? $p->sumberDana->nama_sumber_dana ?? 'Internal')) }}</div>
+            <div class="proj-meta-lbl">Sumber Dana ({{ $p->sumberDana->jenis_pendanaan ?? '-' }})</div>
           </div>
 
-          @if(Auth::user()->role !== 'admin' && $isJoined)
-            <span class="proj-member">
-              <i class="bi bi-people-fill"></i> Kamu tergabung
-            </span>
-          @endif
+          <!-- Footer -->
+          <div class="proj-footer">
+            <div class="proj-footer-status ongoing">ON GOING</div>
+            
+            <div class="d-flex align-items-center gap-2" onclick="event.stopPropagation()">
+              @if(Auth::user()->role !== 'admin' && $isJoined)
+                <span class="badge bg-light text-primary border border-primary-subtle rounded-pill" style="font-size:0.7rem"><i class="bi bi-people-fill"></i> Tim</span>
+              @endif
 
-          @if(Auth::user()->role === 'admin')
-            <div class="proj-actions" onclick="event.stopPropagation()">
-              <a href="{{ route('project.edit',$p->id) }}" class="btn btn-sm" title="Edit Project">
-                <i class="bi bi-pencil"></i>
-              </a>
-
-              <form action="{{ route('project.destroy',$p->id) }}" method="POST"
-                    onsubmit="return confirm('Yakin hapus project ini? (soft delete)');">
-                @csrf
-                @method('DELETE')
-                <button type="submit" class="btn btn-sm" title="Hapus Project">
-                  <i class="bi bi-trash"></i>
-                </button>
-              </form>
+              @if(Auth::user()->role === 'admin')
+                <a href="{{ route('project.edit',$p->id) }}" class="text-secondary hover-primary" title="Edit"><i class="bi bi-pencil"></i></a>
+                <form action="{{ route('project.destroy',$p->id) }}" method="POST" class="m-0"
+                      onsubmit="return confirm('Yakin hapus project ini? (soft delete)');">
+                  @csrf
+                  @method('DELETE')
+                  <button type="submit" class="btn btn-link text-danger p-0 border-0 text-decoration-none hover-danger" title="Hapus"><i class="bi bi-trash"></i></button>
+                </form>
+              @endif
             </div>
-          @endif
-
+          </div>
         </div>
       </div>
     @endforeach
   </div>
+  @endif
 
-  <div class="section-head">
+  @if($aktifAbdimas->count() > 0)
+  <div class="section-head mt-4">
+    <h6 class="section-title"><i class="bi bi-play-circle-fill"></i> Project Abdimas (Aktif)</h6>
+    <span class="section-pill"><i class="bi bi-layers"></i> {{ $aktifAbdimas->count() }} item</span>
+  </div>
+  <div class="row g-3">
+    @foreach($aktifAbdimas as $p)
+      @php
+        $isJoined = Auth::user()->role !== 'admin' && in_array($p->id, $joinedProjectIds ?? []);
+      @endphp
+
+      <div class="col-12 col-sm-6 col-lg-4 col-xxl-3 project-item"
+           data-search="{{ strtolower(($p->nama_project ?? '').' '.($p->tahun ?? '').' '.($p->tipe_project ?? '').' on going ongoing aktif') }}">
+        <div class="proj-card {{ $isJoined ? 'joined' : '' }}" role="button" tabindex="0"
+             onclick="location.href='{{ route('project.show',$p->id) }}'"
+             onkeydown="if(event.key==='Enter'){ this.click(); }">
+
+          <!-- Title -->
+          <div class="proj-title" title="{{ $p->nama_project }}">{{ $p->nama_project }}</div>
+          
+          <!-- Grid 2 Cols -->
+          <div class="proj-meta-grid">
+            <div>
+              <div class="proj-meta-val">{{ $p->tipe_project ?? 'Abdimas' }}</div>
+              <div class="proj-meta-lbl">Tipe Project</div>
+            </div>
+            <div class="text-end">
+              <div class="proj-meta-val">{{ $p->tahun }}</div>
+              <div class="proj-meta-lbl">Tahun</div>
+            </div>
+          </div>
+          
+          <!-- Full Row -->
+          <div class="mb-3">
+            <div class="proj-meta-val wrap-2">{{ ucwords(strtolower($p->sumberDana->nama ?? $p->sumberDana->nama_sumber_dana ?? 'Internal')) }}</div>
+            <div class="proj-meta-lbl">Sumber Dana ({{ $p->sumberDana->jenis_pendanaan ?? '-' }})</div>
+          </div>
+
+          <!-- Footer -->
+          <div class="proj-footer">
+            <div class="proj-footer-status ongoing">ON GOING</div>
+            
+            <div class="d-flex align-items-center gap-2" onclick="event.stopPropagation()">
+              @if(Auth::user()->role !== 'admin' && $isJoined)
+                <span class="badge bg-light text-primary border border-primary-subtle rounded-pill" style="font-size:0.7rem"><i class="bi bi-people-fill"></i> Tim</span>
+              @endif
+
+              @if(Auth::user()->role === 'admin')
+                <a href="{{ route('project.edit',$p->id) }}" class="text-secondary hover-primary" title="Edit"><i class="bi bi-pencil"></i></a>
+                <form action="{{ route('project.destroy',$p->id) }}" method="POST" class="m-0"
+                      onsubmit="return confirm('Yakin hapus project ini? (soft delete)');">
+                  @csrf
+                  @method('DELETE')
+                  <button type="submit" class="btn btn-link text-danger p-0 border-0 text-decoration-none hover-danger" title="Hapus"><i class="bi bi-trash"></i></button>
+                </form>
+              @endif
+            </div>
+          </div>
+        </div>
+      </div>
+    @endforeach
+  </div>
+  @endif
+
+  @if($aktifLainnya->count() > 0)
+  <div class="section-head mt-4">
+    <h6 class="section-title"><i class="bi bi-play-circle-fill"></i> Project Lainnya (Aktif)</h6>
+    <span class="section-pill"><i class="bi bi-layers"></i> {{ $aktifLainnya->count() }} item</span>
+  </div>
+  <div class="row g-3">
+    @foreach($aktifLainnya as $p)
+      @php
+        $isJoined = Auth::user()->role !== 'admin' && in_array($p->id, $joinedProjectIds ?? []);
+      @endphp
+
+      <div class="col-12 col-sm-6 col-lg-4 col-xxl-3 project-item"
+           data-search="{{ strtolower(($p->nama_project ?? '').' '.($p->tahun ?? '').' '.($p->tipe_project ?? '').' on going ongoing aktif') }}">
+        <div class="proj-card {{ $isJoined ? 'joined' : '' }}" role="button" tabindex="0"
+             onclick="location.href='{{ route('project.show',$p->id) }}'"
+             onkeydown="if(event.key==='Enter'){ this.click(); }">
+
+          <!-- Title -->
+          <div class="proj-title" title="{{ $p->nama_project }}">{{ $p->nama_project }}</div>
+          
+          <!-- Grid 2 Cols -->
+          <div class="proj-meta-grid">
+            <div>
+              <div class="proj-meta-val">{{ $p->tipe_project ?? '-' }}</div>
+              <div class="proj-meta-lbl">Tipe Project</div>
+            </div>
+            <div class="text-end">
+              <div class="proj-meta-val">{{ $p->tahun }}</div>
+              <div class="proj-meta-lbl">Tahun</div>
+            </div>
+          </div>
+          
+          <!-- Full Row -->
+          <div class="mb-3">
+            <div class="proj-meta-val wrap-2">{{ ucwords(strtolower($p->sumberDana->nama ?? $p->sumberDana->nama_sumber_dana ?? 'Internal')) }}</div>
+            <div class="proj-meta-lbl">Sumber Dana ({{ $p->sumberDana->jenis_pendanaan ?? '-' }})</div>
+          </div>
+
+          <!-- Footer -->
+          <div class="proj-footer">
+            <div class="proj-footer-status ongoing">ON GOING</div>
+            
+            <div class="d-flex align-items-center gap-2" onclick="event.stopPropagation()">
+              @if(Auth::user()->role !== 'admin' && $isJoined)
+                <span class="badge bg-light text-primary border border-primary-subtle rounded-pill" style="font-size:0.7rem"><i class="bi bi-people-fill"></i> Tim</span>
+              @endif
+
+              @if(Auth::user()->role === 'admin')
+                <a href="{{ route('project.edit',$p->id) }}" class="text-secondary hover-primary" title="Edit"><i class="bi bi-pencil"></i></a>
+                <form action="{{ route('project.destroy',$p->id) }}" method="POST" class="m-0"
+                      onsubmit="return confirm('Yakin hapus project ini? (soft delete)');">
+                  @csrf
+                  @method('DELETE')
+                  <button type="submit" class="btn btn-link text-danger p-0 border-0 text-decoration-none hover-danger" title="Hapus"><i class="bi bi-trash"></i></button>
+                </form>
+              @endif
+            </div>
+          </div>
+        </div>
+      </div>
+    @endforeach
+  </div>
+  @endif
+
+  <div class="section-head mt-4">
     <h6 class="section-title"><i class="bi bi-archive-fill"></i> Arsip (Ditutup)</h6>
     <span class="section-pill"><i class="bi bi-layers"></i> {{ $arsip->count() }} item</span>
   </div>
@@ -496,35 +584,41 @@
              onclick="location.href='{{ route('project.show',$p->id) }}'"
              onkeydown="if(event.key==='Enter'){ this.click(); }">
 
-          <span class="proj-year">{{ $p->tahun }}</span>
-          <span class="proj-status">DITUTUP</span>
-
-          <div class="proj-title">{{ $p->nama_project }}</div>
-          <div class="proj-meta">Project telah diarsipkan</div>
-
-          @if(Auth::user()->role !== 'admin' && $isJoined)
-            <span class="proj-member">
-              <i class="bi bi-people-fill"></i> Kamu tergabung
-            </span>
-          @endif
-
-          @if(Auth::user()->role === 'admin')
-            <div class="proj-actions" onclick="event.stopPropagation()">
-              <a href="{{ route('project.edit',$p->id) }}" class="btn btn-sm" title="Edit Project">
-                <i class="bi bi-pencil"></i>
-              </a>
-
-              <form action="{{ route('project.destroy',$p->id) }}" method="POST"
-                    onsubmit="return confirm('Yakin hapus project ini? (soft delete)');">
-                @csrf
-                @method('DELETE')
-                <button type="submit" class="btn btn-sm" title="Hapus Project">
-                  <i class="bi bi-trash"></i>
-                </button>
-              </form>
+          <!-- Title -->
+          <div class="proj-title text-muted" title="{{ $p->nama_project }}">{{ $p->nama_project }}</div>
+          
+          <!-- Grid 2 Cols -->
+          <div class="proj-meta-grid">
+            <div>
+              <div class="proj-meta-val text-muted">{{ $p->tipe_project ?? 'Penelitian' }}</div>
+              <div class="proj-meta-lbl">Tipe Project</div>
             </div>
-          @endif
+            <div class="text-end">
+              <div class="proj-meta-val text-muted">{{ $p->tahun }}</div>
+              <div class="proj-meta-lbl">Tahun</div>
+            </div>
+          </div>
 
+          <!-- Footer -->
+          <div class="proj-footer mt-2 border-0 pt-0">
+            <div class="proj-footer-status closed">DITUTUP</div>
+            
+            <div class="d-flex align-items-center gap-2" onclick="event.stopPropagation()">
+              @if(Auth::user()->role !== 'admin' && $isJoined)
+                <span class="badge bg-light text-secondary border border-secondary-subtle rounded-pill" style="font-size:0.7rem"><i class="bi bi-people-fill"></i> Tim</span>
+              @endif
+
+              @if(Auth::user()->role === 'admin')
+                <a href="{{ route('project.edit',$p->id) }}" class="text-secondary hover-primary" title="Edit"><i class="bi bi-pencil"></i></a>
+                <form action="{{ route('project.destroy',$p->id) }}" method="POST" class="m-0"
+                      onsubmit="return confirm('Yakin hapus project ini? (soft delete)');">
+                  @csrf
+                  @method('DELETE')
+                  <button type="submit" class="btn btn-link text-danger p-0 border-0 text-decoration-none hover-danger" title="Hapus"><i class="bi bi-trash"></i></button>
+                </form>
+              @endif
+            </div>
+          </div>
         </div>
       </div>
     @endforeach

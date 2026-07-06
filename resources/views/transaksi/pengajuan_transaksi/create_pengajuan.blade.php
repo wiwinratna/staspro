@@ -169,7 +169,9 @@
           <input type="text" name="no_rekening" class="form-control field" value="{{ old('no_rekening') }}" placeholder="Contoh: 1234567890" required>
         </div>
 
-        <div class="col-12 d-flex gap-2 justify-content-end">
+
+
+        <div class="col-12 d-flex gap-2 justify-content-end mt-4">
           <a href="{{ route('pengajuan_transaksi.index') }}" class="btn-soft">
             <i class="bi bi-x-lg"></i> Batal
           </a>

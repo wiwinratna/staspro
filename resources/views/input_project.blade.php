@@ -257,11 +257,12 @@
 
     /* Select2 Customization */
     .select2-container--bootstrap-5 .select2-selection {
-      border-radius: 14px;
-      border: 1px solid rgba(226,232,240,.95);
+      border-radius: 14px !important;
+      border: 1px solid rgba(226,232,240,.95) !important;
+      background-color: #fff !important;
       font-weight: 600;
-      min-height: 40px;
-      padding: 2px 6px;
+      min-height: 46px !important;
+      padding: 4px 6px !important;
     }
     .select2-container--bootstrap-5.select2-container--focus .select2-selection {
       box-shadow:0 0 0 .2rem rgba(22,163,74,.14);
@@ -489,22 +490,34 @@
             @if(isset($project)) @method('PUT') @endif
 
             <div class="row g-3">
-              <div class="col-md-6">
+              <div class="col-md-12">
                 <label for="nama_project" class="form-label">Nama Project</label>
                 <input type="text" id="nama_project" name="nama_project" class="form-control" placeholder="Cth: E-Sniffer"
                   value="{{ old('nama_project', $project->nama_project ?? '') }}" required>
               </div>
 
               <div class="col-md-3">
-                <label for="tahun" class="form-label">Tahun</label>
-                <input type="number" id="tahun" name="tahun" class="form-control" placeholder="Contoh: 2025" min="2015" max="2035"
-                  value="{{ old('tahun', $project->tahun ?? '') }}" required>
+                <label for="tanggal_mulai" class="form-label">Tanggal Mulai</label>
+                <input type="date" id="tanggal_mulai" name="tanggal_mulai" class="form-control" 
+                  value="{{ old('tanggal_mulai', isset($project->tanggal_mulai) && $project->tanggal_mulai ? \Carbon\Carbon::parse($project->tanggal_mulai)->format('Y-m-d') : '') }}" required>
               </div>
 
               <div class="col-md-3">
-                <label for="durasi" class="form-label">Durasi Project</label>
-                <input type="text" id="durasi" name="durasi" class="form-control" placeholder="Cth: 6 Bulan / 1 Tahun"
-                  value="{{ old('durasi', $project->durasi ?? '') }}" required>
+                <label for="tanggal_selesai" class="form-label">Tanggal Selesai</label>
+                <input type="date" id="tanggal_selesai" name="tanggal_selesai" class="form-control" 
+                  value="{{ old('tanggal_selesai', isset($project->tanggal_selesai) && $project->tanggal_selesai ? \Carbon\Carbon::parse($project->tanggal_selesai)->format('Y-m-d') : '') }}" required>
+              </div>
+
+              <div class="col-md-3">
+                <label for="tahun" class="form-label">Tahun</label>
+                <input type="number" id="tahun" name="tahun" class="form-control"
+                  value="{{ old('tahun', $project->tahun ?? '') }}" readonly required>
+              </div>
+
+              <div class="col-md-3">
+                <label for="durasi" class="form-label">Durasi</label>
+                <input type="text" id="durasi" name="durasi" class="form-control"
+                  value="{{ old('durasi', $project->durasi ?? '') }}" readonly required>
               </div>
 
               <div class="col-12">
@@ -531,65 +544,38 @@
 
             <hr class="my-4">
 
-            <!-- Tipe Project -->
+            <!-- Skema Pendanaan -->
             @php
-              $current_tipe_project = isset($project) ? ($project->tipe_project ?? 'Penelitian') : old('tipe_project', 'Penelitian');
+              $current_skema = isset($project) ? $project->skema_pendanaan_id : old('skema_pendanaan_id');
             @endphp
+            <input type="hidden" id="is_edit_mode" value="{{ isset($project) ? '1' : '0' }}">
+            <input type="hidden" id="project_id" value="{{ $project->id ?? '' }}">
 
-            <div class="form-section-title"><i class="bi bi-folder2-open"></i> Tipe Project</div>
-
+            <div class="form-section-title"><i class="bi bi-diagram-3"></i> Skema Pendanaan</div>
             <div class="row g-3">
-              <div class="col-md-4">
-                <label for="tipe_project" class="form-label">Tipe Project</label>
-                <select id="tipe_project" name="tipe_project" class="form-select">
-                  <option value="Penelitian" {{ $current_tipe_project=='Penelitian' ? 'selected' : '' }}>Penelitian</option>
-                  <option value="Abdimas"    {{ $current_tipe_project=='Abdimas'    ? 'selected' : '' }}>Abdimas</option>
-                </select>
-              </div>
-            </div>
-
-            <hr class="my-4">
-
-            <!-- Sumber Dana -->
-            @php
-              $current_sumber_dana = isset($project) && $project->sumberDana ? ($project->sumberDana->jenis_pendanaan ?? 'internal') : old('sumber_dana','internal');
-            @endphp
-            <input type="hidden" id="current_sumber_dana" value="{{ $current_sumber_dana }}">
-            <input type="hidden" id="current_kategori_id" value="{{ $project->id_sumber_dana ?? '' }}">
-
-            <div class="form-section-title"><i class="bi bi-cash-coin"></i> Sumber Dana</div>
-
-            <div class="row g-3">
-              <div class="col-md-4">
-                <label for="sumber_dana" class="form-label">Jenis Sumber Dana</label>
-                <select id="sumber_dana" name="sumber_dana" class="form-select">
-                  <option value="internal" {{ $current_sumber_dana=='internal' ? 'selected' : '' }}>Internal</option>
-                  <option value="eksternal" {{ $current_sumber_dana=='eksternal' ? 'selected' : '' }}>Eksternal</option>
-                </select>
-              </div>
-
-              <div class="col-md-8" id="wrap-kategori-internal" style="{{ $current_sumber_dana=='eksternal' ? 'display:none' : '' }}">
-                <label class="form-label">Kategori Pendanaan Internal</label>
-                <select name="kategori_pendanaan_internal" id="kategori_pendanaan_internal" class="form-select">
-                  @foreach ($sumber_internal as $si)
-                    <option value="{{ $si->id }}"
-                      {{ (isset($project) && ($project->id_sumber_dana==$si->id)) || old('kategori_pendanaan_internal')==$si->id ? 'selected':'' }}>
-                      {{ $si->nama_sumber_dana }}
+              <div class="col-md-6">
+                <label for="skema_pendanaan_id" class="form-label">Pilih Skema Pendanaan</label>
+                <select id="skema_pendanaan_id" name="skema_pendanaan_id" class="form-select" {{ isset($project) ? 'disabled' : 'required' }}>
+                  <option value="">-- Pilih Skema --</option>
+                  @foreach($skema_pendanaan as $s)
+                    <option value="{{ $s->id }}" {{ $current_skema == $s->id ? 'selected' : '' }}>
+                      {{ $s->kode }} - {{ $s->nama }}
                     </option>
                   @endforeach
                 </select>
+                @if(isset($project))
+                  <input type="hidden" name="skema_pendanaan_id" value="{{ $project->skema_pendanaan_id }}">
+                  <div class="help-text mt-1 text-warning"><i class="bi bi-exclamation-triangle"></i> Skema pendanaan tidak dapat diubah setelah project dibuat.</div>
+                @endif
               </div>
-
-              <div class="col-md-8" id="wrap-kategori-eksternal" style="{{ $current_sumber_dana=='internal' ? 'display:none' : '' }}">
-                <label class="form-label">Kategori Pendanaan Eksternal</label>
-                <select name="kategori_pendanaan_eksternal" id="kategori_pendanaan_eksternal" class="form-select">
-                  @foreach ($sumber_eksternal as $se)
-                    <option value="{{ $se->id }}"
-                      {{ (isset($project) && ($project->id_sumber_dana==$se->id)) || old('kategori_pendanaan_eksternal')==$se->id ? 'selected':'' }}>
-                      {{ $se->nama_sumber_dana }}
-                    </option>
-                  @endforeach
-                </select>
+              <div class="col-md-6">
+                <div class="p-3 bg-light rounded-3 border" id="skema_info_box" style="display:none;">
+                  <div class="row text-muted" style="font-size:0.85rem">
+                    <div class="col-4"><strong>Jenis Project:</strong><br><span id="info_jp">-</span></div>
+                    <div class="col-4"><strong>Jenis Pendanaan:</strong><br><span id="info_jd">-</span></div>
+                    <div class="col-4"><strong>Provider:</strong><br><span id="info_prov">-</span></div>
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -600,7 +586,7 @@
             <div class="row g-3">
               <div class="col-12">
                 <label for="sdgs" class="form-label">Pilih SDGs yang didukung project...</label>
-                <select id="sdgs" name="sdgs[]" class="form-select select2-sdgs" multiple>
+                <select id="sdgs" name="sdgs[]" class="form-control select2-sdgs" multiple>
                   @php
                     $selected_sdgs = isset($project) ? $project->sdgs->pluck('id')->toArray() : (old('sdgs') ?? []);
                   @endphp
@@ -614,11 +600,74 @@
               </div>
             </div>
 
-            <!-- Subkategori (auto) -->
-            <div id="subkategori_pendanaan_container" class="mt-3" style="display:none;">
-              <div class="form-section-title"><i class="bi bi-list-check"></i> Detail Pendanaan</div>
-              <div id="subkategori_pendanaan" class="row g-3"></div>
-              <div class="help-text">Isi nominal tiap sub-kategori (otomatis diformat Rupiah).</div>
+            <hr class="my-4">
+
+            <!-- Konfigurasi RAB -->
+            <div id="rab_container" style="display:none;">
+              <div class="form-section-title d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-list-check"></i> Konfigurasi Komponen RAB</span>
+                @if(!isset($project))
+                <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#modalAddKomponen">
+                  <i class="bi bi-plus"></i> Tambah Komponen
+                </button>
+                @endif
+              </div>
+              
+              <div class="alert alert-info py-2" style="font-size:0.85rem">
+                <i class="bi bi-info-circle"></i> Komponen di bawah ini adalah default dari Skema. Anda dapat menghapus atau mengubah nominalnya khusus untuk Project ini.
+              </div>
+
+              <div class="table-responsive border rounded bg-white">
+                <table class="table table-hover align-middle mb-0" id="rabTable">
+                  <thead class="table-light">
+                    <tr>
+                      <th width="40%">Komponen Biaya</th>
+                      <th width="15%" class="text-center">Wajib?</th>
+                      <th width="35%">Nominal Anggaran (Rp)</th>
+                      <th width="10%" class="text-center">Aksi</th>
+                    </tr>
+                  </thead>
+                  <tbody id="rabTbody">
+                    <!-- Dinamis dari JS -->
+                  </tbody>
+                  <tfoot class="table-light fw-bold">
+                    <tr>
+                      <td colspan="2" class="text-end">TOTAL RAB:</td>
+                      <td id="totalRAB" class="text-start">Rp. 0</td>
+                      <td></td>
+                    </tr>
+                  </tfoot>
+                </table>
+              </div>
+            </div>
+
+            <!-- Modal Tambah Komponen Override -->
+            <div class="modal fade" id="modalAddKomponen" tabindex="-1">
+              <div class="modal-dialog">
+                <div class="modal-content">
+                  <div class="modal-header">
+                    <h5 class="modal-title">Tambah Komponen Biaya</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                  </div>
+                  <div class="modal-body">
+                    <div class="mb-3">
+                      <label class="form-label">Pilih Komponen</label>
+                      <select class="form-select" id="override_komponen_id">
+                        <option value="">-- Pilih Komponen --</option>
+                        @if(isset($komponen_biaya))
+                          @foreach($komponen_biaya as $k)
+                            <option value="{{ $k->id }}" data-nama="{{ $k->nama }}">{{ $k->nama }}</option>
+                          @endforeach
+                        @endif
+                      </select>
+                    </div>
+                  </div>
+                  <div class="modal-footer">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Batal</button>
+                    <button type="button" class="btn btn-primary" id="btnSumbitOverride">Tambahkan ke RAB</button>
+                  </div>
+                </div>
+              </div>
             </div>
 
             <div class="d-flex gap-2 mt-4 flex-wrap">
@@ -651,137 +700,167 @@
 
   <script>
     (function(){
-      const tipeProject = document.getElementById('tipe_project');
-      const sumberDana = document.getElementById('sumber_dana');
-      const wrapInt   = document.getElementById('wrap-kategori-internal');
-      const wrapEks   = document.getElementById('wrap-kategori-eksternal');
-      const selInt    = document.getElementById('kategori_pendanaan_internal');
-      const selEks    = document.getElementById('kategori_pendanaan_eksternal');
-      const contWrap  = document.getElementById('subkategori_pendanaan_container');
-      const contBody  = document.getElementById('subkategori_pendanaan');
+      const skemaSelect = document.getElementById('skema_pendanaan_id');
+      const skemaInfoBox = document.getElementById('skema_info_box');
+      const infoJp = document.getElementById('info_jp');
+      const infoJd = document.getElementById('info_jd');
+      const infoProv = document.getElementById('info_prov');
+      
+      const rabContainer = document.getElementById('rab_container');
+      const rabTbody = document.getElementById('rabTbody');
+      const totalRAB = document.getElementById('totalRAB');
+      const form = document.getElementById('projectForm');
+      
+      const isEditMode = document.getElementById('is_edit_mode').value === '1';
+      const projectId = document.getElementById('project_id').value;
 
-      const isEditMode = {!! isset($project) ? 'true' : 'false' !!};
-      const projectId  = {!! isset($project) ? (int)$project->id : 'null' !!};
-
-      function rupiahMask(el){
-        el.addEventListener('input', function(){
-          const digits = this.value.replace(/\D/g,'');
-          if(!digits){ this.value=''; return; }
-          this.value = 'Rp. ' + new Intl.NumberFormat('id-ID').format(Number(digits));
-        });
-      }
-      function toNumber(str){ return Number((str||'').toString().replace(/\D/g,'') || 0); }
-
-      function buildFields(items){
-        contBody.innerHTML = '';
-        items.forEach(item=>{
-          const col = document.createElement('div');
-          col.className = 'col-md-6';
-          col.innerHTML = `
-            <label class="form-label" for="${item.nama_form}">${item.nama}</label>
-            <input type="text" class="form-control rupiah" id="${item.nama_form}" name="${item.nama_form}" placeholder="Cth: Rp. 1.000.000">
-          `;
-          contBody.appendChild(col);
-        });
-        contWrap.style.display = items.length ? 'block' : 'none';
-        contBody.querySelectorAll('.rupiah').forEach(rupiahMask);
+      function formatRupiah(number) {
+        return new Intl.NumberFormat('id-ID').format(number);
       }
 
-      async function loadSubkategoriPendanaan(katId){
-        if(!katId) return;
-        try{
-          const res = await fetch(`/project/sumberdana/${katId}`);
+      function parseRupiah(str) {
+        return Number((str||'').toString().replace(/\D/g,'') || 0);
+      }
+
+      function calculateTotal() {
+        let total = 0;
+        document.querySelectorAll('.input-nominal').forEach(inp => {
+          total += parseRupiah(inp.value);
+        });
+        totalRAB.textContent = 'Rp. ' + formatRupiah(total);
+      }
+
+      function attachMasking() {
+        document.querySelectorAll('.input-nominal').forEach(inp => {
+          inp.addEventListener('input', function() {
+            const digits = this.value.replace(/\D/g,'');
+            if(!digits){ this.value=''; calculateTotal(); return; }
+            this.value = 'Rp. ' + formatRupiah(Number(digits));
+            calculateTotal();
+          });
+        });
+      }
+
+      function renderKomponenRow(k, nominal = '') {
+        const tr = document.createElement('tr');
+        const badge = k.is_wajib ? '<span class="badge bg-danger">Wajib</span>' : '<span class="badge bg-secondary">Opsional</span>';
+        const deleteBtn = isEditMode ? '-' : `<button type="button" class="btn btn-sm btn-outline-danger btn-remove-komp"><i class="bi bi-x-lg"></i></button>`;
+        const isReadonly = isEditMode ? 'readonly' : '';
+        
+        tr.innerHTML = `
+          <td>
+            <strong>${k.nama}</strong>
+            <input type="hidden" name="komponen_id[]" value="${k.id}">
+          </td>
+          <td class="text-center">${badge}</td>
+          <td>
+            <input type="text" class="form-control input-nominal" name="nominal[]" placeholder="Rp. 0" value="${nominal}" ${isReadonly} ${k.is_wajib ? 'required' : ''}>
+          </td>
+          <td class="text-center">${deleteBtn}</td>
+        `;
+        rabTbody.appendChild(tr);
+      }
+
+      async function fetchSkemaDetails(skemaId) {
+        if(!skemaId) {
+          skemaInfoBox.style.display = 'none';
+          rabContainer.style.display = 'none';
+          return;
+        }
+
+        try {
+          const res = await fetch(`/project/skema-details/${skemaId}`);
           const data = await res.json();
-          buildFields(data || []);
+          
+          skemaInfoBox.style.display = 'block';
+          infoJp.textContent = data.skema.jenis_project?.nama || '-';
+          infoJd.textContent = data.skema.jenis_pendanaan?.nama || '-';
+          infoProv.textContent = data.skema.provider?.singkatan || '-';
 
-          if(isEditMode && projectId){
-            const r2 = await fetch(`/project/${projectId}/subcategories`);
-            const exists = await r2.json();
-            exists?.forEach(sc=>{
-              const input = document.querySelector(`[name="${sc.nama_form}"]`);
-              if(input){
-                input.value = sc.nominal ? ('Rp. ' + new Intl.NumberFormat('id-ID').format(sc.nominal)) : '';
-              }
+          if (!isEditMode) {
+            rabTbody.innerHTML = '';
+            data.komponen.forEach(k => {
+              renderKomponenRow(k);
             });
+            attachMasking();
+            calculateTotal();
+            rabContainer.style.display = 'block';
           }
-        }catch(e){
-          console.error('loadSubkategoriPendanaan error', e);
-          contWrap.style.display='none';
+        } catch(e) {
+          console.error(e);
         }
       }
 
-      /**
-       * Fetch sumber dana by tipe_project and repopulate internal/eksternal dropdowns.
-       */
-      async function reloadSumberDanaByTipe(tipe, preserveKategoriId){
-        try{
-          const res = await fetch(`/project/sumberdana-by-tipe/${encodeURIComponent(tipe)}`);
-          const data = await res.json();
-
-          const internals  = data.filter(d => d.jenis_pendanaan === 'internal');
-          const eksternals = data.filter(d => d.jenis_pendanaan === 'eksternal');
-
-          // Rebuild internal dropdown
-          selInt.innerHTML = '';
-          internals.forEach(d=>{
-            const opt = document.createElement('option');
-            opt.value = d.id;
-            opt.textContent = d.nama_sumber_dana;
-            if(preserveKategoriId && d.id == preserveKategoriId) opt.selected = true;
-            selInt.appendChild(opt);
-          });
-
-          // Rebuild eksternal dropdown
-          selEks.innerHTML = '';
-          eksternals.forEach(d=>{
-            const opt = document.createElement('option');
-            opt.value = d.id;
-            opt.textContent = d.nama_sumber_dana;
-            if(preserveKategoriId && d.id == preserveKategoriId) opt.selected = true;
-            selEks.appendChild(opt);
-          });
-
-          // Trigger subkategori load
-          toggleKategori();
-        }catch(e){
-          console.error('reloadSumberDanaByTipe error', e);
+      // Hapus komponen
+      rabTbody.addEventListener('click', function(e) {
+        if(e.target.closest('.btn-remove-komp')) {
+          e.target.closest('tr').remove();
+          calculateTotal();
         }
-      }
-
-      function toggleKategori(){
-        if(sumberDana.value==='eksternal'){
-          wrapInt.style.display='none';
-          wrapEks.style.display='block';
-          loadSubkategoriPendanaan(selEks.value);
-        }else{
-          wrapEks.style.display='none';
-          wrapInt.style.display='block';
-          loadSubkategoriPendanaan(selInt.value);
-        }
-      }
-
-      // bersihkan rupiah -> angka polos saat submit
-      document.getElementById('projectForm').addEventListener('submit', function(){
-        this.querySelectorAll('.rupiah').forEach(inp=> inp.value = toNumber(inp.value));
       });
 
-      // Tipe project berubah -> reload sumber dana
-      tipeProject.addEventListener('change', function(){
-        reloadSumberDanaByTipe(this.value, null);
+      // Tambah komponen manual (override)
+      document.getElementById('btnSumbitOverride')?.addEventListener('click', function() {
+        const sel = document.getElementById('override_komponen_id');
+        const id = sel.value;
+        const nama = sel.options[sel.selectedIndex]?.getAttribute('data-nama');
+        
+        if(!id) return;
+        
+        // Cek duplikat di UI
+        let duplicate = false;
+        document.querySelectorAll('input[name="komponen_id[]"]').forEach(inp => {
+          if(inp.value === id) duplicate = true;
+        });
+        
+        if(duplicate) {
+          alert("Komponen tersebut sudah ada di daftar RAB.");
+          return;
+        }
+
+        renderKomponenRow({id: id, nama: nama, is_wajib: false});
+        attachMasking();
+        
+        // close modal
+        const modalEl = document.getElementById('modalAddKomponen');
+        const modalIns = bootstrap.Modal.getInstance(modalEl);
+        modalIns.hide();
+        sel.value = "";
       });
 
-      sumberDana.addEventListener('change', toggleKategori);
-      selInt.addEventListener('change', ()=> sumberDana.value==='internal' && loadSubkategoriPendanaan(selInt.value));
-      selEks.addEventListener('change', ()=> sumberDana.value==='eksternal' && loadSubkategoriPendanaan(selEks.value));
+      skemaSelect.addEventListener('change', function() {
+        fetchSkemaDetails(this.value);
+      });
 
-      // init: on edit mode, preserve current kategori; on create, just load
-      const preserveId = document.getElementById('current_kategori_id')?.value || null;
-      if(isEditMode && preserveId){
-        // Already loaded from server-side, just toggle kategori
-        toggleKategori();
-      } else {
-        // Create mode: load by tipe
-        reloadSumberDanaByTipe(tipeProject.value, null);
+      // Init on load
+      if (skemaSelect.value) {
+        fetchSkemaDetails(skemaSelect.value);
+      }
+
+      // Bersihkan masking sebelum disubmit
+      form.addEventListener('submit', function(e) {
+        document.querySelectorAll('.input-nominal').forEach(inp => {
+          inp.value = parseRupiah(inp.value);
+        });
+      });
+
+      // Khusus edit mode, load existing subkategori
+      if (isEditMode && projectId) {
+        rabContainer.style.display = 'block';
+        fetch(`/project/${projectId}/subcategories`)
+          .then(r => r.json())
+          .then(items => {
+            rabTbody.innerHTML = '';
+            items.forEach(item => {
+              renderKomponenRow({
+                id: item.id_subkategori_sumberdana, // in edit mode we just display it
+                nama: item.nama,
+                is_wajib: true
+              }, 'Rp. ' + formatRupiah(item.nominal));
+            });
+            attachMasking();
+            calculateTotal();
+          });
       }
     })();
 
@@ -793,6 +872,46 @@
         allowClear: true,
         width: '100%'
       });
+
+      // Auto hitung Tahun dan Durasi Project
+      const tglMulai = document.getElementById('tanggal_mulai');
+      const tglSelesai = document.getElementById('tanggal_selesai');
+      const txtTahun = document.getElementById('tahun');
+      const txtDurasi = document.getElementById('durasi');
+
+      function calculateDates() {
+        if (tglMulai.value && tglSelesai.value) {
+          const d1 = new Date(tglMulai.value);
+          const d2 = new Date(tglSelesai.value);
+          
+          if (d1.toString() !== 'Invalid Date') {
+             txtTahun.value = d1.getFullYear();
+          }
+          
+          if(d2 >= d1) {
+            const diffTime = Math.abs(d2 - d1);
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1; // inclusive
+            
+            let durasiStr = diffDays + " Hari";
+            if (diffDays >= 365) {
+              const years = (diffDays / 365).toFixed(1);
+              durasiStr += " (" + years.replace('.0', '') + " Tahun)";
+            } else if (diffDays >= 30) {
+              const months = (diffDays / 30).toFixed(1);
+              durasiStr += " (" + months.replace('.0', '') + " Bulan)";
+            }
+            txtDurasi.value = durasiStr;
+          } else {
+            txtDurasi.value = "Tanggal tidak valid";
+          }
+        }
+      }
+
+      tglMulai.addEventListener('change', calculateDates);
+      tglSelesai.addEventListener('change', calculateDates);
+      
+      // Hitung otomatis saat page load jika sudah ada isinya (misal saat edit form error/back)
+      calculateDates();
     });
   </script>
 </body>
